@@ -8,25 +8,27 @@ import { UnimplementedError, InvalidOperationError } from '../../util/Errors';
 
 export interface Term extends Expression {
     termType: TermType
+    treeType: TreeType
 
     toEBV(): boolean
-    rdfEqual(other: Term): boolean
-    rdfNotEqual(other: Term): boolean
-
+    
     // TODO: Maybe just return the native types (eg: boolean, number)
     not(): boolean
     unPlus(): number
     unMin(): number
 
-    lt(other: Term): boolean
-    gt(other: Term): boolean
-    lte(other: Term): boolean
-    gte(other: Term): boolean
+    // rdfEqual(other: Term): boolean
+    // rdfNotEqual(other: Term): boolean
 
-    multiply(other: Term): number
-    divide(other: Term): number
-    add(other: Term): number
-    subtract(other: Term): number
+    // lt(other: Term): boolean
+    // gt(other: Term): boolean
+    // lte(other: Term): boolean
+    // gte(other: Term): boolean
+
+    // multiply(other: Term): number
+    // divide(other: Term): number
+    // add(other: Term): number
+    // subtract(other: Term): number
 
     toRDFJS(): RDFJS.Term
 }
@@ -41,38 +43,46 @@ export enum TermType {
     DefaultGraph,
 }
 
+export enum TreeType {
+    String,
+    Numeric,
+}
+
 export abstract class BaseTerm implements Term {
     abstract termType: TermType;
     exprType = ExpressionType.Term;
+    treeType = TreeType.String;
 
     // https://www.w3.org/TR/sparql11-query/#ebv
     toEBV(): boolean {
         throw new InvalidOperationError();
     }
 
-    rdfEqual(other: Term): boolean {
-        throw new UnimplementedError();
-    }
-
-    rdfNotEqual(other: Term): boolean {
-        return !this.rdfEqual(other);
-    }
-
     not(): boolean { throw new InvalidOperationError(); }
     unPlus(): number { throw new InvalidOperationError(); }
     unMin(): number { throw new InvalidOperationError(); }
 
-    lt(other: Term): boolean { throw new InvalidOperationError(); }
-    gt(other: Term): boolean { throw new InvalidOperationError(); }
-    lte(other: Term): boolean { throw new InvalidOperationError(); }
-    gte(other: Term): boolean { throw new InvalidOperationError(); }
-
-    multiply(other: Term): number { throw new InvalidOperationError(); }
-    divide(other: Term): number { throw new InvalidOperationError(); }
-    add(other: Term): number { throw new InvalidOperationError(); }
-    subtract(other: Term): number { throw new InvalidOperationError(); }
-
     abstract toRDFJS(): RDFJS.Term;
+
+    static impl = {
+        rdfEqual(other: Term): boolean {
+            throw new UnimplementedError();
+        },
+    
+        rdfNotEqual(other: Term): boolean {
+            return !this.rdfEqual(other);
+        },
+
+        lt(other: Term): boolean { throw new InvalidOperationError(); },
+        gt(other: Term): boolean { throw new InvalidOperationError(); },
+        lte(other: Term): boolean { throw new InvalidOperationError(); },
+        gte(other: Term): boolean { throw new InvalidOperationError(); },
+    
+        multiply(other: Term): number { throw new InvalidOperationError(); },
+        divide(other: Term): number { throw new InvalidOperationError(); },
+        add(other: Term): number { throw new InvalidOperationError(); },
+        subtract(other: Term): number { throw new InvalidOperationError(); },
+    }
 }
 
 // ============================================================================

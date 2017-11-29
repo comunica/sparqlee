@@ -1,5 +1,6 @@
 import { Expression, ExpressionType } from './Types';
-import { Term, Literal, BooleanLiteral, NumericLiteral } from './Terms';
+import { Term, Literal, BooleanLiteral, NumericLiteral, TreeType,
+         BaseTerm } from './Terms';
 
 export interface Operation extends Expression {
     operator: Operator,
@@ -38,6 +39,27 @@ export abstract class BaseOperation implements Operation {
     abstract apply(args: Term[]): Term
 }
 
+export interface Impl {
+    rdfEqual(other: Term): boolean,
+
+    rdfNotEqual(other: Term): boolean,
+
+    lt(other: Term): boolean,
+    gt(other: Term): boolean,
+    lte(other: Term): boolean,
+    gte(other: Term): boolean,
+
+    multiply(other: Term): number,
+    divide(other: Term): number,
+    add(other: Term): number,
+    subtract(other: Term): number,
+}
+
+const typeMap = new Map<[TreeType, TreeType], Impl>([
+    [[TreeType.String, TreeType.String], BaseTerm.impl]
+])
+
+
 export abstract class BinaryOperation extends BaseOperation {
     left: Expression;
     right: Expression;
@@ -52,10 +74,12 @@ export abstract class BinaryOperation extends BaseOperation {
     }
 
     apply(args: Term[]): Term {
-        return this.applyBin(args[0], args[1]);
+        let type :[TreeType, TreeType] = [args[0].treeType, args[1].treeType];
+        let impl = typeMap.get(type);
+        return this.applyBin(impl, args[0], args[1]);
     }
 
-    abstract applyBin(left: Term, right: Term): Term;
+    abstract applyBin(impl: Impl, left: Term, right: Term): Term;
 }
 
 export abstract class UnaryOperation extends BaseOperation {
@@ -80,8 +104,9 @@ export abstract class UnaryOperation extends BaseOperation {
 export class And extends BinaryOperation {
     operator = Operator.AND;
 
-    applyBin(left: Term, right: Term): BooleanLiteral {
+    applyBin(impl: Impl, left: Term, right: Term): BooleanLiteral {
         let result = left.toEBV() && right.toEBV();
+        impl.and()
         return new BooleanLiteral(result);
     }
 }
