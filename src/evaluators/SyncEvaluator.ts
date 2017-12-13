@@ -7,7 +7,7 @@ import * as E from './expressions/Types';
 import * as T from './expressions/Terms';
 import * as Ops from './expressions/Operators';
 
-import { ExpressionEvaluator } from './ExpressionEvaluator';
+import { Evaluator } from '../core/Evaluator';
 import { Bindings } from '../core/Bindings';
 // TODO: Make this import more clear/elegant
 import { TermTypes as TT, ExpressionTypes as ET, DataType as DT } from '../util/Consts';
@@ -19,7 +19,7 @@ import * as P from '../util/Parsing';
  * Benchmarking this provides a theoretical maximum
  * Will only evaluate specific examples correctly.
  */
-export class SyncEvaluator implements ExpressionEvaluator {
+export class SyncEvaluator implements Evaluator {
     expr: E.Expression;
 
     constructor(expr: S.Expression) {

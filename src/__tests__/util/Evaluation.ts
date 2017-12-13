@@ -3,8 +3,7 @@ import { Literal, Term } from 'rdf-js';
 import { Map } from 'immutable';
 
 import { Bindings } from '../../core/Bindings';
-import { AsyncEvaluator } from '../../evaluator/ExpressionEvaluator';
-import { SyncEvaluator } from '../../evaluator/EvalSync';
+import { SyncEvaluator } from '../../evaluators/SyncEvaluator';
 
 const parser = new Parser({ 'xsd': 'http://www.w3.org/2001/XMLSchema#' });
 
