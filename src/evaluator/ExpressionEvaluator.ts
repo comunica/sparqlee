@@ -1,11 +1,10 @@
-import { evaluate } from '../__tests__/util/Evaluation';
 import * as RDF from 'rdf-data-model';
 import { Expression } from "sparqljs";
 
-import { Mapping } from "../core/Mapping";
+import { Bindings } from "../core/Bindings";
 
 export interface ExpressionEvaluator {
-    evaluate(mapping: Mapping) :boolean;
+    evaluate(mapping: Bindings) :boolean;
 }
 
 export class AsyncEvaluator implements ExpressionEvaluator {
@@ -15,7 +14,7 @@ export class AsyncEvaluator implements ExpressionEvaluator {
         this.expr = expr;
     }
 
-    evaluate(mapping: Mapping) :boolean {
+    evaluate(mapping: Bindings) :boolean {
         return true;
     }
 }

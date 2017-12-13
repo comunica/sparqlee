@@ -1,7 +1,7 @@
 import { Expression } from 'sparqljs';
 import { Literal } from 'rdf-js';
 import { ExpressionEvaluator } from '../src/evaluator/ExpressionEvaluator';
-import { Mapping } from '../src/core/Mapping';
+import { Bindings } from "../src/core/Bindings";
 
 
 /**
@@ -14,7 +14,7 @@ export class EmptyEvaluator implements ExpressionEvaluator {
         this.expr = expr;
     }
 
-    evaluate(mapping: Mapping) :boolean {
+    evaluate(mapping: Bindings) :boolean {
         return null;
     }
 }
