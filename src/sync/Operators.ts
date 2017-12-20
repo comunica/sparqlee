@@ -4,13 +4,14 @@ import { InvalidOperationError, UnimplementedError } from '../util/Errors';
 import { BooleanImpl, DateTimeImpl, Impl, NumericImpl, SimpleImpl, StringImpl,
          TermImpl, ImplType } from '../core/Operators';
 
+// TODO: Maybe should be in core?
 export interface Operation extends Expression {
-    operator: Operator,
+    operator: OpType,
     args: Expression[],
     apply(args: Term[]): Term
 }
 
-export enum Operator {
+export enum OpType {
     UN_PLUS,
     UN_MIN,
     NOT,
@@ -29,151 +30,139 @@ export enum Operator {
 }
 
 export abstract class BaseOperation implements Operation {
-    abstract operator: Operator;
+    operator: OpType;
 
     exprType: ExpressionType.Operation = ExpressionType.Operation;
     args: Expression[];
+    argNum: number;
 
-    constructor(args: Expression[]) {
+    constructor(operator: OpType, args: Expression[], argNum: number) {
         this.args = args
+        this.argNum = argNum;
+        this.operator = operator;
+        if (args.length != argNum) {
+            throw new Error(`Incorrect number of arguments, was ${args.length} but should be 2`);
+        }
     }
 
     abstract apply(args: Term[]): Term
 }
 
-export abstract class BinaryOperation extends BaseOperation {
+export function getOp(op: OpType, args: Expression[]): Operation {
+    switch(op) {
+        case OpType.UN_PLUS:
+        case OpType.UN_MIN:
+        case OpType.NOT: return new UnaryOperation(op, args);
+
+        case OpType.AND:
+        case OpType.OR:
+        case OpType.EQUAL:
+        case OpType.NOTEQUAL:
+        case OpType.LT:
+        case OpType.GT:
+        case OpType.LTE:
+        case OpType.GTE:
+        case OpType.MULTIPLICATION:
+        case OpType.DIVISION:
+        case OpType.ADDITION:
+        case OpType.SUBTRACTION: return new BinaryOperation(op, args);
+
+        default: throw new UnimplementedError();
+    }
+}
+
+class UnaryOperation extends BaseOperation {
+    arg: Expression;
+    operator: OpType
+    operation: ((arg: Term) => Term);
+
+    constructor(operator: OpType, args: Expression[]) {
+        super(operator, args, 1);
+        this.arg = args[0];
+        this.operation = unOpMap[operator];
+    }
+
+    apply(args: Term[]): Term {
+        return this.operation(args[0]);
+    }
+}
+
+class BinaryOperation extends BaseOperation {
     left: Expression;
     right: Expression;
+    operator: OpType
+    operation: (impl: Impl) => ((left: Term, right: Term) => Term);
 
-    constructor(args: Expression[]) {
-        super(args);
-        if (args.length != 2) {
-            throw new Error(`Incorrect number of arguments, was ${args.length} but should be 2`);
-        }
+    constructor(operator: OpType, args: Expression[]) {
+        super(operator, args, 2);
         this.left = args[0];
         this.right = args[1];
+        this.operator = operator;
+        this.operation = binOpMap[operator];
     }
 
     apply(args: Term[]): Term {
         let type = `${args[0].implType} ${args[1].implType}`;
         let impl = typeMap.get(type);
-        return this.applyBin(impl, args[0], args[1]);
-    }
-
-    abstract applyBin(impl: Impl, left: Term, right: Term): Term;
-}
-
-// type TypedOBinOp = (impl: Impl, left: Term, right: Term) => Term;
-
-
-export abstract class BinaryBoolOperation extends BinaryOperation {
-    abstract func(impl: Impl): ((left: Term, right: Term) => boolean);
-    applyBin(impl: Impl, left: Term, right: Term): Term {
-        return new BooleanLiteral(this.func(impl)(left, right))
+        return this.operation(impl)(args[0], args[1]);
     }
 }
 
-export abstract class BinaryArithmeticOperation extends BinaryOperation {
-    abstract func(impl: Impl): ((left: Term, right: Term) => number);
-    applyBin(impl: Impl, left: Term, right: Term): Term {
-        return new NumericLiteral(this.func(impl)(left, right))
+// Bind unary operators the the correct method
+// TODO: Maybe remove Impl requirement
+type UnOp = (arg: Term) => Term;
+interface UnOpMap {
+    [key: string]: UnOp
+}
+const unOpMap: UnOpMap = {
+    [OpType.UN_PLUS]: (arg: Term) => new NumericLiteral(arg.unPlus()),
+    [OpType.UN_MIN]: (arg: Term) => new NumericLiteral(arg.unMin()),
+    [OpType.NOT]: (arg: Term) => new BooleanLiteral(arg.not()),
+}
+
+// Bind binary operators to the correct method
+type BinOp = (left: Term, right: Term) => Term;
+interface BinOpMap {
+    [key: string]: (impl: Impl) => BinOp
+}
+const binOpMap: BinOpMap = {
+    // Boolean
+    [OpType.AND]: (impl: Impl) => binBoolBinding(EBVAnd),
+    [OpType.OR]: (impl: Impl) => binBoolBinding(EBVOr),
+    [OpType.EQUAL]: (impl: Impl) => binBoolBinding(impl.rdfEqual),
+    [OpType.NOTEQUAL]: (impl: Impl) => binBoolBinding(impl.rdfNotEqual),
+    [OpType.LT]: (impl: Impl) => binBoolBinding(impl.lt),
+    [OpType.GT]: (impl: Impl) => binBoolBinding(impl.gt),
+    [OpType.LTE]: (impl: Impl) => binBoolBinding(impl.lte),
+    [OpType.GTE]: (impl: Impl) => binBoolBinding(impl.gte),
+
+    // Numeric
+    [OpType.MULTIPLICATION]: (impl: Impl) => binNumBinding(impl.multiply),
+    [OpType.DIVISION]: (impl: Impl) => binNumBinding(impl.divide),
+    [OpType.ADDITION]: (impl: Impl) => binNumBinding(impl.multiply),
+    [OpType.SUBTRACTION]: (impl: Impl) => binNumBinding(impl.subtract),
+}
+
+type NumOp = (left: Term, right: Term) => number;
+function binNumBinding(op: NumOp): BinOp {
+    return (left: Term, right: Term) => {
+        return new NumericLiteral(op(left, right))
     }
 }
 
-export abstract class UnaryOperation extends BaseOperation {
-    arg: Expression;
-
-    constructor(args: Expression[]) {
-        super(args);
-        if (args.length != 1) {
-            throw new Error(`Incorrect number of arguments, was ${args.length} but should be 1`);
-        }
-        this.arg = args[0];
-    }
-
-    apply(args: Term[]): Term {
-        return this.applyUn(args[0]);
-    }
-
-    abstract applyUn(arg: Term): Term;
-}
-
-export class Not extends UnaryOperation {
-    operator = Operator.NOT;
-    applyUn(arg: Term): BooleanLiteral {
-        return new BooleanLiteral(arg.not());
+type BoolOp = (left: Term, right: Term) => boolean;
+function binBoolBinding(op: BoolOp): BinOp {
+    return (left: Term, right: Term) => {
+        return new BooleanLiteral(op(left, right))
     }
 }
 
-// TODO: Maybe just extend BinaryOperation for performance
-// TODO: Correctly handle error + false
-export class And extends BinaryBoolOperation {
-    operator = Operator.AND;
-    func(impl: Impl) {
-        return (left: Term, right: Term) => {
-            return left.toEBV() && right.toEBV();
-        }
-    };
+function EBVAnd(left: Term, right: Term): boolean {
+    return left.toEBV() && right.toEBV();
 }
 
-// TODO: Correctly handle error + true
-export class Or extends BinaryBoolOperation {
-    operator = Operator.OR;
-    func(impl: Impl) {
-        return (left: Term, right: Term) => {
-            return left.toEBV() || right.toEBV();
-        }
-    };
-}
-
-export class Equal extends BinaryBoolOperation {
-    operator = Operator.EQUAL;
-    func(impl: Impl) { return impl.rdfEqual; }
-}
-
-export class NotEqual extends BinaryBoolOperation {
-    operator = Operator.NOTEQUAL;
-    func(impl: Impl) { return impl.rdfNotEqual; }
-}
-
-export class LesserThan extends BinaryBoolOperation {
-    operator = Operator.LT;
-    func(impl: Impl) { return impl.lt; }
-}
-
-export class GreaterThan extends BinaryBoolOperation {
-    operator = Operator.GT;
-    func(impl: Impl) { return impl.gt; }
-}
-
-export class LesserThanEqual extends BinaryBoolOperation {
-    operator = Operator.LTE;
-    func(impl: Impl) { return impl.lte; }
-}
-
-export class GreaterThanEqual extends BinaryBoolOperation {
-    operator = Operator.GTE;
-    func(impl: Impl) { return impl.gte; }
-}
-
-export class Multiplication extends BinaryArithmeticOperation {
-    operator = Operator.MULTIPLICATION;
-    func(impl: Impl) { return impl.multiply; }
-}
-
-export class Division extends BinaryArithmeticOperation {
-    operator = Operator.DIVISION;
-    func(impl: Impl) { return impl.divide; }
-}
-
-export class Addition extends BinaryArithmeticOperation {
-    operator = Operator.ADDITION;
-    func(impl: Impl) { return impl.add; }
-}
-
-export class Subtraction extends BinaryArithmeticOperation {
-    operator = Operator.SUBTRACTION;
-    func(impl: Impl) { return impl.subtract; }
+function EBVOr(left: Term, right: Term) {
+    return left.toEBV() || right.toEBV();
 }
 
 // Generate typeMap so no branching is needed;

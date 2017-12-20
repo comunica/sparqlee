@@ -2,10 +2,9 @@ import * as RDFJS from 'rdf-js';
 import * as S from 'sparqljs';
 import fromString from 'termterm.js';
 
-// TODO: Join Expression type definitions back together
 import * as E from '../core/Expressions';
 import * as T from '../core/Terms';
-import * as Ops from './Operators';
+import { OpType as Ops, getOp, Operation } from './Operators'; 
 
 import { Evaluator, Bindings } from '../core/FilteredStreams';
 // TODO: Make this import more clear/elegant
@@ -41,7 +40,7 @@ export class SyncEvaluator implements Evaluator {
             };
 
             case E.ExpressionType.Operation: {
-                let op = <Ops.Operation>expr;
+                let op = <Operation>expr;
                 let args = op.args.map((arg: E.Term) => this.evalExpr(arg, mapping));
                 return op.apply(args);
             };
@@ -76,19 +75,19 @@ export class SyncEvaluator implements Evaluator {
             case ET.Operation: {
                 let args = expr.args.map((arg) => this._transform(arg));
                 switch (expr.operator) {
-                    case '&&': return new Ops.And(args);
-                    case '||': return new Ops.Or(args);
-                    case '!': return new Ops.Not(args);
-                    case '=': return new Ops.Equal(args);
-                    case '!=': return new Ops.NotEqual(args);
-                    case '<': return new Ops.LesserThan(args);
-                    case '>': return new Ops.GreaterThan(args);
-                    case '<=': return new Ops.LesserThanEqual(args);
-                    case '>=': return new Ops.GreaterThanEqual(args);
-                    case '*': return new Ops.Multiplication(args);
-                    case '/': return new Ops.Division(args);
-                    case '+': return new Ops.Addition(args);
-                    case '-': return new Ops.Subtraction(args);
+                    case '&&': return getOp(Ops.AND, args);
+                    case '||': return getOp(Ops.OR, args);
+                    case '!': return getOp(Ops.NOT, args);
+                    case '=': return getOp(Ops.EQUAL, args);
+                    case '!=': return getOp(Ops.NOTEQUAL, args);
+                    case '<': return getOp(Ops.LT, args);
+                    case '>': return getOp(Ops.GT, args);
+                    case '<=': return getOp(Ops.LTE, args);
+                    case '>=': return getOp(Ops.GTE, args);
+                    case '*': return getOp(Ops.MULTIPLICATION, args);
+                    case '/': return getOp(Ops.DIVISION, args);
+                    case '+': return getOp(Ops.ADDITION, args);
+                    case '-': return getOp(Ops.SUBTRACTION, args);
                 }
             };
             case ET.FunctionCall: throw new UnimplementedError();
