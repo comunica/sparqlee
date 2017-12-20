@@ -1,7 +1,7 @@
 import * as RDF from 'rdf-data-model';
 import { Parser, Query, Expression, FilterPattern} from 'sparqljs';
 
-import { Bindings } from "../src/core/Bindings";
+import { Bindings } from "../src/core/FilteredStreams";
 import { DataType as DT } from '../src/util/Consts';
 
 

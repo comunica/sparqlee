@@ -1,8 +1,8 @@
-import { Expression, ExpressionType } from './Types';
-import { BooleanLiteral, Literal, NumericLiteral, Term } from './Terms';
-import { InvalidOperationError, UnimplementedError } from '../../util/Errors';
+import { Expression, ExpressionType, Term } from '../core/Expressions';
+import { BooleanLiteral, Literal, NumericLiteral } from '../core/Terms';
+import { InvalidOperationError, UnimplementedError } from '../util/Errors';
 import { BooleanImpl, DateTimeImpl, Impl, NumericImpl, SimpleImpl, StringImpl,
-         TermImpl, ImplType } from './BinOpImplementation';
+         TermImpl, ImplType } from '../core/Operators';
 
 export interface Operation extends Expression {
     operator: Operator,
@@ -62,6 +62,9 @@ export abstract class BinaryOperation extends BaseOperation {
 
     abstract applyBin(impl: Impl, left: Term, right: Term): Term;
 }
+
+// type TypedOBinOp = (impl: Impl, left: Term, right: Term) => Term;
+
 
 export abstract class BinaryBoolOperation extends BinaryOperation {
     abstract func(impl: Impl): ((left: Term, right: Term) => boolean);

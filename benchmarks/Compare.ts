@@ -1,7 +1,7 @@
 import { Suite } from 'benchmark';
 import { EmptyEvaluator } from './EvalEmpty';
 import { ManualEvaluator } from './EvalManual';
-import { SyncEvaluator } from '../src/evaluators/SyncEvaluator';
+import { SyncEvaluator } from '../src/sync/SyncEvaluator';
 import { example1 } from './Examples';
 
 

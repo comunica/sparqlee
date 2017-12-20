@@ -1,6 +1,8 @@
 import * as RDFJS from 'rdf-js';
 import * as RDFDM from 'rdf-data-model';
 
+import { ImplType } from './Operators';
+
 export interface Expression {
     exprType: ExpressionType
 }
@@ -17,6 +19,7 @@ export enum ExpressionType {
     Term
 }
 
+// TODO: Make this an interface
 export class VariableExpression implements Expression {
     exprType: ExpressionType.Variable = ExpressionType.Variable;
     name: string;
@@ -27,6 +30,7 @@ export class VariableExpression implements Expression {
 
 }
 
+// TODO: Make this an interface
 export class Tuple implements Expression {
     exprType: ExpressionType.Tuple = ExpressionType.Tuple;
     exprs: Expression[]
@@ -34,4 +38,28 @@ export class Tuple implements Expression {
     constructor(exprs: Expression[]) {
         this.exprs = exprs;
     }
+}
+
+export interface Term extends Expression {
+    exprType: ExpressionType;
+    termType: TermType;
+    implType: ImplType;
+
+    toEBV(): boolean
+
+    not(): boolean
+    unPlus(): number
+    unMin(): number
+
+    toRDFJS(): RDFJS.Term
+}
+
+// RDFTerm = IRI, literal, blank node
+// TODO: Maybe think about removing DefaultGraph
+
+export enum TermType {
+    NamedNode,
+    BlankNode,
+    Literal,
+    DefaultGraph,
 }

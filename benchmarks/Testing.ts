@@ -2,8 +2,8 @@ import * as RDF from 'rdf-data-model';
 
 import { Example } from './Examples';
 import { DataType as DT } from '../src/util/Consts';
-import { SyncEvaluator } from '../src/evaluators/SyncEvaluator';
-import { Bindings } from '../src/core/Bindings';
+import { SyncEvaluator } from '../src/sync/SyncEvaluator';
+import { Bindings } from '../src/core/FilteredStreams';
 
 const example1 = (() => {
   const str = 'bound(?a)';

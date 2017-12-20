@@ -1,8 +1,6 @@
-import { Bindings } from './core/Bindings';
-import { Evaluator } from './core/Evaluator';
-import { FilteredStream } from './core/FilteredStreams';
-import { SyncEvaluator } from './evaluators/SyncEvaluator';
-import { AsyncEvaluator } from './evaluators/AsyncEvaluator';
+import { FilteredStream, Bindings, Evaluator } from './core/FilteredStreams';
+import { SyncEvaluator } from './sync/SyncEvaluator';
+import { AsyncEvaluator } from './async/AsyncEvaluator';
 
 
 

@@ -1,9 +1,9 @@
 import * as S from "sparqljs";
 
-import { AbstractFilteredStream, FilteredStream } from "../core/FilteredStreams";
-import { Bindings, BindingsStream } from "../core/Bindings";
+import { AbstractFilteredStream, FilteredStream, Bindings,
+         BindingsStream } from "../core/FilteredStreams";
 import { UnimplementedError } from "../util/Errors";
-import { SyncEvaluator } from "../evaluators/SyncEvaluator";
+import { SyncEvaluator } from "./SyncEvaluator";
 
 export class SyncFilter extends AbstractFilteredStream implements FilteredStream {
     mappings: Bindings[];

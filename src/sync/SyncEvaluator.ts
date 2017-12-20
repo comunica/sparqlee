@@ -3,12 +3,11 @@ import * as S from 'sparqljs';
 import fromString from 'termterm.js';
 
 // TODO: Join Expression type definitions back together
-import * as E from './expressions/Types';
-import * as T from './expressions/Terms';
-import * as Ops from './expressions/Operators';
+import * as E from '../core/Expressions';
+import * as T from '../core/Terms';
+import * as Ops from './Operators';
 
-import { Evaluator } from '../core/Evaluator';
-import { Bindings } from '../core/Bindings';
+import { Evaluator, Bindings } from '../core/FilteredStreams';
 // TODO: Make this import more clear/elegant
 import { TermTypes as TT, ExpressionTypes as ET, DataType as DT } from '../util/Consts';
 import { UnimplementedError } from '../util/Errors';
@@ -30,9 +29,9 @@ export class SyncEvaluator implements Evaluator {
         return this.evalExpr(this.expr, mapping).toEBV();
     }
 
-    evalExpr(expr: E.Expression, mapping: Bindings): T.Term {
+    evalExpr(expr: E.Expression, mapping: Bindings): E.Term {
         switch (expr.exprType) {
-            case E.ExpressionType.Term: return <T.Term>expr;
+            case E.ExpressionType.Term: return <E.Term>expr;
 
             case E.ExpressionType.Variable: {
                 let variable = <E.VariableExpression>expr;
@@ -43,7 +42,7 @@ export class SyncEvaluator implements Evaluator {
 
             case E.ExpressionType.Operation: {
                 let op = <Ops.Operation>expr;
-                let args = op.args.map((arg: T.Term) => this.evalExpr(arg, mapping));
+                let args = op.args.map((arg: E.Term) => this.evalExpr(arg, mapping));
                 return op.apply(args);
             };
 
@@ -108,7 +107,7 @@ export class SyncEvaluator implements Evaluator {
         }
     }
 
-    _toTerm(term: RDFJS.Term): T.Term {
+    _toTerm(term: RDFJS.Term): E.Term {
         switch (term.termType) {
             case 'NamedNode': return new T.NamedNode(term.value);
             case 'BlankNode': return new T.BlankNode(term.value);

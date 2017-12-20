@@ -1,8 +1,6 @@
 import { Expression } from 'sparqljs';
 import { Literal } from 'rdf-js';
-import { Evaluator } from '../src/core/Evaluator';
-import { Bindings } from "../src/core/Bindings";
-
+import { Evaluator, Bindings } from '../src/core/FilteredStreams';
 
 /**
  * Benchmarking this provides a (very lose) theoretical maximum

@@ -4,8 +4,7 @@ import fromString from 'termterm.js';
 import * as RDF from 'rdf-data-model';
 
 import { evaluate } from '../src/__tests__/util/Evaluation';
-import { Evaluator } from '../src/core/Evaluator';
-import { Bindings } from "../src/core/Bindings";
+import { Evaluator, Bindings } from '../src/core/FilteredStreams';
 import { TermTypes as TT, ExpressionTypes as ET } from '../src/util/Consts';
 
 /**

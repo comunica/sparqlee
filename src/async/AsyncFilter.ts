@@ -2,9 +2,9 @@
 import * as BPromise from 'bluebird';
 import * as S from 'sparqljs';
 
-import { AbstractFilteredStream, FilteredStream } from "../core/FilteredStreams";
-import { Bindings, BindingsStream } from "../core/Bindings";
-import { UnimplementedError } from "../util/Errors";
+import { AbstractFilteredStream, FilteredStream, Bindings,
+         BindingsStream } from '../core/FilteredStreams';
+import { UnimplementedError } from '../util/Errors';
 
 export class ASyncFilter extends AbstractFilteredStream implements FilteredStream {
     evaluations: BPromise<void>[];

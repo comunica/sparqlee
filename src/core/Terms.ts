@@ -2,33 +2,10 @@ import * as console from 'console';
 import * as RDFJS from 'rdf-js';
 import * as RDFDM from 'rdf-data-model';
 
-import { Impl, ImplType } from './BinOpImplementation';
-import { Expression, ExpressionType } from './Types';
-import { DataType as DT, NumericType } from '../../util/Consts';
-import { UnimplementedError, InvalidOperationError } from '../../util/Errors';
-
-export interface Term extends Expression {
-    termType: TermType
-    implType: ImplType
-
-    toEBV(): boolean
-
-    not(): boolean
-    unPlus(): number
-    unMin(): number
-
-    toRDFJS(): RDFJS.Term
-}
-
-// RDFTerm = IRI, literal, blank node
-// TODO: Maybe think about removing DefaultGraph
-
-export enum TermType {
-    NamedNode,
-    BlankNode,
-    Literal,
-    DefaultGraph,
-}
+import { Impl, ImplType } from './Operators';
+import { ExpressionType, Term, TermType } from './Expressions';
+import { DataType as DT, NumericType } from '../util/Consts';
+import { UnimplementedError, InvalidOperationError } from '../util/Errors';
 
 export abstract class BaseTerm implements Term {
     abstract termType: TermType;

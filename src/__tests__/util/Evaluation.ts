@@ -2,8 +2,8 @@ import { Parser, Expression, FilterPattern, Query } from 'sparqljs';
 import { Literal, Term } from 'rdf-js';
 import { Map } from 'immutable';
 
-import { Bindings } from '../../core/Bindings';
-import { SyncEvaluator } from '../../evaluators/SyncEvaluator';
+import { Bindings } from '../../core/FilteredStreams';
+import { SyncEvaluator } from '../../sync/SyncEvaluator';
 
 const parser = new Parser({ 'xsd': 'http://www.w3.org/2001/XMLSchema#' });
 

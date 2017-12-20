@@ -1,6 +1,7 @@
-import { InvalidOperationError, UnimplementedError } from '../../util/Errors';
+import { InvalidOperationError, UnimplementedError } from '../util/Errors';
+import { Term } from './Expressions';
 import { BooleanLiteral, DateTimeLiteral, NumericLiteral, SimpleLiteral,
-         StringLiteral, Term } from './Terms';
+         StringLiteral } from './Terms';
 
 export enum ImplType {
   Term ='Term',

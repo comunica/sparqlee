@@ -1,5 +1,4 @@
-import { Evaluator } from "../core/Evaluator";
-import { Bindings } from "../core/Bindings";
+import { Evaluator, Bindings } from "../core/FilteredStreams";
 
 export class AsyncEvaluator implements Evaluator {
 
