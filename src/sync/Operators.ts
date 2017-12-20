@@ -1,16 +1,16 @@
-import { Expression, ExpressionType, Term } from '../core/Expressions';
+import { ExpressionType, IExpression, ITerm } from '../core/Expressions';
 import {
   BooleanImpl, DateTimeImpl, Impl, ImplType, NumericImpl, SimpleImpl,
   StringImpl, TermImpl,
 } from '../core/Operators';
-import { BooleanLiteral, Literal, NumericLiteral } from '../core/Terms';
+import { BooleanLiteral, ILiteral, NumericLiteral } from '../core/Terms';
 import { InvalidOperationError, UnimplementedError } from '../util/Errors';
 
 // TODO: Maybe should be in core?
-export interface IOperation extends Expression {
+export interface IOperation extends IExpression {
   operator: OpType;
-  args: Expression[];
-  apply(args: Term[]): Term;
+  args: IExpression[];
+  apply(args: ITerm[]): ITerm;
 }
 
 export enum OpType {
@@ -34,10 +34,10 @@ export enum OpType {
 export abstract class BaseOperation implements IOperation {
   public operator: OpType;
   public exprType: ExpressionType.Operation = ExpressionType.Operation;
-  public args: Expression[];
+  public args: IExpression[];
   private argNum: number;
 
-  constructor(operator: OpType, args: Expression[], argNum: number) {
+  constructor(operator: OpType, args: IExpression[], argNum: number) {
     this.args = args;
     this.argNum = argNum;
     this.operator = operator;
@@ -46,10 +46,10 @@ export abstract class BaseOperation implements IOperation {
     }
   }
 
-  public abstract apply(args: Term[]): Term;
+  public abstract apply(args: ITerm[]): ITerm;
 }
 
-export function getOp(op: OpType, args: Expression[]): IOperation {
+export function getOp(op: OpType, args: IExpression[]): IOperation {
   switch (op) {
     case OpType.UN_PLUS:
     case OpType.UN_MIN:
@@ -72,33 +72,31 @@ export function getOp(op: OpType, args: Expression[]): IOperation {
   }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 class UnaryOperation extends BaseOperation {
   public operator: OpType;
 
-  private arg: Expression;
-  private operation: ((arg: Term) => Term);
+  private arg: IExpression;
+  private operation: ((arg: ITerm) => ITerm);
 
-  constructor(operator: OpType, args: Expression[]) {
+  constructor(operator: OpType, args: IExpression[]) {
     super(operator, args, 1);
     this.arg = args[0];
     this.operation = unOpMap[operator];
   }
 
-  public apply(args: Term[]): Term {
+  public apply(args: ITerm[]): ITerm {
     return this.operation(args[0]);
   }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 class BinaryOperation extends BaseOperation {
   public operator: OpType;
 
-  private left: Expression;
-  private right: Expression;
-  private operation: (impl: Impl) => ((left: Term, right: Term) => Term);
+  private left: IExpression;
+  private right: IExpression;
+  private operation: (impl: Impl) => ((left: ITerm, right: ITerm) => ITerm);
 
-  constructor(operator: OpType, args: Expression[]) {
+  constructor(operator: OpType, args: IExpression[]) {
     super(operator, args, 2);
     this.left = args[0];
     this.right = args[1];
@@ -106,7 +104,7 @@ class BinaryOperation extends BaseOperation {
     this.operation = binOpMap[operator];
   }
 
-  public apply(args: Term[]): Term {
+  public apply(args: ITerm[]): ITerm {
     const type = `${args[0].implType} ${args[1].implType}`;
     const impl = typeMap.get(type);
     return this.operation(impl)(args[0], args[1]);
@@ -115,18 +113,18 @@ class BinaryOperation extends BaseOperation {
 
 // Bind unary operators the the correct method
 // TODO: Maybe remove Impl requirement
-type UnOp = (arg: Term) => Term;
+type UnOp = (arg: ITerm) => ITerm;
 interface IUnOpMap {
   [key: string]: UnOp;
 }
 const unOpMap: IUnOpMap = {
-  [OpType.UN_PLUS]: (arg: Term) => new NumericLiteral(arg.unPlus()),
-  [OpType.UN_MIN]: (arg: Term) => new NumericLiteral(arg.unMin()),
-  [OpType.NOT]: (arg: Term) => new BooleanLiteral(arg.not()),
+  [OpType.UN_PLUS]: (arg: ITerm) => new NumericLiteral(arg.unPlus()),
+  [OpType.UN_MIN]: (arg: ITerm) => new NumericLiteral(arg.unMin()),
+  [OpType.NOT]: (arg: ITerm) => new BooleanLiteral(arg.not()),
 };
 
 // Bind binary operators to the correct method
-type BinOp = (left: Term, right: Term) => Term;
+type BinOp = (left: ITerm, right: ITerm) => ITerm;
 interface IBinOpMap {
   [key: string]: (impl: Impl) => BinOp;
 }
@@ -148,25 +146,25 @@ const binOpMap: IBinOpMap = {
   [OpType.SUBTRACTION]: (impl: Impl) => binNumBinding(impl.subtract),
 };
 
-type NumOp = (left: Term, right: Term) => number;
+type NumOp = (left: ITerm, right: ITerm) => number;
 function binNumBinding(op: NumOp): BinOp {
-  return (left: Term, right: Term) => {
+  return (left: ITerm, right: ITerm) => {
     return new NumericLiteral(op(left, right));
   };
 }
 
-type BoolOp = (left: Term, right: Term) => boolean;
+type BoolOp = (left: ITerm, right: ITerm) => boolean;
 function binBoolBinding(op: BoolOp): BinOp {
-  return (left: Term, right: Term) => {
+  return (left: ITerm, right: ITerm) => {
     return new BooleanLiteral(op(left, right));
   };
 }
 
-function EBVAnd(left: Term, right: Term): boolean {
+function EBVAnd(left: ITerm, right: ITerm): boolean {
   return left.toEBV() && right.toEBV();
 }
 
-function EBVOr(left: Term, right: Term) {
+function EBVOr(left: ITerm, right: ITerm) {
   return left.toEBV() || right.toEBV();
 }
 

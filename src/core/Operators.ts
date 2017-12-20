@@ -1,10 +1,12 @@
 import { InvalidOperationError, UnimplementedError } from '../util/Errors';
-import { Term } from './Expressions';
-import { BooleanLiteral, DateTimeLiteral, NumericLiteral, SimpleLiteral,
-         StringLiteral } from './Terms';
+import { ITerm } from './Expressions';
+import {
+  BooleanLiteral, DateTimeLiteral, NumericLiteral, SimpleLiteral,
+  StringLiteral,
+} from './Terms';
 
 export enum ImplType {
-  Term ='Term',
+  Term = 'Term',
   String = 'String',
   Numeric = 'Numeric',
   Boolean = 'Boolean',
@@ -13,185 +15,185 @@ export enum ImplType {
 }
 
 export interface Impl {
-  rdfEqual(left: Term, right: Term): boolean,
+  rdfEqual(left: ITerm, right: ITerm): boolean;
 
-  rdfNotEqual(left: Term, right: Term): boolean,
+  rdfNotEqual(left: ITerm, right: ITerm): boolean;
 
-  lt(left: Term, right: Term): boolean,
-  gt(left: Term, right: Term): boolean,
-  lte(left: Term, right: Term): boolean,
-  gte(left: Term, right: Term): boolean,
+  lt(left: ITerm, right: ITerm): boolean;
+  gt(left: ITerm, right: ITerm): boolean;
+  lte(left: ITerm, right: ITerm): boolean;
+  gte(left: ITerm, right: ITerm): boolean;
 
-  multiply(left: Term, right: Term): number,
-  divide(left: Term, right: Term): number,
-  add(left: Term, right: Term): number,
-  subtract(left: Term, right: Term): number,
+  multiply(left: ITerm, right: ITerm): number;
+  divide(left: ITerm, right: ITerm): number;
+  add(left: ITerm, right: ITerm): number;
+  subtract(left: ITerm, right: ITerm): number;
 }
 
 export class TermImpl implements Impl {
-  
-    rdfEqual(left: Term, right: Term): boolean {
-        throw new UnimplementedError();
-    }
 
-    rdfNotEqual(left: Term, right: Term): boolean {
-        return !this.rdfEqual(left, right);
-    }
+  public rdfEqual(left: ITerm, right: ITerm): boolean {
+    throw new UnimplementedError();
+  }
 
-    lt(left: Term, right: Term): boolean { throw new InvalidOperationError(); }
-    gt(left: Term, right: Term): boolean { throw new InvalidOperationError(); }
-    lte(left: Term, right: Term): boolean { throw new InvalidOperationError(); }
-    gte(left: Term, right: Term): boolean { throw new InvalidOperationError(); }
-    multiply(left: Term, right: Term): number { throw new InvalidOperationError(); }
-    divide(left: Term, right: Term): number { throw new InvalidOperationError(); }
-    add(left: Term, right: Term): number { throw new InvalidOperationError(); }
-    subtract(left: Term, right: Term): number { throw new InvalidOperationError(); }
+  public rdfNotEqual(left: ITerm, right: ITerm): boolean {
+    return !this.rdfEqual(left, right);
+  }
+
+  public lt(left: ITerm, right: ITerm): boolean { throw new InvalidOperationError(); }
+  public gt(left: ITerm, right: ITerm): boolean { throw new InvalidOperationError(); }
+  public lte(left: ITerm, right: ITerm): boolean { throw new InvalidOperationError(); }
+  public gte(left: ITerm, right: ITerm): boolean { throw new InvalidOperationError(); }
+  public multiply(left: ITerm, right: ITerm): number { throw new InvalidOperationError(); }
+  public divide(left: ITerm, right: ITerm): number { throw new InvalidOperationError(); }
+  public add(left: ITerm, right: ITerm): number { throw new InvalidOperationError(); }
+  public subtract(left: ITerm, right: ITerm): number { throw new InvalidOperationError(); }
 }
 
 export class NumericImpl extends TermImpl {
 
-    rdfEqual(left: NumericLiteral, right: NumericLiteral): boolean {
-        return left.value === right.value;
-    }
+  public rdfEqual(left: NumericLiteral, right: NumericLiteral): boolean {
+    return left.value === right.value;
+  }
 
-    rdfNotEqual(left: NumericLiteral, right: NumericLiteral): boolean {
-        return left.value !== right.value;
-    }
+  public rdfNotEqual(left: NumericLiteral, right: NumericLiteral): boolean {
+    return left.value !== right.value;
+  }
 
-    lt(left: NumericLiteral, right: NumericLiteral): boolean {
-        return left.value < right.value;
-    }
+  public lt(left: NumericLiteral, right: NumericLiteral): boolean {
+    return left.value < right.value;
+  }
 
-    gt(left: NumericLiteral, right: NumericLiteral): boolean {
-        return left.value > right.value;
-    }
+  public gt(left: NumericLiteral, right: NumericLiteral): boolean {
+    return left.value > right.value;
+  }
 
-    lte(left: NumericLiteral, right: NumericLiteral): boolean {
-        return left.value <= right.value;
-    }
+  public lte(left: NumericLiteral, right: NumericLiteral): boolean {
+    return left.value <= right.value;
+  }
 
-    gte(left: NumericLiteral, right: NumericLiteral): boolean {
-        return left.value >= right.value;
-    }
+  public gte(left: NumericLiteral, right: NumericLiteral): boolean {
+    return left.value >= right.value;
+  }
 
-    multiply(left: NumericLiteral, right: NumericLiteral): number {
-        return left.value * right.value;
-    }
+  public multiply(left: NumericLiteral, right: NumericLiteral): number {
+    return left.value * right.value;
+  }
 
-    divide(left: NumericLiteral, right: NumericLiteral): number {
-        return left.value / right.value;
-    }
+  public divide(left: NumericLiteral, right: NumericLiteral): number {
+    return left.value / right.value;
+  }
 
-    add(left: NumericLiteral, right: NumericLiteral): number {
-        return left.value + right.value;
-    }
+  public add(left: NumericLiteral, right: NumericLiteral): number {
+    return left.value + right.value;
+  }
 
-    subtract(left: NumericLiteral, right: NumericLiteral): number {
-        return left.value - right.value;
-    }
+  public subtract(left: NumericLiteral, right: NumericLiteral): number {
+    return left.value - right.value;
+  }
 }
 
 export class StringImpl extends TermImpl {
-    rdfEqual(left: StringLiteral, right: StringLiteral): boolean {
-        return left.value === right.value;
-    }
+  public rdfEqual(left: StringLiteral, right: StringLiteral): boolean {
+    return left.value === right.value;
+  }
 
-    rdfNotEqual(left: StringLiteral, right: StringLiteral): boolean {
-        return left.value !== right.value;
-    }
+  public rdfNotEqual(left: StringLiteral, right: StringLiteral): boolean {
+    return left.value !== right.value;
+  }
 
-    lt(left: StringLiteral, right: StringLiteral): boolean {
-        return left.value < right.value;
-    }
+  public lt(left: StringLiteral, right: StringLiteral): boolean {
+    return left.value < right.value;
+  }
 
-    gt(left: StringLiteral, right: StringLiteral): boolean {
-        return left.value > right.value;
-    }
+  public gt(left: StringLiteral, right: StringLiteral): boolean {
+    return left.value > right.value;
+  }
 
-    lte(left: StringLiteral, right: StringLiteral): boolean {
-        return left.value <= right.value;
-    }
+  public lte(left: StringLiteral, right: StringLiteral): boolean {
+    return left.value <= right.value;
+  }
 
-    gte(left: StringLiteral, right: StringLiteral): boolean {
-        return left.value >= right.value;
-    }
+  public gte(left: StringLiteral, right: StringLiteral): boolean {
+    return left.value >= right.value;
+  }
 }
 
 export class DateTimeImpl extends TermImpl {
 
-    rdfEqual(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
-        return left.value.getTime() === right.value.getTime();
-    }
+  public rdfEqual(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
+    return left.value.getTime() === right.value.getTime();
+  }
 
-    rdfNotEqual(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
-        return left.value.getTime() !== right.value.getTime();
-    }
+  public rdfNotEqual(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
+    return left.value.getTime() !== right.value.getTime();
+  }
 
-    lt(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
-        return left.value < right.value;
-    }
+  public lt(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
+    return left.value < right.value;
+  }
 
-    gt(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
-        return left.value > right.value;
-    }
+  public gt(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
+    return left.value > right.value;
+  }
 
-    lte(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
-        return left.value.getTime() <= right.value.getTime();
-    }
+  public lte(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
+    return left.value.getTime() <= right.value.getTime();
+  }
 
-    gte(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
-        return left.value.getTime() >= right.value.getTime();
-    }
+  public gte(left: DateTimeLiteral, right: DateTimeLiteral): boolean {
+    return left.value.getTime() >= right.value.getTime();
+  }
 }
 
 export class BooleanImpl extends TermImpl {
-    rdfEqual(left: BooleanLiteral, right: BooleanLiteral): boolean {
-        return left.value === right.value;
-    }
+  public rdfEqual(left: BooleanLiteral, right: BooleanLiteral): boolean {
+    return left.value === right.value;
+  }
 
-    rdfNotEqual(left: BooleanLiteral, right: BooleanLiteral): boolean {
-        return left.value !== right.value;
-    }
+  public rdfNotEqual(left: BooleanLiteral, right: BooleanLiteral): boolean {
+    return left.value !== right.value;
+  }
 
-    lt(left: BooleanLiteral, right: BooleanLiteral): boolean {
-        return left.value < right.value;
-    }
+  public lt(left: BooleanLiteral, right: BooleanLiteral): boolean {
+    return left.value < right.value;
+  }
 
-    gt(left: BooleanLiteral, right: BooleanLiteral): boolean {
-        return left.value > right.value;
-    }
+  public gt(left: BooleanLiteral, right: BooleanLiteral): boolean {
+    return left.value > right.value;
+  }
 
-    lte(left: BooleanLiteral, right: BooleanLiteral): boolean {
-        return left.value <= right.value;
-    }
+  public lte(left: BooleanLiteral, right: BooleanLiteral): boolean {
+    return left.value <= right.value;
+  }
 
-    gte(left: BooleanLiteral, right: BooleanLiteral): boolean {
-        return left.value >= right.value;
-    }
+  public gte(left: BooleanLiteral, right: BooleanLiteral): boolean {
+    return left.value >= right.value;
+  }
 }
 
 export class SimpleImpl extends TermImpl {
-    rdfEqual(left: SimpleLiteral, right: SimpleLiteral): boolean {
-        return left.value === right.value;
-    }
+  public rdfEqual(left: SimpleLiteral, right: SimpleLiteral): boolean {
+    return left.value === right.value;
+  }
 
-    rdfNotEqual(left: SimpleLiteral, right: SimpleLiteral): boolean {
-        return left.value !== right.value;
-    }
+  public rdfNotEqual(left: SimpleLiteral, right: SimpleLiteral): boolean {
+    return left.value !== right.value;
+  }
 
-    lt(left: SimpleLiteral, right: SimpleLiteral): boolean {
-        return left.value < right.value;
-    }
+  public lt(left: SimpleLiteral, right: SimpleLiteral): boolean {
+    return left.value < right.value;
+  }
 
-    gt(left: SimpleLiteral, right: SimpleLiteral): boolean {
-        return left.value > right.value;
-    }
+  public gt(left: SimpleLiteral, right: SimpleLiteral): boolean {
+    return left.value > right.value;
+  }
 
-    lte(left: SimpleLiteral, right: SimpleLiteral): boolean {
-        return left.value <= right.value;
-    }
+  public lte(left: SimpleLiteral, right: SimpleLiteral): boolean {
+    return left.value <= right.value;
+  }
 
-    gte(left: SimpleLiteral, right: SimpleLiteral): boolean {
-        return left.value >= right.value;
-    }
+  public gte(left: SimpleLiteral, right: SimpleLiteral): boolean {
+    return left.value >= right.value;
+  }
 }

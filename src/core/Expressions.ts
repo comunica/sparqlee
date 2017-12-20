@@ -1,65 +1,65 @@
-import * as RDFJS from 'rdf-js';
 import * as RDFDM from 'rdf-data-model';
+import * as RDFJS from 'rdf-js';
 
 import { ImplType } from './Operators';
 
-export interface Expression {
-    exprType: ExpressionType
+export interface IExpression {
+  exprType: ExpressionType;
 }
 
 // TODO: Convert to string enum for verbosity in debugging (currently ints)
 export enum ExpressionType {
-    Operation,
-    FunctionCall,
-    Aggregate,
-    BGP,
-    Group,
-    Tuple,
-    Variable,
-    Term
+  Operation,
+  FunctionCall,
+  Aggregate,
+  BGP,
+  Group,
+  Tuple,
+  Variable,
+  Term,
 }
 
 // TODO: Make this an interface
-export class VariableExpression implements Expression {
-    exprType: ExpressionType.Variable = ExpressionType.Variable;
-    name: string;
-    
-    constructor(name: string) {
-        this.name = name;
-    }
+export class VariableExpression implements IExpression {
+  public exprType: ExpressionType.Variable = ExpressionType.Variable;
+  public name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
 
 }
 
 // TODO: Make this an interface
-export class Tuple implements Expression {
-    exprType: ExpressionType.Tuple = ExpressionType.Tuple;
-    exprs: Expression[]
+export class Tuple implements IExpression {
+  public exprType: ExpressionType.Tuple = ExpressionType.Tuple;
+  public exprs: IExpression[];
 
-    constructor(exprs: Expression[]) {
-        this.exprs = exprs;
-    }
+  constructor(exprs: IExpression[]) {
+    this.exprs = exprs;
+  }
 }
 
-export interface Term extends Expression {
-    exprType: ExpressionType;
-    termType: TermType;
-    implType: ImplType;
+export interface ITerm extends IExpression {
+  exprType: ExpressionType;
+  termType: TermType;
+  implType: ImplType;
 
-    toEBV(): boolean
+  toEBV(): boolean;
 
-    not(): boolean
-    unPlus(): number
-    unMin(): number
+  not(): boolean;
+  unPlus(): number;
+  unMin(): number;
 
-    toRDFJS(): RDFJS.Term
+  toRDFJS(): RDFJS.Term;
 }
 
 // RDFTerm = IRI, literal, blank node
 // TODO: Maybe think about removing DefaultGraph
 
 export enum TermType {
-    NamedNode,
-    BlankNode,
-    Literal,
-    DefaultGraph,
+  NamedNode,
+  BlankNode,
+  Literal,
+  DefaultGraph,
 }

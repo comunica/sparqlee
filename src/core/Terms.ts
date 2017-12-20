@@ -1,198 +1,197 @@
 import * as console from 'console';
-import * as RDFJS from 'rdf-js';
 import * as RDFDM from 'rdf-data-model';
+import * as RDFJS from 'rdf-js';
 
-import { Impl, ImplType } from './Operators';
-import { ExpressionType, Term, TermType } from './Expressions';
 import { DataType as DT, NumericType } from '../util/Consts';
-import { UnimplementedError, InvalidOperationError } from '../util/Errors';
+import { InvalidOperationError, UnimplementedError } from '../util/Errors';
+import { ExpressionType, ITerm, TermType } from './Expressions';
+import { Impl, ImplType } from './Operators';
 
-export abstract class BaseTerm implements Term {
-    abstract termType: TermType;
-    exprType = ExpressionType.Term;
-    implType = ImplType.Term;
+export abstract class BaseTerm implements ITerm {
+  public abstract termType: TermType;
+  public exprType = ExpressionType.Term;
+  public implType = ImplType.Term;
 
-    // https://www.w3.org/TR/sparql11-query/#ebv
-    toEBV(): boolean {
-        throw new InvalidOperationError();
-    }
+  // https://www.w3.org/TR/sparql11-query/#ebv
+  public toEBV(): boolean {
+    throw new InvalidOperationError();
+  }
 
-    not(): boolean { throw new InvalidOperationError(); }
-    unPlus(): number { throw new InvalidOperationError(); }
-    unMin(): number { throw new InvalidOperationError(); }
+  public not(): boolean { throw new InvalidOperationError(); }
+  public unPlus(): number { throw new InvalidOperationError(); }
+  public unMin(): number { throw new InvalidOperationError(); }
 
-    abstract toRDFJS(): RDFJS.Term;
+  public abstract toRDFJS(): RDFJS.Term;
 
 }
 
 // ============================================================================
 
 export class NamedNode extends BaseTerm {
-    termType = TermType.NamedNode;
-    iri: string;
+  public termType = TermType.NamedNode;
+  public iri: string;
 
-    constructor(iri: string) {
-        super();
-        this.iri = iri;
-    }
+  constructor(iri: string) {
+    super();
+    this.iri = iri;
+  }
 
-    toRDFJS(): RDFJS.Term {
-        return RDFDM.namedNode(this.iri);
-    }
+  public toRDFJS(): RDFJS.Term {
+    return RDFDM.namedNode(this.iri);
+  }
 }
 
 // ============================================================================
 
 export class BlankNode extends BaseTerm {
-    termType = TermType.BlankNode;
-    name: string;
+  public termType = TermType.BlankNode;
+  public name: string;
 
-    constructor(name: string) {
-        super();
-        this.name = name;
-    }
+  constructor(name: string) {
+    super();
+    this.name = name;
+  }
 
-    toRDFJS(): RDFJS.Term {
-        return RDFDM.blankNode(this.name);
-    }
+  public toRDFJS(): RDFJS.Term {
+    return RDFDM.blankNode(this.name);
+  }
 }
 
 // ============================================================================
 
 export class DefaultGraph extends BaseTerm {
-    termType = TermType.DefaultGraph;
+  public termType = TermType.DefaultGraph;
 
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    toRDFJS(): RDFJS.Term {
-        return RDFDM.defaultGraph();
-    }
+  public toRDFJS(): RDFJS.Term {
+    return RDFDM.defaultGraph();
+  }
 }
 
 // ============================================================================
 
-export interface Literal<T> extends Term {
-    value: T
-    dataType?: string
+export interface ILiteral<T> extends ITerm {
+  value: T;
+  dataType?: string;
 }
 
-export abstract class BaseLiteral<T> extends BaseTerm implements Literal<T> {
-    termType = TermType.Literal;
+export abstract class BaseLiteral<T> extends BaseTerm implements ILiteral<T> {
+  public termType = TermType.Literal;
 
-    value: T;
-    abstract dataType?: string;
+  public value: T;
+  public abstract dataType?: string;
 
-    constructor(value: T) {
-        super();
-        this.value = value;
-    }
+  constructor(value: T) {
+    super();
+    this.value = value;
+  }
 
-    toRDFJS(): RDFJS.Term {
-        return RDFDM.literal(this.value.toString(), this.dataType);
-    }
+  public toRDFJS(): RDFJS.Term {
+    return RDFDM.literal(this.value.toString(), this.dataType);
+  }
 }
 
 export abstract class PlainLiteral extends BaseLiteral<string> {
-    dataType: undefined = undefined;
+  public dataType: undefined = undefined;
 
-    constructor(value: string) {
-        super(value);
-    }
+  constructor(value: string) {
+    super(value);
+  }
 
-    toEBV(): boolean {
-        return this.value.length != 0;
-    }
+  public toEBV(): boolean {
+    return this.value.length !== 0;
+  }
 }
 
-export class SimpleLiteral extends PlainLiteral { 
-    implType = ImplType.Simple;
+export class SimpleLiteral extends PlainLiteral {
+  public implType = ImplType.Simple;
 }
 
-export class LangLiteral extends PlainLiteral implements Literal<string> {
-    language: string;
+export class LangLiteral extends PlainLiteral implements ILiteral<string> {
+  public language: string;
 
-    constructor(value: string, language: string) {
-        super(value);
-        this.language = language;
-    }
+  constructor(value: string, language: string) {
+    super(value);
+    this.language = language;
+  }
 
-    toRDFJS(): RDFJS.Term {
-        return RDFDM.literal(this.value, this.language);
-    }
+  public toRDFJS(): RDFJS.Term {
+    return RDFDM.literal(this.value, this.language);
+  }
 }
 
 export class TypedLiteral<T> extends BaseLiteral<T> {
-    dataType: string;
+  public dataType: string;
 
-    constructor(value: T, dataType?: string) {
-        super(value);
-    }
+  constructor(value: T, dataType?: string) {
+    super(value);
+  }
 }
 
-
 export class BooleanLiteral extends TypedLiteral<boolean> {
-    dataType: DT.XSD_BOOLEAN = DT.XSD_BOOLEAN;
-    implType = ImplType.Boolean;
+  public dataType: DT.XSD_BOOLEAN = DT.XSD_BOOLEAN;
+  public implType = ImplType.Boolean;
 
-    constructor(value: boolean) {
-        super(value);
-    }
+  constructor(value: boolean) {
+    super(value);
+  }
 
-    toEBV(): boolean {
-        return this.value;
-    }
+  public toEBV(): boolean {
+    return this.value;
+  }
 
-    not(): boolean {
-        return !this.value;
-    }
+  public not(): boolean {
+    return !this.value;
+  }
 }
 
 export class StringLiteral extends TypedLiteral<string> {
-    dataType: DT.XSD_STRING = DT.XSD_STRING;
-    implType = ImplType.String;
+  public dataType: DT.XSD_STRING = DT.XSD_STRING;
+  public implType = ImplType.String;
 
-    constructor(value: string) {
-        super(value);
-    }
+  constructor(value: string) {
+    super(value);
+  }
 
-    toEBV(): boolean {
-        return this.value.length != 0;
-    }
+  public toEBV(): boolean {
+    return this.value.length !== 0;
+  }
 }
 
 export class NumericLiteral extends TypedLiteral<number> {
-    dataType: NumericType;
-    implType = ImplType.Numeric;
+  public dataType: NumericType;
+  public implType = ImplType.Numeric;
 
-    // TODO: Check need for keeping datatype in literal
-    // Possibly not needed at all
-    constructor(value: number, dataType?: NumericType) {
-        super(value);
-        this.dataType = dataType;
-    }
+  // TODO: Check need for keeping datatype in literal
+  // Possibly not needed at all
+  constructor(value: number, dataType?: NumericType) {
+    super(value);
+    this.dataType = dataType;
+  }
 
-    toEBV(): boolean {
-        // Easiest way to handle NaN, 0, and truths values
-        return !!this.value;
-    }
+  public toEBV(): boolean {
+    // Easiest way to handle NaN, 0, and truths values
+    return !!this.value;
+  }
 
-    // TODO: DataType might change
-    unPlus(): number {
-        return this.value;
-    }
+  // TODO: DataType might change
+  public unPlus(): number {
+    return this.value;
+  }
 
-    unMin(): number {
-        return -this.value;
-    }
+  public unMin(): number {
+    return -this.value;
+  }
 }
 
 export class DateTimeLiteral extends TypedLiteral<Date> {
-    dataType: DT.XSD_DATE_TIME = DT.XSD_DATE_TIME;
-    implType = ImplType.DateTime;
+  public dataType: DT.XSD_DATE_TIME = DT.XSD_DATE_TIME;
+  public implType = ImplType.DateTime;
 
-    constructor(value: Date) {
-        super(value);
-    }
+  constructor(value: Date) {
+    super(value);
+  }
 }

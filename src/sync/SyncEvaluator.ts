@@ -6,7 +6,7 @@ import * as E from '../core/Expressions';
 import * as T from '../core/Terms';
 import { getOp, IOperation, OpType as Ops } from './Operators';
 
-import { Bindings, Evaluator } from '../core/FilteredStreams';
+import { Bindings, IEvaluator } from '../core/FilteredStreams';
 // TODO: Make this import more clear/elegant
 import { DataType as DT, ExpressionTypes as ET, TermTypes as TT } from '../util/Consts';
 import { UnimplementedError } from '../util/Errors';
@@ -16,8 +16,8 @@ import * as P from '../util/Parsing';
  * Benchmarking this provides a theoretical maximum
  * Will only evaluate specific examples correctly.
  */
-export class SyncEvaluator implements Evaluator {
-  private expr: E.Expression;
+export class SyncEvaluator implements IEvaluator {
+  private expr: E.IExpression;
 
   constructor(expr: S.Expression) {
     this.expr = this._transform(expr);
@@ -27,9 +27,9 @@ export class SyncEvaluator implements Evaluator {
     return this.evalExpr(this.expr, mapping).toEBV();
   }
 
-  private evalExpr(expr: E.Expression, mapping: Bindings): E.Term {
+  private evalExpr(expr: E.IExpression, mapping: Bindings): E.ITerm {
     switch (expr.exprType) {
-      case E.ExpressionType.Term: return <E.Term> expr;
+      case E.ExpressionType.Term: return <E.ITerm> expr;
 
       case E.ExpressionType.Variable: {
         const variable = <E.VariableExpression> expr;
@@ -40,7 +40,7 @@ export class SyncEvaluator implements Evaluator {
 
       case E.ExpressionType.Operation: {
         const op = <IOperation> expr;
-        const args = op.args.map((arg: E.Term) => this.evalExpr(arg, mapping));
+        const args = op.args.map((arg: E.ITerm) => this.evalExpr(arg, mapping));
         return op.apply(args);
       }
 
@@ -53,7 +53,7 @@ export class SyncEvaluator implements Evaluator {
     }
   }
 
-  private _transform(expr: S.Expression): E.Expression {
+  private _transform(expr: S.Expression): E.IExpression {
     if (typeof expr === 'string') {
       const term = fromString(expr);
       return this._toInternal(term);
@@ -98,14 +98,14 @@ export class SyncEvaluator implements Evaluator {
 
   // Distinction from _toTerm is made because of the return type.
   // This way this function can easily be used in expression transformation
-  private _toInternal(term: RDFJS.Term): E.Expression {
+  private _toInternal(term: RDFJS.Term): E.IExpression {
     switch (term.termType) {
       case 'Variable': return new E.VariableExpression(term.value);
       default: return this._toTerm(term);
     }
   }
 
-  private _toTerm(term: RDFJS.Term): E.Term {
+  private _toTerm(term: RDFJS.Term): E.ITerm {
     switch (term.termType) {
       case 'NamedNode': return new T.NamedNode(term.value);
       case 'BlankNode': return new T.BlankNode(term.value);
@@ -117,7 +117,7 @@ export class SyncEvaluator implements Evaluator {
   }
 
   // TODO: Derived numeric types
-  private _convertLiteral(lit: RDFJS.Literal): T.Literal<any> {
+  private _convertLiteral(lit: RDFJS.Literal): T.ILiteral<any> {
     switch (lit.datatype.value) {
       case null: return new T.SimpleLiteral(lit.value);
       case undefined: return new T.SimpleLiteral(lit.value);

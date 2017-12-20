@@ -2,40 +2,40 @@
 import * as BPromise from 'bluebird';
 import * as S from 'sparqljs';
 
-import { AbstractFilteredStream, FilteredStream, Bindings,
-         BindingsStream } from '../core/FilteredStreams';
+import {
+  AbstractFilteredStream, Bindings, BindingsStream, IFilteredStream,
+} from '../core/FilteredStreams';
 import { UnimplementedError } from '../util/Errors';
 
-export class ASyncFilter extends AbstractFilteredStream implements FilteredStream {
-    evaluations: BPromise<void>[];
+export class ASyncFilter extends AbstractFilteredStream implements IFilteredStream {
+  private evaluations: BPromise<void>[];
 
-    constructor(expr: S.Expression, mappings: BindingsStream) {
-        super(mappings);
-    }
+  constructor(expr: S.Expression, mappings: BindingsStream) {
+    super(mappings);
+  }
 
-    onInputData(mapping: Bindings): void {
-        let evaluation = this
-            .evaluate(mapping)
-            .then((result) => {
-                if (result === true) { this.emit('data', mapping); }
-            })
-            .catch((error) => {
-                console.log(error, mapping);
-                throw error;
-            });
-        this.evaluations.push(evaluation);
-    }
+  public onInputData(mapping: Bindings): void {
+    const evaluation = this
+      .evaluate(mapping)
+      .then((result) => {
+        if (result === true) { this.emit('data', mapping); }
+      })
+      .catch((error) => {
+        throw error;
+      });
+    this.evaluations.push(evaluation);
+  }
 
-    onInputEnd(): void {
-        BPromise
-            .all(this.evaluations)
-            .catch((error) => {throw error; })
-            .finally(() => this.close())
-    }
+  public onInputEnd(): void {
+    BPromise
+      .all(this.evaluations)
+      .catch((error) => { throw error; })
+      .finally(() => this.close());
+  }
 
-    evaluate(mapping: Bindings): BPromise <boolean> {
-        return new BPromise((resolve, reject) => {
-            return resolve(true)
-        });
-    }
+  public evaluate(mapping: Bindings): BPromise<boolean> {
+    return new BPromise((resolve, reject) => {
+      return resolve(true);
+    });
+  }
 }

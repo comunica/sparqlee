@@ -7,31 +7,30 @@ import * as RDF from "rdf-js";
 // - AsyncFilter
 // - NonLazySync/AsyncFilter (evaluation will only happen on read() call)
 //      This would need to buffer input bindings and it's result
-export interface FilteredStream extends BindingsStream {
+export interface IFilteredStream extends BindingsStream {
 
 }
 
 export abstract class AbstractFilteredStream
-    extends AsyncIterator<Bindings>
-    implements FilteredStream
-{
-    inputs: BindingsStream;
+  extends AsyncIterator<Bindings>
+  implements IFilteredStream {
 
-    constructor(mappings: BindingsStream) {
-        super();
-        this.inputs = mappings;
-        this.inputs.on('end', () => this.onInputEnd());
-        this.inputs.on('data', (mapping: Bindings) => this.onInputData(mapping));
-    }
+  private inputs: BindingsStream;
 
-    abstract onInputData(mapping: Bindings): void;
-    abstract onInputEnd(): void;
+  constructor(mappings: BindingsStream) {
+    super();
+    this.inputs = mappings;
+    this.inputs.on('end', () => this.onInputEnd());
+    this.inputs.on('data', (mapping: Bindings) => this.onInputData(mapping));
+  }
+
+  public abstract onInputData(mapping: Bindings): void;
+  public abstract onInputEnd(): void;
 }
 
-export interface Evaluator {
-    evaluate(mapping: Bindings): boolean
+export interface IEvaluator {
+  evaluate(mapping: Bindings): boolean;
 }
-
 
 /**
  * A stream of bindings.
@@ -58,6 +57,6 @@ export type Bindings = Map<string, RDF.Term>;
  * @return {Bindings} The immutable bindings from the hash.
  * @constructor
  */
-export function Bindings(hash: {[key: string]: RDF.Term}): Bindings {
+export function Bindings(hash: { [key: string]: RDF.Term }): Bindings {
   return Map(hash);
 }
