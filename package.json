@@ -62,16 +62,15 @@
     },
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/src/__tests__/util"
+      "/src/tests/util"
     ],
     "testResultsProcessor": "./node_modules/jest-html-reporter",
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testRegex": "(/tests/.*|(\\.|/)(test|spec))\\.ts$",
     "moduleFileExtensions": [
       "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json"
-    ]
+      "js"
+    ],
+    "collectCoverage": true,
+    "mapCoverage": true
   }
 }

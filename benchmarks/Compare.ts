@@ -1,4 +1,4 @@
-import { Suite } from 'benchmark';
+import { Suite, Event } from 'benchmark';
 import { EmptyEvaluator } from './EvalEmpty';
 import { ManualEvaluator } from './EvalManual';
 import { SyncEvaluator } from '../src/sync/SyncEvaluator';

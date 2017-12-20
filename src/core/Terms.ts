@@ -53,7 +53,7 @@ export class BlankNode extends BaseTerm {
     }
 
     toRDFJS(): RDFJS.Term {
-        return RDFDM.blankNode(name);
+        return RDFDM.blankNode(this.name);
     }
 }
 

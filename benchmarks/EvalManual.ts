@@ -3,7 +3,6 @@ import { Literal, Term } from 'rdf-js';
 import fromString from 'termterm.js';
 import * as RDF from 'rdf-data-model';
 
-import { evaluate } from '../src/__tests__/util/Evaluation';
 import { Evaluator, Bindings } from '../src/core/FilteredStreams';
 import { TermTypes as TT, ExpressionTypes as ET } from '../src/util/Consts';
 
