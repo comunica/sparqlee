@@ -1,6 +1,7 @@
 import { AsyncIterator } from 'asynciterator';
 import { Map } from "immutable";
 import * as RDF from "rdf-js";
+import { BgpPattern, Expression } from "sparqljs";
 
 // TODO: Make following instances
 // - SyncFilter
@@ -11,14 +12,20 @@ export interface IFilteredStream extends BindingsStream {
 
 }
 
+export type Lookup = (patter: BgpPattern) => Promise<boolean>;
+
 export abstract class AbstractFilteredStream
   extends AsyncIterator<Bindings>
   implements IFilteredStream {
 
-  private inputs: BindingsStream;
+  protected readonly abstract evaluator: IEvaluator;
+  protected readonly expr: Expression;
 
-  constructor(mappings: BindingsStream) {
+  private readonly inputs: BindingsStream;
+
+  constructor(expr: Expression, mappings: BindingsStream, lookup: Lookup) {
     super();
+    this.expr = expr;
     this.inputs = mappings;
     this.inputs.on('end', () => this.onInputEnd());
     this.inputs.on('data', (mapping: Bindings) => this.onInputData(mapping));

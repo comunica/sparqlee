@@ -18,7 +18,8 @@
     "noImplicitThis": true
   },
   "include": [
-    "**/*.ts"
+    "**/*.ts",
+    "benchmarks/**/*.ts"
   ],
   "exclude": [
     "**/node_modules",

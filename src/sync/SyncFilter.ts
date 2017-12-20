@@ -2,20 +2,21 @@ import * as S from "sparqljs";
 
 import {
   AbstractFilteredStream, Bindings, BindingsStream,
-  IFilteredStream,
+  IFilteredStream, Lookup,
 } from "../core/FilteredStreams";
 import { UnimplementedError } from "../util/Errors";
 import { SyncEvaluator } from "./SyncEvaluator";
 
 export class SyncFilter extends AbstractFilteredStream implements IFilteredStream {
-  private mappings: Bindings[];
-  private evaluator: SyncEvaluator;
-  private expr: S.Expression;
+  protected readonly evaluator: SyncEvaluator;
+  protected readonly expr: S.Expression;
 
-  constructor(expr: S.Expression, inputMappings: BindingsStream) {
-    super(inputMappings);
+  private readonly mappings: Bindings[];
+
+  constructor(expr: S.Expression, input: BindingsStream, lookup: Lookup) {
+    super(expr, input, lookup);
     this.mappings = [];
-    this.expr = expr;
+    this.evaluator = new SyncEvaluator(this.expr);
   }
 
   public onInputData(mapping: Bindings): void {
@@ -23,7 +24,6 @@ export class SyncFilter extends AbstractFilteredStream implements IFilteredStrea
   }
 
   public onInputEnd(): void {
-    this.evaluator = new SyncEvaluator(this.expr);
     for (const mapping of this.mappings) {
       if (this.evaluate(mapping)) {
         this.emit('data', mapping);

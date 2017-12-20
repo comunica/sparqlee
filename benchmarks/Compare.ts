@@ -33,7 +33,7 @@ total
   .run({ async: false });
 
 // Same evaluators, different mapping
-console.log("\nEvaluating\n=====")
+console.log("\nEvaluating\n=====");
 const empty = new EmptyEvaluator(example1.expression);
 const manual = new ManualEvaluator(example1.expression);
 const sync = new ManualEvaluator(example1.expression);
@@ -48,7 +48,7 @@ evaluate
   .add('Sync', () => {
     sync.evaluate(example1.mapping());
   })
-  .on('cycle', function (event: Event) {
+  .on('cycle', (event: Event) => {
     console.log(String(event.target));
   })
   .run({ async: false });
@@ -58,15 +58,15 @@ console.log("\nParsing/Compiling\n=====");
 const parse = new Suite('Parsing');
 parse
   .add('Empty', () => {
-    let evaluator = new EmptyEvaluator(example1.expression);
+    const e = new EmptyEvaluator(example1.expression);
   })
   .add('Manual', () => {
-    let evaluator = new ManualEvaluator(example1.expression);
+    const e = new ManualEvaluator(example1.expression);
   })
   .add('Sync', () => {
-    let evaluator = new SyncEvaluator(example1.expression);
+    const e = new SyncEvaluator(example1.expression);
   })
-  .on('cycle', function (event: Event) {
+  .on('cycle', (event: Event) => {
     console.log(String(event.target));
   })
   .run({ async: false });
