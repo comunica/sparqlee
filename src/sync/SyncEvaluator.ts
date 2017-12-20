@@ -43,7 +43,7 @@ export class SyncEvaluator implements Evaluator {
 
             case E.ExpressionType.Operation: {
                 let op = <Ops.Operation>expr;
-                let args = op.args.map((arg) => this.evalExpr(arg, mapping));
+                let args = op.args.map((arg: T.Term) => this.evalExpr(arg, mapping));
                 return op.apply(args);
             };
 
