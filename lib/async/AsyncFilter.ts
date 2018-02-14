@@ -16,7 +16,7 @@ export class AsyncFilter extends BufferedIterator<Bindings> implements IFiltered
   constructor(expr: Alg.Expression, input: BindingsStream, lookup: Lookup) {
     // Autostart false might be required to allow listening to error events in first pulls
     super({autoStart: false, maxBufferSize: 10}); 
-    this._evaluator = new AsyncEvaluator();
+    this._evaluator = new AsyncEvaluator(expr, lookup);
     this._input = input;
     this._input.on('end', () => {
       this.close();
@@ -29,7 +29,7 @@ export class AsyncFilter extends BufferedIterator<Bindings> implements IFiltered
     let evaluations: Promise<void>[] = [];
 
     first.on('data', (bindings) => {
-      let evaluation = this.evaluate(bindings)
+      let evaluation = this._evaluate(bindings)
         .then((result) => { if (result === true){ this._push(bindings); }})
         .catch((error) => { this.emit('error', error);})
       evaluations.push(evaluation);
@@ -42,7 +42,7 @@ export class AsyncFilter extends BufferedIterator<Bindings> implements IFiltered
     });
   }
 
-  public async evaluate(mapping: Bindings): Promise<boolean> {
+  public async _evaluate(mapping: Bindings): Promise<boolean> {
     return this._evaluator.evaluate(mapping);
   }
 }

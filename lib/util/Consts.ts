@@ -72,5 +72,40 @@ export type NumericType =
   | DataType.XSD_UNSIGNED_BYTE
   | DataType.XSD_POSITIVE_INTEGER;
 
+export type DataTypeCategory = 'string' | 'numeric' | 'date' | 'boolean' | 'simple' | 'other';
+export function categorize(dataType: string): DataTypeCategory {
+  switch (dataType) {
+    case null: 
+    case undefined:
+    case "": return 'simple';
+
+    case DataType.XSD_STRING:
+    case DataType.RDF_LANG_STRING: return 'string';
+
+    case DataType.XSD_DATE_TIME: return 'date';
+
+    case DataType.XSD_BOOLEAN: return 'boolean';
+
+    case DataType.XSD_INTEGER:
+    case DataType.XSD_DECIMAL:
+    case DataType.XSD_NEGATIVE_INTEGER:
+    case DataType.XSD_NON_NEGATIVE_INTEGER:
+    case DataType.XSD_NON_POSITIVE_INTEGER:
+    case DataType.XSD_POSITIVE_INTEGER:
+    case DataType.XSD_LONG:
+    case DataType.XSD_INT:
+    case DataType.XSD_SHORT:
+    case DataType.XSD_BYTE:
+    case DataType.XSD_UNSIGNED_LONG:
+    case DataType.XSD_UNSIGNED_INT:
+    case DataType.XSD_UNSIGNED_SHORT:
+    case DataType.XSD_UNSIGNED_BYTE:
+    case DataType.XSD_INT: 
+    case DataType.XSD_FLOAT:
+    case DataType.XSD_DOUBLE: return 'numeric';
+    default: return 'other';
+}
+}
+
 // TODO: Operator enum
 // TODO: Function enum

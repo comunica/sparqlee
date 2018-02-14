@@ -5,7 +5,7 @@ import { isEqual } from 'lodash';
 
 import { ArrayIterator, AsyncIterator } from 'asynciterator';
 import { AsyncFilter } from '../index';
-import { example1 } from './util/Examples';
+import { example1, parse } from './util/Examples';
 import { Bindings } from '../lib/FilteredStream';
 
 const mockLookup = (pattern: Alg.Bgp) => {
@@ -13,6 +13,10 @@ const mockLookup = (pattern: Alg.Bgp) => {
     return resolve(true);
   });
 };
+
+function print(expr: string): void {
+  console.log(JSON.stringify(parse(expr), null, 4));
+}
 
 function main(): void {
   const ex = example1;
@@ -34,4 +38,8 @@ function main(): void {
 }
 
 // test();
-main();
+// print('EXISTS {?a ?b ?c}');
+// print('?a + str(<http://example.com>)')
+print('"aaaaaaa"')
+// print('COUNT(?a)')
+// main();

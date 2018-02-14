@@ -9,7 +9,7 @@ export class Example {
   public mapping: () => Bindings;
 
   constructor(expr: string, mapping: () => Bindings) {
-    this.expression = toExpression(expr);
+    this.expression = parse(expr);
     this.mapping = mapping;
   }
 }
@@ -33,7 +33,7 @@ export const example1 = (() => {
   return new Example(str, mapping);
 })();
 
-function toExpression(expr: string): Alg.Expression {
+export function parse(expr: string): Alg.Expression {
   // Build mock SPARQL query with expression in the filter
   const queryString = `PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT * WHERE { ?s ?p ?o FILTER (${expr})}`;
   const sparqlQuery = translate(queryString);
