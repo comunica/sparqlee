@@ -11,7 +11,7 @@ gulp.task('clean:output', function () {
 });
 
 gulp.task('watch', ['compile'], function(){
-  gulp.watch(['benchmarks/**/*.ts', 'src/**/*.ts', '!**/dist/*'], ['compile']);
+  gulp.watch(['bin/**/*.ts', 'lib/**/*.ts','index.ts', '!**/dist/*'], ['compile']);
 });
 
 gulp.task('compile', ['clean:output'], function(){
