@@ -1,14 +1,15 @@
 import { Bindings, Lookup } from "../FilteredStream";
 import { Algebra as Alg} from 'sparqlalgebrajs';
 import * as rdfjs from 'rdf-js';
+import * as Promise from 'bluebird';
+import * as _ from 'lodash';
 
 import { UnimplementedError, InvalidExpressionType, InvalidTermType } from '../util/Errors';
 import * as E from '../core/Expressions';
 import { Literal } from '../core/Expressions';
 import { DataType as DT} from '../util/Consts';
 import * as P from '../util/Parsing';
-import { types } from 'sparqlalgebrajs/lib/algebra';
-import * as Promise from 'bluebird';
+import { map } from 'benchmark';
 
 export class AsyncEvaluator {
   private _expr: E.Expression;
@@ -20,34 +21,22 @@ export class AsyncEvaluator {
   }
 
   public evaluate(mapping: Bindings): Promise<boolean> {
-    let expr = new Promise<E.Expression>((res, rej) => res(this._expr));
-    return this._eval(expr, mapping).then(val => {
+    // let expr = new Promise<E.Expression>((res, rej) => res(this._expr));
+    return this._eval(this._expr, mapping).then(val => {
       return val.coerceEBV();
     });
   }
 
-  private _transform(expr: Alg.Expression): E.Expression {
-    let types = Alg.expressionTypes;
-    switch (expr.expressionType) {
-      case types.TERM: return this._transformTerm(<Alg.TermExpression> expr);
-      case types.OPERATOR: throw new UnimplementedError();
-      case types.NAMED: throw new UnimplementedError();
-      case types.EXISTENCE: throw new UnimplementedError();
-      case types.AGGREGATE: throw new UnimplementedError();
-      default: throw new InvalidExpressionType(expr);
-    }
-  }
-
-  private _eval(pexpr: Promise<E.Expression>, mapping: Bindings): Promise<E.TermExpression> {
-    return pexpr.then((expr) => {
+  private _eval(expr: E.Expression, mapping: Bindings): Promise<E.TermExpression> {
+    return new Promise((res, rej) => {
       let types = E.expressionTypes;
       switch(expr.expressionType) {
         case types.TERM:
-          return <E.TermExpression> expr;
-        case types.OPERATOR:
-          throw new UnimplementedError();
+          return res(<E.TermExpression> expr);
         case types.VARIABLE:
-          return this._evalVar(<E.VariableExpression> expr, mapping);
+          return res(this._evalVar(<E.VariableExpression> expr, mapping));
+        case types.OPERATOR:
+          return this._evalOp(<E.OperatorExpression> expr, mapping);
         case types.NAMED:
           throw new UnimplementedError();
         case types.EXISTENCE:
@@ -70,6 +59,35 @@ export class AsyncEvaluator {
     } else {
       throw new TypeError("Unbound variable");
     };
+  }
+
+  private _evalOp(expr: E.OperatorExpression, mapping: Bindings): Promise<E.TermExpression> {
+    switch(expr.operatorClass) {
+      case 'simple': {
+        let pArgs = expr.args.map(a => this._eval(a, mapping));
+        let op = <E.SimpleOperator> expr;
+        return Promise.all(pArgs).then(args => op.apply(args));
+      };
+      case 'overloaded': {
+        let op = <E.OverloadedOperator> expr;
+        let left = this._eval(op.left, mapping), right = this._eval(op.right, mapping);
+        return Promise.all([left, right]).then(args => op.apply(args[0], args[1]));
+      };
+      case 'special': throw new UnimplementedError();
+      default: throw new TypeError("Unknown operator class.")
+    }
+  }
+
+  private _transform(expr: Alg.Expression): E.Expression {
+    let types = Alg.expressionTypes;
+    switch (expr.expressionType) {
+      case types.TERM: return this._transformTerm(<Alg.TermExpression> expr);
+      case types.OPERATOR: throw new UnimplementedError();
+      case types.NAMED: throw new UnimplementedError();
+      case types.EXISTENCE: throw new UnimplementedError();
+      case types.AGGREGATE: throw new UnimplementedError();
+      default: throw new InvalidExpressionType(expr);
+    }
   }
 
   private _transformTerm(term: Alg.TermExpression): E.Expression {
@@ -98,7 +116,7 @@ export class AsyncEvaluator {
         if (isNaN(val.getTime())) {
           throw new Error();
         }
-        return new E.Literal<Date>(lit.value, new Date(lit.value), lit.datatype);
+        return new E.Literal<Date>(new Date(lit.value), lit.value, lit.datatype);
       }
 
       case DT.XSD_BOOLEAN: {
@@ -106,7 +124,7 @@ export class AsyncEvaluator {
         if (typeof val !== 'boolean') {
           throw new Error();
         }
-        return new E.Literal<boolean>(lit.value, val, lit.datatype);
+        return new E.Literal<boolean>(val, lit.value, lit.datatype);
       }
 
       case DT.XSD_INTEGER:
@@ -127,13 +145,13 @@ export class AsyncEvaluator {
       case DT.XSD_INT: {
         const val: number = P.parseXSDInteger(lit.value);
         if (val === undefined) { throw new TypeError(); }
-        return new E.Literal<number>(lit.value, val, lit.datatype);
+        return new E.Literal<number>(val, lit.value, lit.datatype);
       }
       case DT.XSD_FLOAT:
       case DT.XSD_DOUBLE: {
         const val: number = P.parseXSDFloat(lit.value);
         if (val === undefined) { throw new TypeError(); }
-        return new E.Literal<number>(lit.value, val, lit.datatype);
+        return new E.Literal<number>(val, lit.value, lit.datatype);
       }
       default: return new E.Literal<string>(lit.value, lit.value, lit.datatype);
     }

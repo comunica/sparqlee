@@ -107,5 +107,4 @@ export function categorize(dataType: string): DataTypeCategory {
 }
 }
 
-// TODO: Operator enum
-// TODO: Function enum
+// TODO: Operator enum (with special operators)

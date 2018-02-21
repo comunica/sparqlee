@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 import { Algebra as Alg } from 'sparqlalgebrajs';
-import { isEqual } from 'lodash';
+import * as _ from 'lodash';
 import * as RDF from 'rdf-data-model';
 
 import { ArrayIterator, AsyncIterator } from 'asynciterator';
@@ -32,7 +32,7 @@ function main(): void {
   filter.on('end', () => {
     input.forEach(binding => {
       let vals = binding.map((v, k) => v.value);
-      if (results.find((v) => isEqual(binding, v))) {
+      if (results.find((v) => _.isEqual(binding, v))) {
         console.log("True:", vals);
       } else {
         console.log("False:", vals);
@@ -50,5 +50,5 @@ function main(): void {
 // print('isLiteral(?a)');
 // print('COUNT(?a)')
 // print('xsd:dateTime(?a)');
+print('+?a');
 // main();
-console.log(!!NaN);
