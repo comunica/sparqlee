@@ -1,5 +1,5 @@
 // Imported as BPromise as to not shadow global Promise;
-import * as BlueBird from 'bluebird';
+import * as Promise from 'bluebird';
 import { Algebra as Alg } from 'sparqlalgebrajs';
 
 import { Bindings, BindingsStream, IFilteredStream, Lookup } from '../FilteredStream';
@@ -21,6 +21,7 @@ export class AsyncFilter extends BufferedIterator<Bindings> implements IFiltered
     this._input.on('end', () => {
       this.close();
     })
+    Promise.longStackTraces();
   }
 
   public _read(count: number, done: () => void): void {
@@ -42,7 +43,8 @@ export class AsyncFilter extends BufferedIterator<Bindings> implements IFiltered
     });
   }
 
-  public async _evaluate(mapping: Bindings): Promise<boolean> {
+  // public async _evaluate(mapping: Bindings): Promise<boolean> {
+  public _evaluate(mapping: Bindings): Promise<boolean> {
     return this._evaluator.evaluate(mapping);
   }
 }

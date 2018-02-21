@@ -7,19 +7,22 @@ import * as E from '../core/Expressions';
 import { Literal } from '../core/Expressions';
 import { DataType as DT} from '../util/Consts';
 import * as P from '../util/Parsing';
+import { types } from 'sparqlalgebrajs/lib/algebra';
+import * as Promise from 'bluebird';
 
 export class AsyncEvaluator {
-  private _expr: Alg.Expression;
+  private _expr: E.Expression;
   private _lookup: Lookup;
 
   constructor(expr: Alg.Expression, lookup: Lookup){
-    this._expr = expr;
+    this._expr = this._transform(expr);
     this._lookup = lookup;
   }
 
   public evaluate(mapping: Bindings): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
-      return resolve(true);
+    let expr = new Promise<E.Expression>((res, rej) => res(this._expr));
+    return this._eval(expr, mapping).then(val => {
+      return val.coerceEBV();
     });
   }
 
@@ -35,13 +38,43 @@ export class AsyncEvaluator {
     }
   }
 
-  private _eval(expr: Alg.Expression, mapping: Bindings): Alg.TermExpression {
-    return undefined;
+  private _eval(pexpr: Promise<E.Expression>, mapping: Bindings): Promise<E.TermExpression> {
+    return pexpr.then((expr) => {
+      let types = E.expressionTypes;
+      switch(expr.expressionType) {
+        case types.TERM:
+          return <E.TermExpression> expr;
+        case types.OPERATOR:
+          throw new UnimplementedError();
+        case types.VARIABLE:
+          return this._evalVar(<E.VariableExpression> expr, mapping);
+        case types.NAMED:
+          throw new UnimplementedError();
+        case types.EXISTENCE:
+          throw new UnimplementedError();
+        case types.AGGREGATE:
+          throw new UnimplementedError();
+        default: throw new InvalidExpressionType(expr);
+      }
+    });
+  }
+
+  private _evalVar(expr: E.VariableExpression, mapping: Bindings): E.TermExpression {
+    let rdfTerm = mapping.get(expr.name);
+    if (rdfTerm){
+      return <E.TermExpression> this._transformTerm({
+        type: 'expression',
+        expressionType: 'term',
+        term: rdfTerm
+      });
+    } else {
+      throw new TypeError("Unbound variable");
+    };
   }
 
   private _transformTerm(term: Alg.TermExpression): E.Expression {
     switch(term.term.termType) {
-      case 'Variable': throw new UnimplementedError();
+      case 'Variable': return new E.Variable(term.term.value);
       case 'Literal': return this._tranformLiteral(<rdfjs.Literal> term.term);
       case 'NamedNode': throw new UnimplementedError();
       default: throw new InvalidTermType(term);
