@@ -16,7 +16,7 @@ export enum expressionTypes {
 }
 
 export interface Expression {
-  expressionType: 'aggregate'|'existence'|'named'|'operator'|'term'|'variable';
+  expressionType: 'aggregate' | 'existence' | 'named' | 'operator' | 'term' | 'variable';
 }
 
 export interface AggregateExpression extends Expression {
@@ -49,7 +49,7 @@ export interface OperatorExpression extends Expression {
 
 export interface TermExpression extends Expression {
   expressionType: 'term';
-  termType: 'literal' | 'variable' ;
+  termType: 'literal' | 'variable';
   coerceEBV(): boolean;
 }
 
@@ -61,22 +61,18 @@ export interface VariableExpression extends Expression {
 //==============================================================================
 
 export class Variable implements VariableExpression {
-    expressionType: 'variable' = 'variable';
-    name: string;
-    constructor(name: string){
-        this.name = name;
-    }
+  expressionType: 'variable' = 'variable';
+  name: string;
+  constructor(name: string) {
+    this.name = name;
+  }
 }
 
 //==============================================================================
 
 // Function and operator arguments are 'flattened' in the SPARQL spec.
 // If the argument is a literal, the datatype often also matters.
-export type ArgumentType = {
-  termType: 'Literal' | 'NamedNode';
-  literalType?: DataTypeCategory;
-}
-
+export type ArgumentType = 'namedNode' | DataTypeCategory;
 
 export class SimpleOperator implements OperatorExpression {
   expressionType: 'operator' = 'operator';
@@ -89,24 +85,25 @@ export class SimpleOperator implements OperatorExpression {
     public args: Expression[],
     public types: ArgumentType[],
     protected _apply: (args: TermExpression[]) => TermExpression
-  ){
-    if(args.length != this.arity) {
+  ) {
+    if (args.length != this.arity) {
       throw new TypeError("Argument length not valid for function.");
     }
   }
 
   apply(args: TermExpression[]): TermExpression {
-    if(this.arity != args.length || !this.isValidTypes(args)) {
-      throw new TypeError("Argument types or length not valid for function.")
+    if (this.arity != args.length) {
+      throw new TypeError("Argument length not valid for function.")
+    }
+    if (!this.isValidTypes(args)) {
+      throw new TypeError("Argument types not valid for function.")
     }
     return this._apply(args);
-  } 
+  }
 
   // TODO: Test
   isValidTypes(args: TermExpression[]): boolean {
-    let argTypes = args.map((a: any) => { 
-      return {termType: a.termType, literalType: a.category}
-    });
+    let argTypes = args.map((a: any) => a.category || a.termType);
     return _.isEqual(this.types, argTypes);
   }
 
@@ -114,42 +111,54 @@ export class SimpleOperator implements OperatorExpression {
 }
 
 // Operators like =, !=, <, ... are overloaded, and take varying kinds
-// of argument types at the same time, like numbers, strings, and dates.
-export type OverLoadMap = Map<
-  [DataTypeCategory, DataTypeCategory],
-  (left: TermExpression, right: TermExpression) => TermExpression
->;
+// of argument types, like numbers, strings, and dates.
+// Note they don't take multiple types in the same call
+export type OverloadMap = [
+  ArgumentType[],
+  (args: TermExpression[]) => TermExpression
+][];
 
-export abstract class OverloadedOperator implements OperatorExpression {
+export class OverloadedOperator implements OperatorExpression {
   expressionType: 'operator' = 'operator';
   operatorClass: 'overloaded' = 'overloaded';
-  left: Expression;
-  right: Expression;
+  // We use strings as indexes here cause JS doesn't support arrays or objects
+  // as keys (checks by reference), and tuples aren't a thing.
+  _overloadMap: Map<string, (args: TermExpression[]) => TermExpression>
 
   // TODO: We could check arity beforehand
   constructor(
     public operator: string,
+    public arity: number,
     public args: Expression[],
-    private _overLoadMap: OverLoadMap) {
-    
-    // Only functions with arity 2 exist
-    if(args.length != 2) {
+    overloadMap: OverloadMap) {
+
+    if (args.length != this.arity) {
       throw new TypeError("Argument length not valid for function.");
     }
-    this.left = args[0], this.right = args[1];
+    let entries = overloadMap.map(([type, f]) => <any>[type.toString(), f])
+    this._overloadMap = new Map(entries);
   }
 
-  apply(left: TermExpression, right: TermExpression): TermExpression {
-    throw new UnimplementedError();
-  } 
+  apply(args: TermExpression[]): TermExpression {
+    let func = this._monomorph(args);
+    if (!func) {
+      throw new TypeError("Argument types not valid for function.")
+    }
+    return func(args);
+  }
+
+  _monomorph(args: TermExpression[]): (args: TermExpression[]) => TermExpression {
+    let argTypes = args.map((a: any) => a.category || a.termType).toString();
+    return this._overloadMap.get(argTypes);
+  }
 }
 
-export type SpecialOperators = 'bound'| '||' | '&&';
+export type SpecialOperators = 'bound' | '||' | '&&';
 export abstract class SpecialOperator implements OperatorExpression {
   expressionType: 'operator' = 'operator';
   operatorClass: 'special' = 'special';
-  
-  constructor(public operator: SpecialOperators, public args: Expression[]){
+
+  constructor(public operator: SpecialOperators, public args: Expression[]) {
 
   }
 }
@@ -157,12 +166,12 @@ export abstract class SpecialOperator implements OperatorExpression {
 //==============================================================================
 
 export abstract class Term implements TermExpression {
-    expressionType: 'term' = 'term';
-    abstract termType: 'variable' | 'literal';
+  expressionType: 'term' = 'term';
+  abstract termType: 'variable' | 'literal';
 
-    coerceEBV(): boolean {
-      throw new TypeError("Cannot coerce this term to EBV.");
-    }
+  coerceEBV(): boolean {
+    throw new TypeError("Cannot coerce this term to EBV.");
+  }
 }
 
 
@@ -171,18 +180,18 @@ export interface LiteralTerm extends TermExpression {
 }
 
 export class Literal<T> extends Term implements LiteralTerm {
-    expressionType: 'term' = 'term';
-    termType: 'literal' = 'literal';
-    category: DataTypeCategory;
+  expressionType: 'term' = 'term';
+  termType: 'literal' = 'literal';
+  category: DataTypeCategory;
 
-    constructor(
-      public typedValue: T,
-      public strValue?: string, 
-      public dataType?: rdfjs.NamedNode, 
-      public language?: string) {
-      super();
-      this.category = categorize(dataType.value);
-    }
+  constructor(
+    public typedValue: T,
+    public strValue?: string,
+    public dataType?: rdfjs.NamedNode,
+    public language?: string) {
+    super();
+    this.category = categorize(dataType.value);
+  }
 }
 
 export class NumericLiteral extends Literal<number> {
@@ -197,7 +206,7 @@ export class BooleanLiteral extends Literal<boolean> {
   }
 }
 
-export class DateTimeLiteral extends Literal<Date> {}
+export class DateTimeLiteral extends Literal<Date> { }
 
 export class PlainLiteral extends Literal<string> {
   coerceEBV(): boolean {
