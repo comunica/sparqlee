@@ -49,6 +49,11 @@
     ],
     "object-literal-sort-keys": false,
     "no-console": false,
+    "variable-name": [
+      true,
+      "check-format",
+      "allow-leading-underscore"
+    ]
   },
   "rulesDirectory": []
 }

@@ -1,12 +1,12 @@
 import * as Promise from 'bluebird';
-import { Algebra as Alg } from 'sparqlalgebrajs';
 import * as RDF from 'rdf-js';
+import { Algebra as Alg } from 'sparqlalgebrajs';
 
+import { BufferedIterator } from 'asynciterator';
 import { Bindings, BindingsStream } from '../core/Bindings';
-import { IFilteredStream, Lookup, IEvaluatedStream, IEvaluatedBindings } from '../FromExpressionStream';
+import { IEvaluatedBindings, IEvaluatedStream, IFilteredStream, Lookup } from '../FromExpressionStream';
 import { UnimplementedError } from '../util/Errors';
 import { AsyncEvaluator } from './AsyncEvaluator';
-import { BufferedIterator } from 'asynciterator';
 
 export class AsyncFilteredStream extends BufferedIterator<Bindings> implements IFilteredStream {
 
@@ -21,19 +21,18 @@ export class AsyncFilteredStream extends BufferedIterator<Bindings> implements I
     this._input = input;
     this._input.on('end', () => {
       this.close();
-    })
+    });
     Promise.longStackTraces();
   }
 
   public _read(count: number, done: () => void): void {
-    let pushed = 0;
-    let first = this._input.take(count);
-    let evaluations: Promise<void>[] = [];
+    const first = this._input.take(count);
+    const evaluations: Promise<void>[] = [];
 
     first.on('data', (bindings) => {
-      let evaluation = this._evaluate(bindings)
+      const evaluation = this._evaluate(bindings)
         .then((result) => { if (result === true) { this._push(bindings); } })
-        .catch((error) => { this.emit('error', error); })
+        .catch((error) => { this.emit('error', error); });
       evaluations.push(evaluation);
     });
 
@@ -63,24 +62,20 @@ export class AsyncEvaluatedStream extends BufferedIterator<IEvaluatedBindings> i
     this._input = input;
     this._input.on('end', () => {
       this.close();
-    })
+    });
     Promise.longStackTraces();
   }
 
   public _read(count: number, done: () => void): void {
-    let pushed = 0;
-    let first = this._input.take(count);
-    let evaluations: Promise<void>[] = [];
+    const first = this._input.take(count);
+    const evaluations: Promise<void>[] = [];
 
     first.on('data', (bindings) => {
-      let evaluation = this._evaluate(bindings)
+      const evaluation = this._evaluate(bindings)
         .then((result) => {
-          this._push({
-            bindings: bindings,
-            result: result,
-          });
+          this._push({ bindings, result });
         })
-        .catch((error) => { this.emit('error', error); })
+        .catch((error) => { this.emit('error', error); });
       evaluations.push(evaluation);
     });
 

@@ -1,21 +1,15 @@
 #! /usr/bin/env node
 
-import { Algebra as Alg } from 'sparqlalgebrajs';
 import * as _ from 'lodash';
 import * as RDF from 'rdf-data-model';
+import { Algebra as Alg } from 'sparqlalgebrajs';
 
 import { ArrayIterator, AsyncIterator } from 'asynciterator';
 import { AsyncEvaluatedStream } from '../index';
-import { example1, parse, Example } from './util/Examples';
+import { AsyncEvaluator } from '../lib/async/AsyncEvaluator';
 import { Bindings } from '../lib/core/Bindings';
 import { DataType as DT } from '../lib/util/Consts';
-import { AsyncEvaluator } from '../lib/async/AsyncEvaluator';
-
-const mockLookup = (pattern: Alg.Bgp) => {
-  return new Promise<boolean>((resolve, reject) => {
-    return resolve(true);
-  });
-};
+import { Example, example1, mockLookup, parse } from '../util/Util';
 
 function print(expr: string): void {
   console.log(JSON.stringify(parse(expr), null, 4));
@@ -35,14 +29,14 @@ async function testEval() {
 function main(): void {
   // const ex = example1;
   const ex = new Example('-?a', () => Bindings({
-    a: RDF.literal("3", RDF.namedNode(DT.XSD_INTEGER))
+    a: RDF.literal("3", RDF.namedNode(DT.XSD_INTEGER)),
   }));
-  const input = [ex.mapping()]
+  const input = [ex.mapping()];
   const istream = new ArrayIterator(input);
   const evalled = new AsyncEvaluatedStream(ex.expression, istream, mockLookup);
   evalled.on('error', (error) => console.log(error));
   evalled.on('data', (data) => {
-    console.log(JSON.stringify(data, undefined, 4))
+    console.log(JSON.stringify(data, undefined, 4));
   });
   // filter.on('end', () => {
   //   input.forEach(binding => {

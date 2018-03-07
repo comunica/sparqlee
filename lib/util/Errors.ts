@@ -7,7 +7,7 @@ export class UnimplementedError extends Error {
 }
 
 export class InvalidExpressionType extends Error {
-  expr: any;
+  public expr: any;
   constructor(expr: any) {
     super("The given expression type is not valid");
     this.expr = expr;
@@ -15,7 +15,7 @@ export class InvalidExpressionType extends Error {
 }
 
 export class InvalidTermType extends Error {
-  term: Algebra.TermExpression;
+  public term: Algebra.TermExpression;
   constructor(term: Algebra.TermExpression) {
     super("The given term type is invalid");
     this.term = term;

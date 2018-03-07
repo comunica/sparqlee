@@ -1,8 +1,8 @@
 import * as RDF from 'rdf-data-model';
 
 import { Algebra as Alg, translate } from 'sparqlalgebrajs';
-import { Bindings } from "../../lib/core/Bindings";
-import { DataType as DT } from '../../lib/util/Consts';
+import { Bindings } from "../lib/core/Bindings";
+import { DataType as DT } from '../lib/util/Consts';
 
 export class Example {
   public expression: Alg.Expression;
@@ -32,6 +32,12 @@ export const example1 = (() => {
   };
   return new Example(str, mapping);
 })();
+
+export const mockLookup = (pattern: Alg.Bgp) => {
+  return new Promise<boolean>((resolve, reject) => {
+    return resolve(true);
+  });
+};
 
 export function parse(expr: string): Alg.Expression {
   // Build mock SPARQL query with expression in the filter

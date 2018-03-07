@@ -8,8 +8,6 @@
     "test-debug-lin": "node --nolazy --debug-brk=5858 ./node_modules/.bin/jest",
     "test-debug-win": "node --debug-brk=5858 ./node_modules/jest/bin/jest.js",
     "prepare": "npm run build",
-    "bench": "node dist/benchmarks/Compare.js",
-    "testm": "node dist/benchmarks/Testing.js",
     "build": "tsc"
   },
   "repository": {
@@ -42,7 +40,7 @@
     "gulp": "^3.9.1",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-typescript": "^3.2.2",
-    "jest": "~21.2.1",
+    "jest": "^21.2.1",
     "jest-html-reporter": "^0.5.3",
     "merge-stream": "^1.0.1",
     "ts-jest": "^21.1.1",
@@ -66,10 +64,11 @@
     },
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/src/tests/util"
+      "/archive/",
+      "/dist/"
     ],
     "testResultsProcessor": "./node_modules/jest-html-reporter",
-    "testRegex": "(/tests/.*|(\\.|/)(test|spec))\\.ts$",
+    "testRegex": "(/test/.*|(\\.|/)(test|spec))\\.ts$",
     "moduleFileExtensions": [
       "ts",
       "js"

@@ -1,17 +1,17 @@
-import { Algebra as Alg } from 'sparqlalgebrajs';
-import * as RDF from 'rdf-js';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
+import * as RDF from 'rdf-js';
+import { Algebra as Alg } from 'sparqlalgebrajs';
 
+import { map } from 'benchmark';
 import { Bindings } from '../core/Bindings';
-import { Lookup } from "../FromExpressionStream";
-import { UnimplementedError, InvalidExpressionType, InvalidTermType } from '../util/Errors';
 import * as E from '../core/Expressions';
 import { Literal } from '../core/Expressions';
-import { DataType as DT } from '../util/Consts';
-import * as P from '../util/Parsing';
-import { map } from 'benchmark';
 import { makeOp } from '../core/OpDefinitions';
+import { Lookup } from "../FromExpressionStream";
+import { DataType as DT } from '../util/Consts';
+import { InvalidExpressionType, InvalidTermType, UnimplementedError } from '../util/Errors';
+import * as P from '../util/Parsing';
 
 export class AsyncEvaluator {
   private _expr: E.Expression;
@@ -23,31 +23,31 @@ export class AsyncEvaluator {
   }
 
   public evaluate(mapping: Bindings): Promise<RDF.Term> {
-    return this._eval(this._expr, mapping).then(val => {
+    return this._eval(this._expr, mapping).then((val) => {
       console.log(val);
       return val.toRDF();
-    })
+    });
   }
 
   public evaluateAsEBV(mapping: Bindings): Promise<boolean> {
     // let expr = new Promise<E.Expression>((res, rej) => res(this._expr));
-    return this._eval(this._expr, mapping).then(val => {
+    return this._eval(this._expr, mapping).then((val) => {
       console.log(val);
       return val.coerceEBV();
     });
   }
 
   private _eval(expr: E.Expression, mapping: Bindings): Promise<E.TermExpression> {
-    let types = E.expressionTypes;
+    const types = E.expressionTypes;
     switch (expr.expressionType) {
       case types.TERM:
-        return new Promise((res, rej) => res(<E.TermExpression>expr));
+        return new Promise((res, rej) => res(<E.TermExpression> expr));
       case types.VARIABLE:
         return new Promise((res, rej) => {
-          res(this._evalVar(<E.VariableExpression>expr, mapping));
+          res(this._evalVar(<E.VariableExpression> expr, mapping));
         });
       case types.OPERATOR:
-        return this._evalOp(<E.OperatorExpression>expr, mapping);
+        return this._evalOp(<E.OperatorExpression> expr, mapping);
       case types.NAMED:
         throw new UnimplementedError();
       case types.EXISTENCE:
@@ -59,44 +59,44 @@ export class AsyncEvaluator {
   }
 
   private _evalVar(expr: E.VariableExpression, mapping: Bindings): E.TermExpression {
-    let rdfTerm = mapping.get(expr.name);
+    const rdfTerm = mapping.get(expr.name);
     if (rdfTerm) {
-      return <E.TermExpression>this._transformTerm({
+      return <E.TermExpression> this._transformTerm({
         type: 'expression',
         expressionType: 'term',
-        term: rdfTerm
+        term: rdfTerm,
       });
     } else {
       throw new TypeError("Unbound variable");
-    };
+    }
   }
 
   private _evalOp(expr: E.OperatorExpression, mapping: Bindings): Promise<E.TermExpression> {
     switch (expr.operatorClass) {
       case 'simple': {
-        let pArgs = expr.args.map(a => this._eval(a, mapping));
-        let op = <E.SimpleOperator>expr;
-        return Promise.all(pArgs).then(args => op.apply(args));
-      };
+        const pArgs = expr.args.map((a) => this._eval(a, mapping));
+        const op = <E.SimpleOperator> expr;
+        return Promise.all(pArgs).then((args) => op.apply(args));
+      }
       case 'overloaded': {
-        let pArgs = expr.args.map(a => this._eval(a, mapping));
-        let op = <E.OverloadedOperator>expr;
-        return Promise.all(pArgs).then(args => op.apply(args));
-      };
+        const pArgs = expr.args.map((a) => this._eval(a, mapping));
+        const op = <E.OverloadedOperator> expr;
+        return Promise.all(pArgs).then((args) => op.apply(args));
+      }
       case 'special': throw new UnimplementedError();
-      default: throw new TypeError("Unknown operator class.")
+      default: throw new TypeError("Unknown operator class.");
     }
   }
 
   private _transform(expr: Alg.Expression): E.Expression {
-    let types = Alg.expressionTypes;
+    const types = Alg.expressionTypes;
     switch (expr.expressionType) {
-      case types.TERM: return this._transformTerm(<Alg.TermExpression>expr);
+      case types.TERM: return this._transformTerm(<Alg.TermExpression> expr);
       case types.OPERATOR: {
-        const opIn = <Alg.OperatorExpression>expr;
-        const args = opIn.args.map(a => this._transform(a));
+        const opIn = <Alg.OperatorExpression> expr;
+        const args = opIn.args.map((a) => this._transform(a));
         return makeOp(opIn.operator, args);
-      };
+      }
       case types.NAMED: throw new UnimplementedError();
       case types.EXISTENCE: throw new UnimplementedError();
       case types.AGGREGATE: throw new UnimplementedError();
@@ -107,7 +107,7 @@ export class AsyncEvaluator {
   private _transformTerm(term: Alg.TermExpression): E.Expression {
     switch (term.term.termType) {
       case 'Variable': return new E.Variable(term.term.value);
-      case 'Literal': return this._tranformLiteral(<RDF.Literal>term.term);
+      case 'Literal': return this._tranformLiteral(<RDF.Literal> term.term);
       case 'NamedNode': throw new UnimplementedError();
       default: throw new InvalidTermType(term);
     }
@@ -118,7 +118,7 @@ export class AsyncEvaluator {
       case null:
       case undefined:
       case "":
-        return new E.Literal(lit.value, lit.value, );
+        return new E.Literal(lit.value, lit.value);
 
       case DT.XSD_STRING:
         return new E.Literal<string>(lit.value, lit.value, lit.datatype);

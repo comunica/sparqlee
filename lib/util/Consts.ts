@@ -75,7 +75,6 @@ export function categorize(dataType: string): DataTypeCategory {
     case DataType.XSD_DATE_TIME: return 'date';
     case DataType.XSD_BOOLEAN: return 'boolean';
 
-
     case DataType.XSD_DECIMAL: return 'decimal';
     case DataType.XSD_FLOAT: return 'float';
     case DataType.XSD_DOUBLE: return 'double';
@@ -98,16 +97,16 @@ export function categorize(dataType: string): DataTypeCategory {
 
 // If datatypes get lost or lose specificity during operations, we can insert a
 // concrete type, since categories should remain the same. This mostly (only)
-// relevant for integer subtypes. 
+// relevant for integer subtypes.
 const _decategorize = new Map<DataTypeCategory, DataType>([
   ['integer', DataType.XSD_INTEGER],
   ['float', DataType.XSD_FLOAT],
   ['double', DataType.XSD_DOUBLE],
   ['decimal', DataType.XSD_DECIMAL],
-])
+]);
 
 export function decategorize(cat: DataTypeCategory): DataType {
-  return _decategorize.get(cat)
+  return _decategorize.get(cat);
 }
 
 // TODO: Operator enum (with special operators)
@@ -144,4 +143,3 @@ export enum SpecialOperator {
   AND = Operator.AND,
   OR = Operator.OR,
 }
-
