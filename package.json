@@ -65,7 +65,8 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/archive/",
-      "/dist/"
+      "/dist/",
+      "/test/util/"
     ],
     "testResultsProcessor": "./node_modules/jest-html-reporter",
     "testRegex": "(/test/.*|(\\.|/)(test|spec))\\.ts$",

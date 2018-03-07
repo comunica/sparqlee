@@ -1,10 +1,10 @@
-import * as RDF from 'rdf-js';
-import * as RDFDM from 'rdf-data-model';
 import * as _ from 'lodash';
+import * as RDFDM from 'rdf-data-model';
+import * as RDF from 'rdf-js';
 import { Algebra } from 'sparqlalgebrajs';
 
-import { categorize, DataTypeCategory } from '../util/Consts';
 import { Bindings } from '../core/Bindings';
+import { categorize, DataTypeCategory } from '../util/Consts';
 import { UnimplementedError } from '../util/Errors';
 
 export enum expressionTypes {
@@ -13,99 +13,99 @@ export enum expressionTypes {
   NAMED = 'named',
   OPERATOR = 'operator',
   TERM = 'term',
-  VARIABLE = 'variable'
+  VARIABLE = 'variable',
 }
 
-export interface Expression {
+export interface IExpression {
   expressionType: 'aggregate' | 'existence' | 'named' | 'operator' | 'term' | 'variable';
 }
 
-export interface AggregateExpression extends Expression {
-  expressionType: 'aggregate',
+export interface IAggregateExpression extends IExpression {
+  expressionType: 'aggregate';
   aggregator: string;
   distinct: boolean;
   separator?: string; // used by GROUP_CONCAT
-  expression: Expression;
+  expression: IExpression;
 }
 
-export interface ExistenceExpression extends Expression {
+export interface IExistenceExpression extends IExpression {
   expressionType: 'existence';
   not: boolean;
   input: Algebra.Operation;
 }
 
-export interface NamedExpression extends Expression {
+export interface INamedExpression extends IExpression {
   expressionType: 'named';
   name: RDF.NamedNode;
-  args: Expression[];
+  args: IExpression[];
 }
 
-export interface OperatorExpression extends Expression {
+export interface IOperatorExpression extends IExpression {
   expressionType: 'operator';
   operator: string;
-  args: Expression[];
+  args: IExpression[];
   operatorClass: 'simple' | 'overloaded' | 'special';
   // apply(args: Expression[], mapping: Bindings): TermExpression;
 }
 
-export interface TermExpression extends Expression {
+export interface ITermExpression extends IExpression {
   expressionType: 'term';
   termType: 'literal' | 'variable';
   coerceEBV(): boolean;
   toRDF(): RDF.Term;
 }
 
-export interface VariableExpression extends Expression {
+export interface IVariableExpression extends IExpression {
   expressionType: 'variable';
   name: string;
 }
 
-//==============================================================================
+// -----------------------------------------------------------------------------
 
-export class Variable implements VariableExpression {
-  expressionType: 'variable' = 'variable';
-  name: string;
+export class Variable implements IVariableExpression {
+  public expressionType: 'variable' = 'variable';
+  public name: string;
   constructor(name: string) {
     this.name = name;
   }
 }
 
-//==============================================================================
+// -----------------------------------------------------------------------------
 
 // Function and operator arguments are 'flattened' in the SPARQL spec.
 // If the argument is a literal, the datatype often also matters.
 export type ArgumentType = 'namedNode' | DataTypeCategory;
 
-export class SimpleOperator implements OperatorExpression {
-  expressionType: 'operator' = 'operator';
-  operatorClass: 'simple' = 'simple';
+export class SimpleOperator implements IOperatorExpression {
+  public expressionType: 'operator' = 'operator';
+  public operatorClass: 'simple' = 'simple';
 
   // TODO: We could check arity beforehand
   constructor(
     public operator: string,
     public arity: number,
-    public args: Expression[],
+    public args: IExpression[],
     public types: ArgumentType[],
-    protected _apply: (args: TermExpression[]) => TermExpression
+    protected _apply: (args: ITermExpression[]) => ITermExpression,
   ) {
-    if (args.length != this.arity) {
+    if (args.length !== this.arity) {
       throw new TypeError("Argument length not valid for function.");
     }
   }
 
-  apply(args: TermExpression[]): TermExpression {
-    if (this.arity != args.length) {
+  public apply(args: ITermExpression[]): ITermExpression {
+    if (this.arity !== args.length) {
       throw new TypeError("Argument length not valid for function.")
     }
-    if (!this.isValidTypes(args)) {
+    if (!this._isValidTypes(args)) {
       throw new TypeError("Argument types not valid for function.")
     }
     return this._apply(args);
   }
 
   // TODO: Test
-  isValidTypes(args: TermExpression[]): boolean {
-    let argTypes = args.map((a: any) => a.category || a.termType);
+  private _isValidTypes(args: ITermExpression[]): boolean {
+    const argTypes = args.map((a: any) => a.category || a.termType);
     return _.isEqual(this.types, argTypes);
   }
 
@@ -117,76 +117,77 @@ export class SimpleOperator implements OperatorExpression {
 // Note they don't take multiple types in the same call
 export type OverloadMap = [
   ArgumentType[],
-  (args: TermExpression[]) => TermExpression
+  (args: ITermExpression[]) => ITermExpression
 ][];
 
-export class OverloadedOperator implements OperatorExpression {
-  expressionType: 'operator' = 'operator';
-  operatorClass: 'overloaded' = 'overloaded';
+export class OverloadedOperator implements IOperatorExpression {
+  public expressionType: 'operator' = 'operator';
+  public operatorClass: 'overloaded' = 'overloaded';
   // We use strings as indexes here cause JS doesn't support arrays or objects
   // as keys (checks by reference), and tuples aren't a thing.
-  _overloadMap: Map<string, (args: TermExpression[]) => TermExpression>
+  private _overloadMap: Map<string, (args: ITermExpression[]) => ITermExpression>;
 
   // TODO: We could check arity beforehand
   constructor(
     public operator: string,
     public arity: number,
-    public args: Expression[],
-    overloadMap: OverloadMap) {
+    public args: IExpression[],
+    overloadMap: OverloadMap,
+  ) {
 
-    if (args.length != this.arity) {
+    if (args.length !== this.arity) {
       throw new TypeError("Argument length not valid for function.");
     }
-    let entries = overloadMap.map(([type, f]) => <any>[type.toString(), f])
+    const entries = overloadMap.map(([type, f]) => <any>[type.toString(), f]);
     this._overloadMap = new Map(entries);
   }
 
-  apply(args: TermExpression[]): TermExpression {
-    let func = this._monomorph(args);
+  public apply(args: ITermExpression[]): ITermExpression {
+    const func = this._monomorph(args);
     if (!func) {
       throw new TypeError("Argument types not valid for function.")
     }
     return func(args);
   }
 
-  _monomorph(args: TermExpression[]): (args: TermExpression[]) => TermExpression {
-    let argTypes = args.map((a: any) => a.category || a.termType).toString();
+  // Fix this toString() BS, check Immutable.JS maps
+  private _monomorph(args: ITermExpression[]): (args: ITermExpression[]) => ITermExpression {
+    throw new UnimplementedError();
+    const argTypes = args.map((a: any) => a.category || a.termType).toString();
     return this._overloadMap.get(argTypes);
   }
 }
 
 export type SpecialOperators = 'bound' | '||' | '&&';
-export abstract class SpecialOperator implements OperatorExpression {
-  expressionType: 'operator' = 'operator';
-  operatorClass: 'special' = 'special';
 
-  constructor(public operator: SpecialOperators, public args: Expression[]) {
+export abstract class SpecialOperator implements IOperatorExpression {
+  public expressionType: 'operator' = 'operator';
+  public operatorClass: 'special' = 'special';
 
-  }
+  constructor(public operator: SpecialOperators, public args: IExpression[]) { }
 }
 
-//==============================================================================
+// ----------------------------------------------------------------------------
 
-export abstract class Term implements TermExpression {
-  expressionType: 'term' = 'term';
-  abstract termType: 'variable' | 'literal';
+export abstract class Term implements ITermExpression {
+  public expressionType: 'term' = 'term';
+  public abstract termType: 'variable' | 'literal';
 
-  coerceEBV(): boolean {
+  public coerceEBV(): boolean {
     throw new TypeError("Cannot coerce this term to EBV.");
   }
 
-  abstract toRDF(): RDF.Term;
+  public abstract toRDF(): RDF.Term;
 }
 
-
-export interface LiteralTerm extends TermExpression {
+export interface ILiteralTerm extends ITermExpression {
   category: DataTypeCategory;
 }
 
-export class Literal<T> extends Term implements LiteralTerm {
-  expressionType: 'term' = 'term';
-  termType: 'literal' = 'literal';
-  category: DataTypeCategory;
+export class Literal<T> extends Term implements ILiteralTerm {
+  public expressionType: 'term' = 'term';
+  public termType: 'literal' = 'literal';
+  public category: DataTypeCategory;
 
   constructor(
     public typedValue: T,
@@ -197,7 +198,7 @@ export class Literal<T> extends Term implements LiteralTerm {
     this.category = categorize(dataType.value);
   }
 
-  toRDF(): RDF.Term {
+  public toRDF(): RDF.Term {
     return RDFDM.literal(
       this.strValue || this.typedValue.toString(),
       this.language || this.dataType);
@@ -205,13 +206,13 @@ export class Literal<T> extends Term implements LiteralTerm {
 }
 
 export class NumericLiteral extends Literal<number> {
-  coerceEBV(): boolean {
+  public coerceEBV(): boolean {
     return !!this.typedValue;
   }
 }
 
 export class BooleanLiteral extends Literal<boolean> {
-  coerceEBV(): boolean {
+  public coerceEBV(): boolean {
     return !!this.typedValue;
   }
 }
@@ -219,13 +220,13 @@ export class BooleanLiteral extends Literal<boolean> {
 export class DateTimeLiteral extends Literal<Date> { }
 
 export class PlainLiteral extends Literal<string> {
-  coerceEBV(): boolean {
-    return this.strValue.length != 0
+  public coerceEBV(): boolean {
+    return this.strValue.length !== 0;
   }
 }
 
 export class StringLiteral extends Literal<string> {
-  coerceEBV(): boolean {
-    return this.strValue.length != 0
+  public coerceEBV(): boolean {
+    return this.strValue.length !== 0;
   }
 }

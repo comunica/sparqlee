@@ -1,4 +1,5 @@
 import { AsyncIterator } from 'asynciterator';
+import * as Promise from 'bluebird';
 import * as RDF from 'rdf-js';
 import { Algebra as Alg } from 'sparqlalgebrajs';
 

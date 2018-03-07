@@ -38,17 +38,6 @@ function main(): void {
   evalled.on('data', (data) => {
     console.log(JSON.stringify(data, undefined, 4));
   });
-  // filter.on('end', () => {
-  //   input.forEach(binding => {
-  //     let vals = binding.map((v, k) => v.value);
-  //     if (results.find((v) => _.isEqual(binding, v))) {
-  //       console.log("True:", vals);
-  //     } else {
-  //       console.log("False:", vals);
-  //     }
-  //   });
-  // })
-  // let results = new Array<Bindings>(); filter.each(r => results.push(r));
 }
 
 testEval();

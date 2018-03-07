@@ -14,7 +14,7 @@ import { InvalidExpressionType, InvalidTermType, UnimplementedError } from '../u
 import * as P from '../util/Parsing';
 
 export class AsyncEvaluator {
-  private _expr: E.Expression;
+  private _expr: E.IExpression;
   private _lookup: Lookup;
 
   constructor(expr: Alg.Expression, lookup: Lookup) {
@@ -37,17 +37,17 @@ export class AsyncEvaluator {
     });
   }
 
-  private _eval(expr: E.Expression, mapping: Bindings): Promise<E.TermExpression> {
+  private _eval(expr: E.IExpression, mapping: Bindings): Promise<E.ITermExpression> {
     const types = E.expressionTypes;
     switch (expr.expressionType) {
       case types.TERM:
-        return new Promise((res, rej) => res(<E.TermExpression> expr));
+        return new Promise((res, rej) => res(<E.ITermExpression> expr));
       case types.VARIABLE:
         return new Promise((res, rej) => {
-          res(this._evalVar(<E.VariableExpression> expr, mapping));
+          res(this._evalVar(<E.IVariableExpression> expr, mapping));
         });
       case types.OPERATOR:
-        return this._evalOp(<E.OperatorExpression> expr, mapping);
+        return this._evalOp(<E.IOperatorExpression> expr, mapping);
       case types.NAMED:
         throw new UnimplementedError();
       case types.EXISTENCE:
@@ -58,10 +58,10 @@ export class AsyncEvaluator {
     }
   }
 
-  private _evalVar(expr: E.VariableExpression, mapping: Bindings): E.TermExpression {
+  private _evalVar(expr: E.IVariableExpression, mapping: Bindings): E.ITermExpression {
     const rdfTerm = mapping.get(expr.name);
     if (rdfTerm) {
-      return <E.TermExpression> this._transformTerm({
+      return <E.ITermExpression> this._transformTerm({
         type: 'expression',
         expressionType: 'term',
         term: rdfTerm,
@@ -71,7 +71,7 @@ export class AsyncEvaluator {
     }
   }
 
-  private _evalOp(expr: E.OperatorExpression, mapping: Bindings): Promise<E.TermExpression> {
+  private _evalOp(expr: E.IOperatorExpression, mapping: Bindings): Promise<E.ITermExpression> {
     switch (expr.operatorClass) {
       case 'simple': {
         const pArgs = expr.args.map((a) => this._eval(a, mapping));
@@ -88,7 +88,7 @@ export class AsyncEvaluator {
     }
   }
 
-  private _transform(expr: Alg.Expression): E.Expression {
+  private _transform(expr: Alg.Expression): E.IExpression {
     const types = Alg.expressionTypes;
     switch (expr.expressionType) {
       case types.TERM: return this._transformTerm(<Alg.TermExpression> expr);
@@ -104,7 +104,7 @@ export class AsyncEvaluator {
     }
   }
 
-  private _transformTerm(term: Alg.TermExpression): E.Expression {
+  private _transformTerm(term: Alg.TermExpression): E.IExpression {
     switch (term.term.termType) {
       case 'Variable': return new E.Variable(term.term.value);
       case 'Literal': return this._tranformLiteral(<RDF.Literal> term.term);
