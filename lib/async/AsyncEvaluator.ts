@@ -1,9 +1,10 @@
-import { Bindings, Lookup } from "../FilteredStream";
 import { Algebra as Alg } from 'sparqlalgebrajs';
-import * as rdfjs from 'rdf-js';
+import * as RDF from 'rdf-js';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 
+import { Bindings } from '../core/Bindings';
+import { Lookup } from "../FromExpressionStream";
 import { UnimplementedError, InvalidExpressionType, InvalidTermType } from '../util/Errors';
 import * as E from '../core/Expressions';
 import { Literal } from '../core/Expressions';
@@ -21,7 +22,14 @@ export class AsyncEvaluator {
     this._lookup = lookup;
   }
 
-  public evaluate(mapping: Bindings): Promise<boolean> {
+  public evaluate(mapping: Bindings): Promise<RDF.Term> {
+    return this._eval(this._expr, mapping).then(val => {
+      console.log(val);
+      return val.toRDF();
+    })
+  }
+
+  public evaluateAsEBV(mapping: Bindings): Promise<boolean> {
     // let expr = new Promise<E.Expression>((res, rej) => res(this._expr));
     return this._eval(this._expr, mapping).then(val => {
       console.log(val);
@@ -99,13 +107,13 @@ export class AsyncEvaluator {
   private _transformTerm(term: Alg.TermExpression): E.Expression {
     switch (term.term.termType) {
       case 'Variable': return new E.Variable(term.term.value);
-      case 'Literal': return this._tranformLiteral(<rdfjs.Literal>term.term);
+      case 'Literal': return this._tranformLiteral(<RDF.Literal>term.term);
       case 'NamedNode': throw new UnimplementedError();
       default: throw new InvalidTermType(term);
     }
   }
 
-  private _tranformLiteral(lit: rdfjs.Literal): E.Literal<any> {
+  private _tranformLiteral(lit: RDF.Literal): E.Literal<any> {
     switch (lit.datatype.value) {
       case null:
       case undefined:

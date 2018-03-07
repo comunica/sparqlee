@@ -1,3 +1,8 @@
-import { AsyncFilter } from './lib/async/AsyncFilter';
+import {
+    AsyncFilteredStream,
+    AsyncEvaluatedStream
+} from './lib/async/AsyncStream';
 
-export { AsyncFilter };
+import { AsyncEvaluator } from './lib/async/AsyncEvaluator';
+
+export { AsyncFilteredStream, AsyncEvaluatedStream };

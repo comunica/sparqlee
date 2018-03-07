@@ -1,9 +1,10 @@
-import * as rdfjs from 'rdf-js';
+import * as RDF from 'rdf-js';
+import * as RDFDM from 'rdf-data-model';
 import * as _ from 'lodash';
 import { Algebra } from 'sparqlalgebrajs';
 
 import { categorize, DataTypeCategory } from '../util/Consts';
-import { Bindings } from '../FilteredStream';
+import { Bindings } from '../core/Bindings';
 import { UnimplementedError } from '../util/Errors';
 
 export enum expressionTypes {
@@ -35,7 +36,7 @@ export interface ExistenceExpression extends Expression {
 
 export interface NamedExpression extends Expression {
   expressionType: 'named';
-  name: rdfjs.NamedNode;
+  name: RDF.NamedNode;
   args: Expression[];
 }
 
@@ -51,6 +52,7 @@ export interface TermExpression extends Expression {
   expressionType: 'term';
   termType: 'literal' | 'variable';
   coerceEBV(): boolean;
+  toRDF(): RDF.Term;
 }
 
 export interface VariableExpression extends Expression {
@@ -172,6 +174,8 @@ export abstract class Term implements TermExpression {
   coerceEBV(): boolean {
     throw new TypeError("Cannot coerce this term to EBV.");
   }
+
+  abstract toRDF(): RDF.Term;
 }
 
 
@@ -187,10 +191,16 @@ export class Literal<T> extends Term implements LiteralTerm {
   constructor(
     public typedValue: T,
     public strValue?: string,
-    public dataType?: rdfjs.NamedNode,
+    public dataType?: RDF.NamedNode,
     public language?: string) {
     super();
     this.category = categorize(dataType.value);
+  }
+
+  toRDF(): RDF.Term {
+    return RDFDM.literal(
+      this.strValue || this.typedValue.toString(),
+      this.language || this.dataType);
   }
 }
 

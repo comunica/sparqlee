@@ -1,11 +1,7 @@
+
 import { AsyncIterator } from 'asynciterator';
 import { Map } from "immutable";
 import * as RDF from "rdf-js";
-import { Algebra as Alg} from "sparqlalgebrajs";
-
-export type Lookup = (pattern: Alg.Bgp) => Promise<boolean>;
-
-export interface IFilteredStream extends BindingsStream {};
 
 /**
  * A stream of bindings.
@@ -33,5 +29,5 @@ export type Bindings = Map<string, RDF.Term>;
  * @constructor
  */
 export function Bindings(hash: { [key: string]: RDF.Term }): Bindings {
-  return Map(hash);
+    return Map(hash);
 }

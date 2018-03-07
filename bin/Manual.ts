@@ -5,9 +5,9 @@ import * as _ from 'lodash';
 import * as RDF from 'rdf-data-model';
 
 import { ArrayIterator, AsyncIterator } from 'asynciterator';
-import { AsyncFilter } from '../index';
+import { AsyncEvaluatedStream } from '../index';
 import { example1, parse, Example } from './util/Examples';
-import { Bindings } from '../lib/FilteredStream';
+import { Bindings } from '../lib/core/Bindings';
 import { DataType as DT } from '../lib/util/Consts';
 import { AsyncEvaluator } from '../lib/async/AsyncEvaluator';
 
@@ -39,19 +39,22 @@ function main(): void {
   }));
   const input = [ex.mapping()]
   const istream = new ArrayIterator(input);
-  const filter = new AsyncFilter(ex.expression, istream, mockLookup);
-  filter.on('error', (error) => console.log(error));
-  filter.on('end', () => {
-    input.forEach(binding => {
-      let vals = binding.map((v, k) => v.value);
-      if (results.find((v) => _.isEqual(binding, v))) {
-        console.log("True:", vals);
-      } else {
-        console.log("False:", vals);
-      }
-    });
-  })
-  let results = new Array<Bindings>(); filter.each(r => results.push(r));
+  const evalled = new AsyncEvaluatedStream(ex.expression, istream, mockLookup);
+  evalled.on('error', (error) => console.log(error));
+  evalled.on('data', (data) => {
+    console.log(JSON.stringify(data, undefined, 4))
+  });
+  // filter.on('end', () => {
+  //   input.forEach(binding => {
+  //     let vals = binding.map((v, k) => v.value);
+  //     if (results.find((v) => _.isEqual(binding, v))) {
+  //       console.log("True:", vals);
+  //     } else {
+  //       console.log("False:", vals);
+  //     }
+  //   });
+  // })
+  // let results = new Array<Bindings>(); filter.each(r => results.push(r));
 }
 
 testEval();

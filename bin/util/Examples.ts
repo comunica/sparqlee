@@ -1,7 +1,7 @@
 import * as RDF from 'rdf-data-model';
 
 import { Algebra as Alg, translate } from 'sparqlalgebrajs';
-import { Bindings } from "../../lib/FilteredStream";
+import { Bindings } from "../../lib/core/Bindings";
 import { DataType as DT } from '../../lib/util/Consts';
 
 export class Example {
