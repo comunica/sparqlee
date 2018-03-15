@@ -9,6 +9,7 @@ import { AsyncEvaluatedStream } from '../index';
 import { AsyncEvaluator } from '../lib/async/AsyncEvaluator';
 import { Bindings } from '../lib/core/Bindings';
 import { DataType as DT } from '../lib/util/Consts';
+import * as C from '../lib/util/Consts';
 import { Example, example1, mockLookup, parse } from '../util/Util';
 
 function print(expr: string): void {
@@ -16,9 +17,9 @@ function print(expr: string): void {
 }
 
 async function testEval() {
-  const ex = new Example('?a || "not an integer"^^xsd:integer', () => Bindings({
+  const ex = new Example('?a || ?b', () => Bindings({
     a: RDF.literal("true", RDF.namedNode(DT.XSD_BOOLEAN)),
-    b: RDF.literal("not an integer", RDF.namedNode(DT.XSD_INTEGER)),
+    b: RDF.literal("3", RDF.namedNode(DT.XSD_INTEGER)),
   }));
   const evaluator = new AsyncEvaluator(ex.expression, mockLookup);
   const presult = evaluator.evaluate(ex.mapping());
@@ -28,8 +29,9 @@ async function testEval() {
 
 function main(): void {
   // const ex = example1;
-  const ex = new Example('-?a', () => Bindings({
+  const ex = new Example('?a || ?b', () => Bindings({
     a: RDF.literal("3", RDF.namedNode(DT.XSD_INTEGER)),
+    b: RDF.literal("3", RDF.namedNode(DT.XSD_INTEGER)),
   }));
   const input = [ex.mapping()];
   const istream = new ArrayIterator(input);

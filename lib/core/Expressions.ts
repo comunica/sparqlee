@@ -1,4 +1,5 @@
 import * as Promise from 'bluebird';
+import { List, Map } from 'immutable';
 import * as _ from 'lodash';
 import * as RDFDM from 'rdf-data-model';
 import * as RDF from 'rdf-js';
@@ -134,9 +135,12 @@ export class SimpleOperator implements IOperatorExpression {
  * or even their specific numeric type (eg: integer, float).
  *
  * Examples include:
- *  - Arithmetic operations such as: *, -, /, +.
+ *  - Arithmetic operations such as: *, -, /, +
  *  - Bool operators such as: =, !=, <=, <, ...
- *  - Functions such as: str, BNODE, IRI
+ *  - Functions such as: str, IRI
+ *
+ * Note: functions that have multiple arities do not belong in this category.
+ * Eg: BNODE.
  *
  * See also: https://www.w3.org/TR/sparql11-query/#func-rdfTerms
  * and https://www.w3.org/TR/sparql11-query/#OperatorMapping
@@ -144,31 +148,30 @@ export class SimpleOperator implements IOperatorExpression {
 
 // Maps argument types on their specific implementation.
 // TODO: Make immutable.js thing.
-export type OverloadMap = [
-  ArgumentType[],
-  (args: ITermExpression[]) => ITermExpression
-][];
+export type OverloadMap = Map<List<ArgumentType>, SimpleEvaluator>;
+export type SimpleEvaluator = (args: ITermExpression[]) => ITermExpression;
+// export type OverloadMap = [
+//   ArgumentType[],
+//   (args: ITermExpression[]) => ITermExpression
+// ][];
 
 export class OverloadedOperator implements IOperatorExpression {
   public expressionType: 'operator' = 'operator';
   public operatorClass: 'overloaded' = 'overloaded';
+  // TODO: Remove comments
   // We use strings as indexes here cause JS doesn't support arrays or objects
   // as keys (checks by reference), and tuples aren't a thing.
-  private _overloadMap: Map<string, (args: ITermExpression[]) => ITermExpression>;
+  private _overloadMap: OverloadMap;
 
-  // TODO: We could check arity beforehand
   constructor(
     public operator: string,
     public arity: number,
     public args: IExpression[],
-    overloadMap: OverloadMap,
+    public overloadMap: OverloadMap,
   ) {
-
     if (args.length !== this.arity) {
       throw new InvalidArity(args, this.operator);
     }
-    const entries = overloadMap.map(([type, f]) => <any>[type.toString(), f]);
-    this._overloadMap = new Map(entries);
   }
 
   public apply(args: ITermExpression[]): ITermExpression {
@@ -179,10 +182,8 @@ export class OverloadedOperator implements IOperatorExpression {
     return func(args);
   }
 
-  // Fix this toString() BS, check Immutable.JS maps
-  private _monomorph(args: ITermExpression[]): (args: ITermExpression[]) => ITermExpression {
-    // throw new UnimplementedError();
-    const argTypes = args.map((a: any) => a.category || a.termType).toString();
+  private _monomorph(args: ITermExpression[]): SimpleEvaluator {
+    const argTypes = List(args.map((a: any) => a.category || a.termType));
     return this._overloadMap.get(argTypes);
   }
 }

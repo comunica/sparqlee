@@ -1,16 +1,16 @@
 import * as Promise from 'bluebird';
-import * as _ from 'lodash';
 import * as RDF from 'rdf-js';
 import { Algebra as Alg } from 'sparqlalgebrajs';
 
-import { map } from 'benchmark';
 import { Bindings } from '../core/Bindings';
 import * as E from '../core/Expressions';
-import { Literal } from '../core/Expressions';
-import { makeOp } from '../core/OpDefinitions';
+import { makeOp } from '../core/operators/Definitions';
 import { Lookup } from "../FromExpressionStream";
 import { DataType as DT } from '../util/Consts';
-import { InvalidExpressionType, InvalidTermType, UnimplementedError, InvalidLexicalForm } from '../util/Errors';
+import {
+  InvalidExpressionType, InvalidLexicalForm, InvalidTermType,
+  UnimplementedError,
+} from '../util/Errors';
 import * as P from '../util/Parsing';
 
 export class AsyncEvaluator {
@@ -46,6 +46,7 @@ export class AsyncEvaluator {
         ));
       case types.OPERATOR:
         return this._evalOp(<E.IOperatorExpression> expr, mapping);
+      // TODO
       case types.NAMED:
         throw new UnimplementedError();
       case types.EXISTENCE:
@@ -99,6 +100,7 @@ export class AsyncEvaluator {
         // NOTE: If abstracted, sync and async should be differentiated
         return makeOp(opIn.operator, args);
       }
+      // TODO
       case types.NAMED: throw new UnimplementedError();
       case types.EXISTENCE: throw new UnimplementedError();
       case types.AGGREGATE: throw new UnimplementedError();
@@ -110,6 +112,7 @@ export class AsyncEvaluator {
     switch (term.term.termType) {
       case 'Variable': return new E.Variable(term.term.value);
       case 'Literal': return this._tranformLiteral(<RDF.Literal> term.term);
+      // TODO
       case 'NamedNode': throw new UnimplementedError();
       default: throw new InvalidTermType(term);
     }

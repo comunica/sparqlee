@@ -1,3 +1,5 @@
+// tslint:disable:variable-name
+import { Map, Set } from 'immutable';
 import * as RDFDM from 'rdf-data-model';
 import * as RDF from 'rdf-js';
 
@@ -105,7 +107,7 @@ export function categorize(dataType: string): DataTypeCategory {
 // If datatypes get lost or lose specificity during operations, we can insert a
 // concrete type, since categories should remain the same. This mostly (only)
 // relevant for integer subtypes.
-const _decategorize = new Map<DataTypeCategory, DataType>([
+const _decategorize = Map<DataTypeCategory, DataType>([
   ['integer', DataType.XSD_INTEGER],
   ['float', DataType.XSD_FLOAT],
   ['double', DataType.XSD_DOUBLE],
@@ -116,37 +118,50 @@ export function decategorize(cat: DataTypeCategory): DataType {
   return _decategorize.get(cat);
 }
 
+// ----------------------------------------------------------------------------
+// Operators
+// ----------------------------------------------------------------------------
+
 // TODO: Operator enum (with special operators)
+export type OperatorType = keyof typeof Operator;
+export type OperatorCategory = 'simple' | 'overloaded' | 'special';
 export enum Operator {
   AND = '&&',
   OR = '||',
-  EQUAL = '=',
-  NOT_EQUAL = '!=',
-  LT = '<',
-  GT = '>',
-  LTE = '<=',
-  GTE = '>=',
-  MULTIPLICATION = '*',
-  DIVISION = '/',
-  ADDITION = '+',
-  SUBTRACTION = '-',
+
+  // EQUAL = '=',
+  // NOT_EQUAL = '!=',
+  // LT = '<',
+  // GT = '>',
+  // LTE = '<=',
+  // GTE = '>=',
+
+  // MULTIPLICATION = '*',
+  // DIVISION = '/',
+  // ADDITION = '+',
+  // SUBTRACTION = '-',
 }
 
-export enum OverloadedOperator {
-  EQUAL = Operator.EQUAL,
-  NOT_EQUAL = Operator.NOT_EQUAL,
-  LT = Operator.LT,
-  GT = Operator.GT,
-  LTE = Operator.LTE,
-  GTE = Operator.GTE,
+export const Operators = Set((<any> Object).values(Operator));
 
-  MULTIPLICATION = Operator.MULTIPLICATION,
-  DIVISION = Operator.DIVISION,
-  ADDITION = Operator.ADDITION,
-  SUBTRACTION = Operator.SUBTRACTION,
-}
 
-export enum SpecialOperator {
-  AND = Operator.AND,
-  OR = Operator.OR,
-}
+// export const SpecialOperators = Set<Operator>([3]);
+
+// export enum OverloadedOperator {
+//   EQUAL = Operator.EQUAL,
+//   NOT_EQUAL = Operator.NOT_EQUAL,
+//   LT = Operator.LT,
+//   GT = Operator.GT,
+//   LTE = Operator.LTE,
+//   GTE = Operator.GTE,
+
+//   MULTIPLICATION = Operator.MULTIPLICATION,
+//   DIVISION = Operator.DIVISION,
+//   ADDITION = Operator.ADDITION,
+//   SUBTRACTION = Operator.SUBTRACTION,
+// }
+
+// export enum SpecialOperator {
+//   AND = Operator.AND,
+//   OR = Operator.OR,
+// }

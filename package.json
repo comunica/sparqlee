@@ -47,7 +47,7 @@
     "ts-node": "^3.3.0",
     "tslint": "^5.8.0",
     "tslint-eslint-rules": "^4.1.1",
-    "typescript": "^2.5.3"
+    "typescript": "^2.6.0"
   },
   "dependencies": {
     "asynciterator": "^1.1.0",
