@@ -22,10 +22,6 @@ function _testTable(op: string, table: string, errorTable: string) {
 
 // TODO: Test use of EVB
 describe('evaluation of logical connectives', () => {
-  test('rejects to octopus', () => {
-    // make sure to add a return statement
-    return expect(Promise.reject(new Error('octopus'))).rejects.toThrow();
-  });
   describe('like "||" receiving', () => {
     const table = `
     true  true  = true
@@ -45,21 +41,22 @@ describe('evaluation of logical connectives', () => {
     _testTable('||', table, errTable);
   });
 
-  // describe('like "&&" receiving', () => {
-  //   const table = `
-  //   true  true  = true
-  //   true  false = false
-  //   false true  = false
-  //   false false = false
-  //   `;
-  //   const errTable = `
-  //   true  error = error
-  //   error true  = error
-  //   false error = false
-  //   error false = false
-  //   error error = error
-  //   `;
+  describe('like "&&" receiving', () => {
+    const table = `
+    true  true  = true
+    true  false = false
+    false true  = false
+    false false = false
+    false error = false
+    error false = false
+    `;
 
-  //   _testTable('&&', table, errTable);
-  // });
+    const errTable = `
+    true  error = error
+    error true  = error
+    error error = error
+    `;
+
+    _testTable('&&', table, errTable);
+  });
 });
