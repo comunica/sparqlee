@@ -29,5 +29,5 @@ export type Bindings = Map<string, RDF.Term>;
  * @constructor
  */
 export function Bindings(hash: { [key: string]: RDF.Term }): Bindings {
-    return Map(hash);
+  return Map(hash);
 }

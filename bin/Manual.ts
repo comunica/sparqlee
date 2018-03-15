@@ -16,9 +16,9 @@ function print(expr: string): void {
 }
 
 async function testEval() {
-  const ex = new Example('?a + ?b', () => Bindings({
-    a: RDF.literal("3", RDF.namedNode(DT.XSD_INTEGER)),
-    b: RDF.literal("3", RDF.namedNode(DT.XSD_NON_NEGATIVE_INTEGER))
+  const ex = new Example('?a || "not an integer"^^xsd:integer', () => Bindings({
+    a: RDF.literal("true", RDF.namedNode(DT.XSD_BOOLEAN)),
+    b: RDF.literal("not an integer", RDF.namedNode(DT.XSD_INTEGER)),
   }));
   const evaluator = new AsyncEvaluator(ex.expression, mockLookup);
   const presult = evaluator.evaluate(ex.mapping());

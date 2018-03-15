@@ -10,7 +10,7 @@ import { Literal } from '../core/Expressions';
 import { makeOp } from '../core/OpDefinitions';
 import { Lookup } from "../FromExpressionStream";
 import { DataType as DT } from '../util/Consts';
-import { InvalidExpressionType, InvalidTermType, UnimplementedError } from '../util/Errors';
+import { InvalidExpressionType, InvalidTermType, UnimplementedError, InvalidLexicalForm } from '../util/Errors';
 import * as P from '../util/Parsing';
 
 export class AsyncEvaluator {
@@ -24,16 +24,14 @@ export class AsyncEvaluator {
 
   public evaluate(mapping: Bindings): Promise<RDF.Term> {
     return this._eval(this._expr, mapping).then((val) => {
-      console.log(val);
-      return val.toRDF();
+      return log(val).toRDF();
     });
   }
 
   public evaluateAsEBV(mapping: Bindings): Promise<boolean> {
     // let expr = new Promise<E.Expression>((res, rej) => res(this._expr));
     return this._eval(this._expr, mapping).then((val) => {
-      console.log(val);
-      return val.coerceEBV();
+      return log(val).coerceEBV();
     });
   }
 
@@ -41,11 +39,11 @@ export class AsyncEvaluator {
     const types = E.expressionTypes;
     switch (expr.expressionType) {
       case types.TERM:
-        return new Promise((res, rej) => res(<E.ITermExpression> expr));
+        return Promise.resolve(<E.ITermExpression> expr);
       case types.VARIABLE:
-        return new Promise((res, rej) => {
-          res(this._evalVar(<E.IVariableExpression> expr, mapping));
-        });
+        return Promise.try(() => (
+          this._evalVar(<E.IVariableExpression> expr, mapping)
+        ));
       case types.OPERATOR:
         return this._evalOp(<E.IOperatorExpression> expr, mapping);
       case types.NAMED:
@@ -83,7 +81,10 @@ export class AsyncEvaluator {
         const op = <E.OverloadedOperator> expr;
         return Promise.all(pArgs).then((args) => op.apply(args));
       }
-      case 'special': throw new UnimplementedError();
+      case 'special': {
+        const op = <E.SpecialOperatorAsync> expr;
+        return op.apply(expr.args, mapping, this._eval.bind(this));
+      }
       default: throw new TypeError("Unknown operator class.");
     }
   }
@@ -95,6 +96,7 @@ export class AsyncEvaluator {
       case types.OPERATOR: {
         const opIn = <Alg.OperatorExpression> expr;
         const args = opIn.args.map((a) => this._transform(a));
+        // NOTE: If abstracted, sync and async should be differentiated
         return makeOp(opIn.operator, args);
       }
       case types.NAMED: throw new UnimplementedError();
@@ -121,24 +123,29 @@ export class AsyncEvaluator {
         return new E.Literal(lit.value, lit.value);
 
       case DT.XSD_STRING:
-        return new E.Literal<string>(lit.value, lit.value, lit.datatype);
+        return new E.StringLiteral(lit.value, lit.value, lit.datatype);
       case DT.RDF_LANG_STRING:
-        return new E.Literal<string>(lit.value, lit.value, lit.datatype, lit.language);
+        return new E.StringLiteral(lit.value, lit.value, lit.datatype, lit.language);
 
       case DT.XSD_DATE_TIME: {
         const val: Date = new Date(lit.value);
         if (isNaN(val.getTime())) {
-          throw new Error();
+          throw new InvalidLexicalForm(lit);
         }
-        return new E.Literal<Date>(new Date(lit.value), lit.value, lit.datatype);
+        return new E.DateTimeLiteral(new Date(lit.value), lit.value, lit.datatype);
       }
 
       case DT.XSD_BOOLEAN: {
         const val: boolean = JSON.parse(lit.value);
+        // TODO: Fix: shouldn't error immediately, might require big changes
+        // TODO: This might cause silent errors, and behaviour when typedVal
+        // is undefined might be weird; Maybe errorType?
+        // Advantage is, unless operator is defined for untyped literal,
+        // it will raise a type error;
         if (typeof val !== 'boolean') {
-          throw new Error();
+          return new E.Literal<any>(val, lit.value, lit.datatype);
         }
-        return new E.Literal<boolean>(val, lit.value, lit.datatype);
+        return new E.BooleanLiteral(val, lit.value, lit.datatype);
       }
 
       case DT.XSD_INTEGER:
@@ -158,14 +165,18 @@ export class AsyncEvaluator {
       case DT.XSD_UNSIGNED_BYTE:
       case DT.XSD_INT: {
         const val: number = P.parseXSDInteger(lit.value);
-        if (val === undefined) { throw new TypeError(); }
-        return new E.Literal<number>(val, lit.value, lit.datatype);
+        if (val === undefined) {
+          return new E.Literal<any>(val, lit.value, lit.datatype);
+        }
+        return new E.NumericLiteral(val, lit.value, lit.datatype);
       }
       case DT.XSD_FLOAT:
       case DT.XSD_DOUBLE: {
         const val: number = P.parseXSDFloat(lit.value);
-        if (val === undefined) { throw new TypeError(); }
-        return new E.Literal<number>(val, lit.value, lit.datatype);
+        if (val === undefined) {
+          return new E.Literal<any>(val, lit.value, lit.datatype);
+        }
+        return new E.NumericLiteral(val, lit.value, lit.datatype);
       }
       default: return new E.Literal<string>(lit.value, lit.value, lit.datatype);
     }
@@ -173,5 +184,6 @@ export class AsyncEvaluator {
 }
 
 function log(val: any) {
-  console.log(val); return val;
+  // console.log(val);
+  return val;
 }

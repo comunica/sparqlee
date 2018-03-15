@@ -77,9 +77,8 @@ class BinaryTable extends Table<[string, string, string]> {
       const [left, right, result] = row;
       const { aliasMap, resultMap, operator } = this.def;
       const expr = `${aliasMap[left]} ${operator} ${aliasMap[right]}`;
-
       it(`(${left} ${operator} ${right}) should evaluate ${result}`, () => {
-        expect(evaluate(expr)).toBe(resultMap[result]);
+        return expect(evaluate(expr)).resolves.toEqual(resultMap[result]);
       });
     });
 
@@ -89,7 +88,7 @@ class BinaryTable extends Table<[string, string, string]> {
       const expr = `${aliasMap[left]} ${operator} ${aliasMap[right]}`;
 
       it(`(${left}, ${right}) should error`, () => {
-        expect(() => evaluate(expr)).toThrow();
+        return expect(evaluate(expr)).rejects.toThrow();
       });
     });
   }
@@ -103,7 +102,7 @@ class UnaryTable extends Table<[string, string]> {
       const expr = `${operator} ${aliasMap[arg]}`;
 
       it(`(${arg}) should evaluate ${result}`, () => {
-        expect(evaluate(expr)).toBe(resultMap[arg]);
+        return expect(evaluate(expr)).resolves.toEqual(resultMap[arg]);
       });
     });
 

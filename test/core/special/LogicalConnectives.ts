@@ -1,55 +1,65 @@
-import { EVB_ERR_STR, FALSE_STR, TRUE_STR } from '../../../lib/util/Consts';
+import * as RDFDM from 'rdf-data-model';
 
-// Some aliases that can be used in the truth tables
-const argMapping = {
-  true: TRUE_STR,
-  false: FALSE_STR,
-  error: EVB_ERR_STR,
+import * as C from '../../../lib/util/Consts';
+import { testTable } from '../../util/TruthTable';
+
+const CT = C.commonTerms;
+
+const aliasMap = {
+  true: C.TRUE_STR,
+  false: C.FALSE_STR,
+  error: C.EVB_ERR_STR,
 };
 
-function testOp(
-  op: string,
-  table: string,
-  errTable: string,
-  argMap: {} = argMapping,
-) {
-  testBinOp(op, table, errTable, argMap, resultMapping);
+const resultMap = {
+  true: CT.true,
+  false: CT.false,
+};
+
+function _testTable(op: string, table: string, errorTable: string) {
+  testTable({ operator: op, table, errorTable, aliasMap, resultMap }, 2);
 }
 
 // TODO: Test use of EVB
 describe('evaluation of logical connectives', () => {
+  test('rejects to octopus', () => {
+    // make sure to add a return statement
+    return expect(Promise.reject(new Error('octopus'))).rejects.toThrow();
+  });
   describe('like "||" receiving', () => {
     const table = `
     true  true  = true
     true  false = true
     false true  = true
     false false = false
+    true  error = true
+    error true  = true
     `;
 
     const errTable = `
-    true  error = true
-    error true  = true
     false error = error
     error false = error
     error error = error
     `;
-    testOp('||', table, errTable);
+
+    _testTable('||', table, errTable);
   });
 
-  describe('like "&&" receiving', () => {
-    const table = `
-    true  true  = true
-    true  false = false
-    false true  = false
-    false false = false
-    `;
-    const errTable = `
-    true  error = error
-    error true  = error
-    false error = false
-    error false = false
-    error error = error
-    `;
-    testOp('&&', table, errTable);
-  });
+  // describe('like "&&" receiving', () => {
+  //   const table = `
+  //   true  true  = true
+  //   true  false = false
+  //   false true  = false
+  //   false false = false
+  //   `;
+  //   const errTable = `
+  //   true  error = error
+  //   error true  = error
+  //   false error = false
+  //   error false = false
+  //   error error = error
+  //   `;
+
+  //   _testTable('&&', table, errTable);
+  // });
 });

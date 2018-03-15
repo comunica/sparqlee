@@ -4,13 +4,7 @@ import { Algebra as Alg } from 'sparqlalgebrajs';
 
 import { AsyncEvaluatedStream, AsyncFilteredStream } from '../../index';
 import { Bindings } from '../../lib/core/Bindings';
-import { Example, parse } from '../../util/Util';
-
-const mockLookup = (pattern: Alg.Bgp) => {
-  return new Promise<boolean>((resolve, reject) => {
-    return resolve(true);
-  });
-};
+import { Example, mockLookup, parse } from '../../util/Util';
 
 describe('Async evaluated stream', () => {
   const input = [

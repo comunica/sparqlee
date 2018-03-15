@@ -1,5 +1,5 @@
-import * as RDF from 'rdf-data-model';
-import { DefaultGraph, Literal } from 'rdf-js';
+import * as RDFDM from 'rdf-data-model';
+import * as RDF from 'rdf-js';
 
 export const TRUE_STR = '"true"^^xsd:boolean';
 export const FALSE_STR = '"false"^^xsd:boolean';
@@ -54,22 +54,29 @@ export enum NumericType {
   XSD_POSITIVE_INTEGER = DataType.XSD_POSITIVE_INTEGER,
 }
 
+export const commonTerms: { [key: string]: RDF.Term } = {
+  true: RDFDM.literal('true', RDFDM.namedNode(DataType.XSD_BOOLEAN)),
+  false: RDFDM.literal('false', RDFDM.namedNode(DataType.XSD_BOOLEAN)),
+};
+
 export type DataTypeCategory =
   'string'
   | 'date'
   | 'boolean'
-  | 'simple'
-  | 'other'
   | 'integer'
   | 'decimal'
   | 'float'
-  | 'double';
+  | 'double'
+  | 'untyped'
+  | 'other';
+
+export type NumericTypeCategory = 'integer' | 'decimal' | 'float' | 'double';
 
 export function categorize(dataType: string): DataTypeCategory {
   switch (dataType) {
     case null:
     case undefined:
-    case "": return 'simple';
+    case "": return 'untyped';
     case DataType.XSD_STRING:
     case DataType.RDF_LANG_STRING: return 'string';
     case DataType.XSD_DATE_TIME: return 'date';
