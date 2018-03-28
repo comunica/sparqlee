@@ -17,9 +17,13 @@ function print(expr: string): void {
 }
 
 async function testEval() {
-  const ex = new Example('?a || ?b', () => Bindings({
-    a: RDF.literal("true", RDF.namedNode(DT.XSD_BOOLEAN)),
-    b: RDF.literal("3", RDF.namedNode(DT.XSD_INTEGER)),
+  // const ex = new Example('?a / ?b', () => Bindings({
+  //   a: RDF.literal("3", C.make(C.DataType.XSD_INTEGER)),
+  //   b: RDF.literal("3", C.make(C.DataType.XSD_INTEGER)),
+  // }));
+  const ex = new Example('?a >= ?b', () => Bindings({
+    a: RDF.literal("true", C.make(C.DataType.XSD_BOOLEAN)),
+    b: RDF.literal("true", C.make(C.DataType.XSD_BOOLEAN)),
   }));
   const evaluator = new AsyncEvaluator(ex.expression, mockLookup);
   const presult = evaluator.evaluate(ex.mapping());
@@ -42,8 +46,9 @@ function main(): void {
   });
 }
 
-testEval();
+// testEval();
 // test();
+// print('-?a');
 // print('EXISTS {?a ?b ?c}');
 // print('?a + str(<http://example.com>)')
 // print('"aaaaaaa"')
@@ -51,6 +56,7 @@ testEval();
 // print('isLiteral(?a)');
 // print('COUNT(?a)')
 // print('xsd:dateTime(?a)');
-// print('+?a');
+// print('-?a');
 // print('(?a > ?b) = ?c')
+// print('fn:not("a")');
 // main();

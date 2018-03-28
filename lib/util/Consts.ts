@@ -36,6 +36,10 @@ export enum DataType {
   XSD_POSITIVE_INTEGER = 'http://www.w3.org/2001/XMLSchema#positiveInteger',
 }
 
+export function make(dt: DataType) {
+  return RDFDM.namedNode(dt);
+}
+
 // https://www.w3.org/TR/sparql11-query/#operandDataTypes
 export enum NumericType {
   XSD_INTEGER = DataType.XSD_INTEGER,
@@ -69,7 +73,8 @@ export type DataTypeCategory =
   | 'decimal'
   | 'float'
   | 'double'
-  | 'untyped'
+  | 'simple' // Some things are defined for simple strings
+  | 'plain' // but not for general plain ones.
   | 'other';
 
 export type NumericTypeCategory = 'integer' | 'decimal' | 'float' | 'double';
@@ -78,7 +83,7 @@ export function categorize(dataType: string): DataTypeCategory {
   switch (dataType) {
     case null:
     case undefined:
-    case "": return 'untyped';
+    case "": return 'plain';
     case DataType.XSD_STRING:
     case DataType.RDF_LANG_STRING: return 'string';
     case DataType.XSD_DATE_TIME: return 'date';
@@ -126,20 +131,24 @@ export function decategorize(cat: DataTypeCategory): DataType {
 export type OperatorType = keyof typeof Operator;
 export type OperatorCategory = 'simple' | 'overloaded' | 'special';
 export enum Operator {
+  NOT = '!',
+  UMINUS = 'UMINUS',
+  UPLUS = 'UPLUS',
+
   AND = '&&',
   OR = '||',
 
-  // EQUAL = '=',
-  // NOT_EQUAL = '!=',
-  // LT = '<',
-  // GT = '>',
-  // LTE = '<=',
-  // GTE = '>=',
+  EQUAL = '=',
+  NOT_EQUAL = '!=',
+  LT = '<',
+  GT = '>',
+  LTE = '<=',
+  GTE = '>=',
 
-  // MULTIPLICATION = '*',
-  // DIVISION = '/',
-  // ADDITION = '+',
-  // SUBTRACTION = '-',
+  MULTIPLICATION = '*',
+  DIVISION = '/',
+  ADDITION = '+',
+  SUBTRACTION = '-',
 }
 
 export const Operators = Set((<any> Object).values(Operator));

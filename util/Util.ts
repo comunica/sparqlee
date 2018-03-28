@@ -51,7 +51,10 @@ export const mockLookup = (pattern: Alg.Bgp) => {
 
 export function parse(expr: string): Alg.Expression {
   // Build mock SPARQL query with expression in the filter
-  const queryString = `PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT * WHERE { ?s ?p ?o FILTER (${expr})}`;
+  const prefixes = `PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                    PREFIX fn: <https://www.w3.org/TR/xpath-functions#>
+                    PREFIX err: <http://www.w3.org/2005/xqt-errors#>`;
+  const queryString = `${prefixes} SELECT * WHERE { ?s ?p ?o FILTER (${expr})}`;
   const sparqlQuery = translate(queryString);
 
   // Extract filter expression from complete query

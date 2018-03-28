@@ -50,9 +50,10 @@ export interface IOperatorExpression extends IExpression {
   // apply(args: Expression[], mapping: Bindings): TermExpression;
 }
 
+export type TermType = 'namedNode' | 'literal';
 export interface ITermExpression extends IExpression {
   expressionType: 'term';
-  termType: 'literal' | 'variable';
+  termType: TermType;
   coerceEBV(): boolean;
   toRDF(): RDF.Term;
 }
@@ -83,17 +84,41 @@ export class Variable implements IVariableExpression {
 // https://math.stackexchange.com/questions/168378/what-is-an-operator-in-mathematics
 // ----------------------------------------------------------------------------
 
-// Simple Operators -----------------------------------------------------------
+// Argument Types and their specificity ---------------------------------------
 
 // Function and operator arguments are 'flattened' in the SPARQL spec.
 // If the argument is a literal, the datatype often also matters.
-export type ArgumentType = 'namedNode' | C.DataTypeCategory;
+export type ArgumentType = 'term' | TermType | C.DataTypeCategory;
+
+type TypeParents = {[key in ArgumentType]: List<ArgumentType>};
+
+// TODO: Urgent
+// const _typePairs: TypeParents = {
+//   term: List(),
+//   namedNode: List(),
+//   literal: List(),
+//   string: List(),
+//   date: List(),
+//   boolean: List(),
+//   integer: List(),
+//   decimal: List(),
+//   float: List(),
+//   double: List(),
+//   simple: List(),
+//   plain: List(),
+//   other: List(),
+// };
+
+// // tslint:disable-next-line:variable-name
+// export const CommonParentMap: Map<ArgumentType, List<ArgumentType>>
+//   = Map(<any> _typePairs);
+
+// Simple Operators -----------------------------------------------------------
 
 export class SimpleOperator implements IOperatorExpression {
   public expressionType: 'operator' = 'operator';
   public operatorClass: 'simple' = 'simple';
 
-  // TODO: We could check arity beforehand
   constructor(
     public operator: string,
     public arity: number,
@@ -118,8 +143,6 @@ export class SimpleOperator implements IOperatorExpression {
     const argTypes = args.map((a: any) => a.category || a.termType);
     return _.isEqual(this.types, argTypes);
   }
-
-  // protected abstract _apply(args: TermExpression[]): TermExpression;
 }
 
 // Overloaded Operators -------------------------------------------------------
@@ -141,33 +164,26 @@ export class SimpleOperator implements IOperatorExpression {
  *
  * Note: functions that have multiple arities do not belong in this category.
  * Eg: BNODE.
+ * 
+ * TODO: Make overloadMaps static and unique (use Definitions);
  *
  * See also: https://www.w3.org/TR/sparql11-query/#func-rdfTerms
  * and https://www.w3.org/TR/sparql11-query/#OperatorMapping
  */
 
 // Maps argument types on their specific implementation.
-// TODO: Make immutable.js thing.
 export type OverloadMap = Map<List<ArgumentType>, SimpleEvaluator>;
 export type SimpleEvaluator = (args: ITermExpression[]) => ITermExpression;
-// export type OverloadMap = [
-//   ArgumentType[],
-//   (args: ITermExpression[]) => ITermExpression
-// ][];
 
 export class OverloadedOperator implements IOperatorExpression {
   public expressionType: 'operator' = 'operator';
   public operatorClass: 'overloaded' = 'overloaded';
-  // TODO: Remove comments
-  // We use strings as indexes here cause JS doesn't support arrays or objects
-  // as keys (checks by reference), and tuples aren't a thing.
-  private _overloadMap: OverloadMap;
 
   constructor(
     public operator: string,
     public arity: number,
     public args: IExpression[],
-    public overloadMap: OverloadMap,
+    private overloadMap: OverloadMap,
   ) {
     if (args.length !== this.arity) {
       throw new InvalidArity(args, this.operator);
@@ -184,7 +200,8 @@ export class OverloadedOperator implements IOperatorExpression {
 
   private _monomorph(args: ITermExpression[]): SimpleEvaluator {
     const argTypes = List(args.map((a: any) => a.category || a.termType));
-    return this._overloadMap.get(argTypes);
+    return this.overloadMap.get(argTypes)
+      || this.overloadMap.get(List(Array(this.arity).fill('term')));
   }
 }
 
@@ -227,7 +244,7 @@ export abstract class SpecialOperatorAsync implements IOperatorExpression {
 
 export abstract class Term implements ITermExpression {
   public expressionType: 'term' = 'term';
-  public abstract termType: 'variable' | 'literal';
+  public abstract termType: TermType;
 
   public coerceEBV(): boolean {
     throw new TypeError("Cannot coerce this term to EBV.");
@@ -276,7 +293,33 @@ export class BooleanLiteral extends Literal<boolean> {
 
 export class DateTimeLiteral extends Literal<Date> { }
 
+// https://www.w3.org/TR/2004/REC-rdf-concepts-20040210/#dfn-plain-literal
 export class PlainLiteral extends Literal<string> {
+  constructor(
+    public typedValue: string,
+    public strValue?: string,
+    public language?: string) {
+    super(typedValue, strValue, undefined, language);
+    this.category = 'plain';
+  }
+
+  public coerceEBV(): boolean {
+    return this.strValue.length !== 0;
+  }
+}
+
+// https://www.w3.org/TR/sparql11-query/#defn_SimpleLiteral
+export class SimpleLiteral extends PlainLiteral {
+  public language?: undefined;
+  public category: 'simple';
+
+  constructor(
+    public typedValue: string,
+    public strValue?: string) {
+    super(typedValue, strValue, undefined);
+    this.category = 'simple';
+  }
+
   public coerceEBV(): boolean {
     return this.strValue.length !== 0;
   }
@@ -293,8 +336,8 @@ export class StringLiteral extends Literal<string> {
  * an invalid lexical form for it's datatype. The spec defines value with
  * invalid lexical form are still valid terms, and as such we can not error
  * immediately. This class makes sure that the typedValue will remain undefined,
- * and the category untyped. This way, only when operators apply to the
- * 'untyped' category, they will keep working, otherwise they will throw a 
+ * and the category 'other'. This way, only when operators apply to the
+ * 'other' category, they will keep working, otherwise they will throw a 
  * type error.
  * This seems to match the spec.
  *
@@ -312,6 +355,6 @@ export class NonLexicalLiteral extends Literal<undefined> {
     language?: string) {
     super(typedValue, strValue, dataType, language);
     this.typedValue = undefined;
-    this.category = 'untyped';
+    this.category = 'other';
   }
 }
