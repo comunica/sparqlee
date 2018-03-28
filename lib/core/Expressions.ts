@@ -115,21 +115,19 @@ type TypeParents = {[key in ArgumentType]: List<ArgumentType>};
 
 // Simple Operators -----------------------------------------------------------
 
+// TODO Remove args argument
+
 export class SimpleOperator implements IOperatorExpression {
   public expressionType: 'operator' = 'operator';
   public operatorClass: 'simple' = 'simple';
 
   constructor(
-    public operator: string,
+    public operator: C.Operator,
     public arity: number,
     public args: IExpression[],
     public types: ArgumentType[],
     protected _apply: (args: ITermExpression[]) => ITermExpression,
-  ) {
-    if (args.length !== this.arity) {
-      throw new InvalidArity(args, this.operator);
-    }
-  }
+  ) { }
 
   public apply(args: ITermExpression[]): ITermExpression {
     if (!this._isValidTypes(args)) {
@@ -139,9 +137,11 @@ export class SimpleOperator implements IOperatorExpression {
   }
 
   // TODO: Test
+  // TODO Can be optimised probably
   private _isValidTypes(args: ITermExpression[]): boolean {
     const argTypes = args.map((a: any) => a.category || a.termType);
-    return _.isEqual(this.types, argTypes);
+    return _.isEqual(this.types, argTypes)
+      || _.isEqual(this.types, ['term', 'term']);
   }
 }
 
@@ -180,15 +180,11 @@ export class OverloadedOperator implements IOperatorExpression {
   public operatorClass: 'overloaded' = 'overloaded';
 
   constructor(
-    public operator: string,
+    public operator: C.Operator,
     public arity: number,
     public args: IExpression[],
     private overloadMap: OverloadMap,
-  ) {
-    if (args.length !== this.arity) {
-      throw new InvalidArity(args, this.operator);
-    }
-  }
+  ) { }
 
   public apply(args: ITermExpression[]): ITermExpression {
     const func = this._monomorph(args);
@@ -222,13 +218,11 @@ export class OverloadedOperator implements IOperatorExpression {
  * in some contexts.
  */
 
-export type SpecialOperators = 'bound' | '||' | '&&';
-
 export abstract class SpecialOperatorAsync implements IOperatorExpression {
   public expressionType: 'operator' = 'operator';
   public operatorClass: 'special' = 'special';
 
-  constructor(public operator: SpecialOperators, public args: IExpression[]) { }
+  constructor(public operator: C.Operator, public args: IExpression[]) { }
 
   public abstract apply(
     args: IExpression[],

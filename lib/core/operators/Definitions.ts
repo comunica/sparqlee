@@ -4,22 +4,32 @@ import { Impl, map } from './Helpers';
 
 import * as C from '../../util/Consts';
 import { DataType as DT } from '../../util/Consts';
+import { InvalidArity, UnimplementedError } from '../../util/Errors';
 import * as E from './../Expressions';
+import { bool, list, number } from './Helpers';
 import * as S from './SPARQLFunctions';
 import * as Special from './SpecialFunctions';
 import * as X from './XPath';
 
-import { UnimplementedError } from '../../util/Errors';
-
-export function makeOp(op: string, args: E.IExpression[]): E.IOperatorExpression {
-  if (!C.Operators.contains(op)) {
+// TODO: If args are known, try to calculate already
+export function makeOp(opString: string, args: E.IExpression[]): E.IOperatorExpression {
+  if (!C.Operators.contains(opString)) {
     throw new TypeError("Unknown operator");
   }
+  const op = opString as C.Operator;
 
-  const definitionMeta = definitions.get(<C.Operator> op);
+  const definitionMeta = definitions.get(op);
   const { category, arity, definition } = definitionMeta;
 
   if (!definition) { throw new UnimplementedError(); }
+
+  // We can check for arity allready (assuming no programming mistakes) because
+  // each (term) argument should already represented by the expressions that
+  // generates it.
+  // Infinity is used to represent var-args.
+  if (args.length !== arity && arity !== Infinity) {
+    throw new InvalidArity(args, op);
+  }
 
   switch (category) {
     case 'simple': {
@@ -60,7 +70,7 @@ type SimpleDefinition = {
 
 type OverloadedDefinition = E.OverloadMap;
 
-type SpecialDefinition = new (op: string, args: E.IExpression[]) => E.IOperatorExpression;
+type SpecialDefinition = new (op: C.Operator, args: E.IExpression[]) => E.IOperatorExpression;
 
 const _definitions: IDefinitionMap = {
   // TODO: Check expressions parent types
@@ -69,7 +79,7 @@ const _definitions: IDefinitionMap = {
     category: 'simple',
     definition: {
       types: [],
-      apply: () => { throw new UnimplementedError(); }
+      apply: () => { throw new UnimplementedError(); },
     },
   },
   'UPLUS': {
@@ -77,7 +87,7 @@ const _definitions: IDefinitionMap = {
     category: 'simple',
     definition: {
       types: [],
-      apply: () => { throw new UnimplementedError(); }
+      apply: () => { throw new UnimplementedError(); },
     },
   },
   'UMINUS': {
@@ -85,8 +95,8 @@ const _definitions: IDefinitionMap = {
     category: 'simple',
     definition: {
       types: [],
-      apply: () => { throw new UnimplementedError(); }
-    }
+      apply: () => { throw new UnimplementedError(); },
+    },
   },
   '&&': {
     arity: 2,
@@ -131,7 +141,9 @@ const _definitions: IDefinitionMap = {
       X.dateTimeEqual,
     ).set(
       list('term', 'term'),
-      (args: Term[]) => bool(S.RDFTermEqual(args[0], args[1])),
+      (args: Term[]) => {
+        return bool(S.RDFTermEqual(args[0], args[1]));
+      },
     ),
   },
   '!=': {
@@ -183,6 +195,41 @@ const _definitions: IDefinitionMap = {
       (left, right) => !X.booleanLessThan(left, right),
       (left, right) => !X.dateTimeLessThan(left, right),
     ),
+  },
+  'bound': {
+    arity: 1,
+    category: 'special',
+    definition: Special.Bound,
+  },
+  'if': {
+    arity: 3,
+    category: 'special',
+    definition: Special.If,
+  },
+  'coalesce': {
+    arity: Infinity,
+    category: 'special',
+    definition: Special.Coalesce,
+  },
+  'sameterm': {
+    arity: 2,
+    category: 'simple',
+    definition: {
+      types: ['term', 'term'],
+      apply(args: Term[]) {
+        return bool(S.sameTerm(args[1], args[2]));
+      },
+    },
+  },
+  'in': {
+    arity: Infinity,
+    category: 'special',
+    definition: Special.In,
+  },
+  'notin': {
+    arity: Infinity,
+    category: 'simple',
+    definition: Special.NotIn,
   },
 };
 
@@ -265,18 +312,6 @@ type LiteralOp<T, R> = (left: T, right: T) => R;
 function binary<T, R>(op: LiteralOp<T, R>, args: E.ITermExpression[]): R {
   const [left, right] = <E.Literal<T>[]> args;
   return op(left.typedValue, right.typedValue);
-}
-
-function bool(val: boolean): E.BooleanLiteral {
-  return new E.BooleanLiteral(val, undefined, C.make(DT.XSD_BOOLEAN));
-}
-
-function number(num: number, dt?: C.DataType): E.NumericLiteral {
-  return new E.NumericLiteral(num, undefined, C.make(dt || DT.XSD_FLOAT));
-}
-
-function list(...args: E.ArgumentType[]) {
-  return List(args);
 }
 
 // // https://gist.github.com/JamieMason/172460a36a0eaef24233e6edb2706f83

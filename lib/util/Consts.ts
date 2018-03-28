@@ -131,12 +131,16 @@ export function decategorize(cat: DataTypeCategory): DataType {
 export type OperatorType = keyof typeof Operator;
 export type OperatorCategory = 'simple' | 'overloaded' | 'special';
 export enum Operator {
+  /*
+   * Operator mapping
+   * https://www.w3.org/TR/sparql11-query/#OperatorMapping
+   */
   NOT = '!',
   UMINUS = 'UMINUS',
   UPLUS = 'UPLUS',
 
-  AND = '&&',
-  OR = '||',
+  LOGICAL_AND = '&&',
+  LOGICAL_OR = '||',
 
   EQUAL = '=',
   NOT_EQUAL = '!=',
@@ -149,10 +153,24 @@ export enum Operator {
   DIVISION = '/',
   ADDITION = '+',
   SUBTRACTION = '-',
+
+  /*
+   * Functional Forms
+   * https://www.w3.org/TR/sparql11-query/#func-forms
+   */
+  BOUND = 'bound',
+  IF = 'if',
+  COALESCE = 'coalesce',
+  // EXISTENCE = 'existence',
+  // LOGICAL_OR = '||',
+  // LOGICAL_AND = '&&',
+  // EQUAL = '=',
+  SAME_TERM = 'sameterm',
+  IN = 'in',
+  NOT_IN = 'notin',
 }
 
 export const Operators = Set((<any> Object).values(Operator));
-
 
 // export const SpecialOperators = Set<Operator>([3]);
 

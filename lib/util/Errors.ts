@@ -1,5 +1,6 @@
 import * as RDF from 'rdf-js';
 import { Algebra } from 'sparqlalgebrajs';
+import * as C from './Consts';
 
 import * as E from '../core/Expressions';
 
@@ -15,14 +16,34 @@ export class InvalidLexicalForm extends Error {
   }
 }
 
+export class RDFEqualTypeError extends Error {
+  constructor(public args: E.IExpression[]) {
+    super('Equality test for literals with unsupported datatypes');
+  }
+}
+
+export class CoalesceError extends Error {
+  constructor(public errors: Error[]) {
+    super('All COALESCE arguments threw errors');
+  }
+}
+
+export class InError extends Error {
+  constructor(public errors: (Error | false)[]) {
+    super(
+      'Some argument to IN errored and none where equal. ' +
+      errors.map((err) => `(${err.toString()}) `).join('and '));
+  }
+}
+
 export class InvalidArity extends Error {
-  constructor(public args: E.IExpression[], public op: string) {
+  constructor(public args: E.IExpression[], public op: C.Operator) {
     super('The amount of args don\'t match the arity of the operator.');
   }
 }
 
 export class InvalidArgumentTypes extends Error {
-  constructor(public args: E.IExpression[], public op: string) {
+  constructor(public args: E.IExpression[], public op: C.Operator) {
     super("Argument types not valid for operator.");
   }
 }

@@ -21,12 +21,18 @@ async function testEval() {
   //   a: RDF.literal("3", C.make(C.DataType.XSD_INTEGER)),
   //   b: RDF.literal("3", C.make(C.DataType.XSD_INTEGER)),
   // }));
-  const ex = new Example('?a >= ?b', () => Bindings({
-    a: RDF.literal("true", C.make(C.DataType.XSD_BOOLEAN)),
-    b: RDF.literal("true", C.make(C.DataType.XSD_BOOLEAN)),
+  // const ex = new Example('?a && ?c', () => Bindings({
+  //   a: RDF.literal("true", C.make(DT.XSD_BOOLEAN)),
+  //   b: RDF.literal("true", C.make(DT.XSD_BOOLEAN)),
+  // }));
+  // const ex = new Example('?a = "b"', () => Bindings({
+  //   a: RDF.literal('a'),
+  // }));
+  const ex = new Example('?a IN (?b, "")', () => Bindings({
+    a: RDF.literal("aaa"),
   }));
   const evaluator = new AsyncEvaluator(ex.expression, mockLookup);
-  const presult = evaluator.evaluate(ex.mapping());
+  const presult = evaluator.evaluate(ex.mapping()).catch((err) => console.log(err));
   const val = await presult;
   console.log(val);
 }
@@ -46,8 +52,16 @@ function main(): void {
   });
 }
 
-// testEval();
+testEval();
 // test();
+// print('bound(?a)');
+// print('IF(?a, ?a, ?a)');
+// print('coalesce(?a, ?a)');
+// print('NOT EXISTS {}');
+// print('EXISTS {}');
+// print('sameTerm(?a, ?a)');
+// print('?a IN (?a, ?a)');
+// print('?a NOT IN (?a, ?a)');
 // print('-?a');
 // print('EXISTS {?a ?b ?c}');
 // print('?a + str(<http://example.com>)')
