@@ -75,7 +75,8 @@ export type DataTypeCategory =
   | 'double'
   | 'simple' // Some things are defined for simple strings
   | 'plain' // but not for general plain ones.
-  | 'other';
+  | 'other'
+  | 'invalid';
 
 export type NumericTypeCategory = 'integer' | 'decimal' | 'float' | 'double';
 

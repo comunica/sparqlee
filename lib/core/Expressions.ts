@@ -190,7 +190,7 @@ export class NonLexicalLiteral extends Literal<undefined> {
     language?: string) {
     super(typedValue, strValue, dataType, language);
     this.typedValue = undefined;
-    this.category = 'other';
+    this.category = 'invalid';
   }
 }
 

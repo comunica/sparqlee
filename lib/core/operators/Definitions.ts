@@ -240,13 +240,13 @@ function xPathTest(
     new Impl({ types: ['boolean', 'boolean'], func: wrap(boolOp) }),
     new Impl({ types: ['date', 'date'], func: wrap(dateOp) }),
 
-    new Impl({ types: ['other', 'other'], func: invalidLexicalForm(1) }),
-    new Impl({ types: ['other', 'string'], func: invalidLexicalForm(1) }),
-    new Impl({ types: ['other', 'boolean'], func: invalidLexicalForm(1) }),
-    new Impl({ types: ['other', 'date'], func: invalidLexicalForm(1) }),
-    new Impl({ types: ['string', 'other'], func: invalidLexicalForm(2) }),
-    new Impl({ types: ['boolean', 'other'], func: invalidLexicalForm(2) }),
-    new Impl({ types: ['date', 'other'], func: invalidLexicalForm(2) }),
+    new Impl({ types: ['invalid', 'invalid'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['invalid', 'string'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['invalid', 'boolean'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['invalid', 'date'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['string', 'invalid'], func: invalidLexicalForm(2) }),
+    new Impl({ types: ['boolean', 'invalid'], func: invalidLexicalForm(2) }),
+    new Impl({ types: ['date', 'invalid'], func: invalidLexicalForm(2) }),
 
   ].concat(numeric((dt?: DT) => numericHelper)));
 }
@@ -263,30 +263,30 @@ function numeric(opFac: OpFactory): Impl[] {
     new Impl({ types: ['integer', 'decimal'], func: opFac() }),
     new Impl({ types: ['integer', 'float'], func: opFac() }),
     new Impl({ types: ['integer', 'double'], func: opFac() }),
-    new Impl({ types: ['integer', 'other'], func: invalidLexicalForm(2) }),
+    new Impl({ types: ['integer', 'invalid'], func: invalidLexicalForm(2) }),
 
     new Impl({ types: ['decimal', 'integer'], func: opFac() }),
     new Impl({ types: ['decimal', 'decimal'], func: opFac(DT.XSD_DECIMAL) }),
     new Impl({ types: ['decimal', 'float'], func: opFac() }),
     new Impl({ types: ['decimal', 'double'], func: opFac() }),
-    new Impl({ types: ['decimal', 'other'], func: invalidLexicalForm(2) }),
+    new Impl({ types: ['decimal', 'invalid'], func: invalidLexicalForm(2) }),
 
     new Impl({ types: ['float', 'integer'], func: opFac() }),
     new Impl({ types: ['float', 'decimal'], func: opFac() }),
     new Impl({ types: ['float', 'float'], func: opFac(DT.XSD_FLOAT) }),
     new Impl({ types: ['float', 'double'], func: opFac() }),
-    new Impl({ types: ['float', 'other'], func: invalidLexicalForm(2) }),
+    new Impl({ types: ['float', 'invalid'], func: invalidLexicalForm(2) }),
 
     new Impl({ types: ['double', 'integer'], func: opFac() }),
     new Impl({ types: ['double', 'decimal'], func: opFac() }),
     new Impl({ types: ['double', 'float'], func: opFac() }),
     new Impl({ types: ['double', 'double'], func: opFac(DT.XSD_DOUBLE) }),
-    new Impl({ types: ['double', 'other'], func: invalidLexicalForm(2) }),
+    new Impl({ types: ['double', 'invalid'], func: invalidLexicalForm(2) }),
 
-    new Impl({ types: ['other', 'integer'], func: invalidLexicalForm(1) }),
-    new Impl({ types: ['other', 'decimal'], func: invalidLexicalForm(1) }),
-    new Impl({ types: ['other', 'float'], func: invalidLexicalForm(1) }),
-    new Impl({ types: ['other', 'double'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['invalid', 'integer'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['invalid', 'decimal'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['invalid', 'float'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['invalid', 'double'], func: invalidLexicalForm(1) }),
   ];
 }
 
