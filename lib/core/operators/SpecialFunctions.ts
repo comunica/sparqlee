@@ -136,11 +136,12 @@ export class LogicalAndAsync extends SpecialFunctionAsync {
 }
 
 // Maybe put some place else
+// https://www.w3.org/TR/sparql11-query/#func-RDFterm-equal
 export function RDFTermEqual(_left: E.ITermExpression, _right: E.ITermExpression) {
   const left = _left.toRDF();
   const right = _right.toRDF();
   const val = left.equals(right);
-  if (!val && (left.termType === 'Literal') && (right.termType === 'Literal')) {
+  if ((left.termType === 'Literal') && (right.termType === 'Literal')) {
     throw new Err.RDFEqualTypeError([_left, _right]);
   }
   return val;

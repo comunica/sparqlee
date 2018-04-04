@@ -4,7 +4,7 @@ import { Impl, map } from './Helpers';
 
 import * as C from '../../util/Consts';
 import { DataType as DT } from '../../util/Consts';
-import { InvalidArity, UnimplementedError } from '../../util/Errors';
+import { InvalidArity, UnimplementedError, InvalidLexicalForm } from '../../util/Errors';
 import * as E from './../Expressions';
 import { bool, list, number } from './Helpers';
 import * as Special from './SpecialFunctions';
@@ -226,12 +226,12 @@ function arithmetic(op: ArithmeticOperator): OverloadMap {
  */
 type XPathTest<T> = (left: T, right: T) => boolean;
 function xPathTest(
-  op: XPathTest<number>,
+  numOp: XPathTest<number>,
   strOp: XPathTest<string>,
   boolOp: XPathTest<boolean>,
   dateOp: XPathTest<Date>,
 ): OverloadMap {
-  const numericHelper = (args: Term[]) => bool(binary(op, args));
+  const numericHelper = (args: Term[]) => bool(binary(numOp, args));
 
   const wrap = (func: XPathTest<any>) => (args: Term[]) => bool(binary(func, args));
   return map([
@@ -239,6 +239,15 @@ function xPathTest(
     new Impl({ types: ['simple', 'simple'], func: wrap(strOp) }),
     new Impl({ types: ['boolean', 'boolean'], func: wrap(boolOp) }),
     new Impl({ types: ['date', 'date'], func: wrap(dateOp) }),
+
+    new Impl({ types: ['other', 'other'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['other', 'string'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['other', 'boolean'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['other', 'date'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['string', 'other'], func: invalidLexicalForm(2) }),
+    new Impl({ types: ['boolean', 'other'], func: invalidLexicalForm(2) }),
+    new Impl({ types: ['date', 'other'], func: invalidLexicalForm(2) }),
+
   ].concat(numeric((dt?: DT) => numericHelper)));
 }
 
@@ -254,21 +263,30 @@ function numeric(opFac: OpFactory): Impl[] {
     new Impl({ types: ['integer', 'decimal'], func: opFac() }),
     new Impl({ types: ['integer', 'float'], func: opFac() }),
     new Impl({ types: ['integer', 'double'], func: opFac() }),
+    new Impl({ types: ['integer', 'other'], func: invalidLexicalForm(2) }),
 
     new Impl({ types: ['decimal', 'integer'], func: opFac() }),
     new Impl({ types: ['decimal', 'decimal'], func: opFac(DT.XSD_DECIMAL) }),
     new Impl({ types: ['decimal', 'float'], func: opFac() }),
     new Impl({ types: ['decimal', 'double'], func: opFac() }),
+    new Impl({ types: ['decimal', 'other'], func: invalidLexicalForm(2) }),
 
     new Impl({ types: ['float', 'integer'], func: opFac() }),
     new Impl({ types: ['float', 'decimal'], func: opFac() }),
     new Impl({ types: ['float', 'float'], func: opFac(DT.XSD_FLOAT) }),
     new Impl({ types: ['float', 'double'], func: opFac() }),
+    new Impl({ types: ['float', 'other'], func: invalidLexicalForm(2) }),
 
     new Impl({ types: ['double', 'integer'], func: opFac() }),
     new Impl({ types: ['double', 'decimal'], func: opFac() }),
     new Impl({ types: ['double', 'float'], func: opFac() }),
     new Impl({ types: ['double', 'double'], func: opFac(DT.XSD_DOUBLE) }),
+    new Impl({ types: ['double', 'other'], func: invalidLexicalForm(2) }),
+
+    new Impl({ types: ['other', 'integer'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['other', 'decimal'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['other', 'float'], func: invalidLexicalForm(1) }),
+    new Impl({ types: ['other', 'double'], func: invalidLexicalForm(1) }),
   ];
 }
 
@@ -276,6 +294,13 @@ type LiteralOp<T, R> = (left: T, right: T) => R;
 function binary<T, R>(op: LiteralOp<T, R>, args: E.ITermExpression[]): R {
   const [left, right] = <E.Literal<T>[]> args;
   return op(left.typedValue, right.typedValue);
+}
+
+function invalidLexicalForm(index: number) {
+  return (args: Term[]) =>
+    binary((_args: E.Literal<any>[]) => {
+      throw new InvalidLexicalForm(_args[index].toRDF());
+    }, args);
 }
 
 // // https://gist.github.com/JamieMason/172460a36a0eaef24233e6edb2706f83

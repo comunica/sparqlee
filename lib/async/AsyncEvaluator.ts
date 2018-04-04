@@ -74,12 +74,12 @@ export class AsyncEvaluator {
       case 'simple': {
         const pArgs = args.map((arg) => this._eval(arg, mapping));
         const sFunc: E.ISPARQLFunc<E.SimpleApplication> = func;
-        return Promise.all(pArgs).then(func.apply);
+        return Promise.all(pArgs).then((rArgs) => func.apply(rArgs));
       }
       case 'overloaded': {
         const pArgs = args.map((arg) => this._eval(arg, mapping));
         const oFunc: E.ISPARQLFunc<E.SimpleApplication> = func;
-        return Promise.all(pArgs).then(func.apply);
+        return Promise.all(pArgs).then((rArgs) => func.apply(rArgs));
       }
       case 'special': {
         const oFunc: E.ISPARQLFunc<E.SpecialApplication> = func;

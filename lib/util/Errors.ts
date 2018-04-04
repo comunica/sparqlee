@@ -11,7 +11,7 @@ export class UnimplementedError extends Error {
 }
 
 export class InvalidLexicalForm extends Error {
-  constructor(public args: RDF.Literal) {
+  constructor(public args: RDF.Term) {
     super('Invalid lexical form.');
   }
 }
