@@ -36,7 +36,7 @@ export function booleanEqual(left: boolean, right: boolean) {
 }
 
 export function dateTimeEqual(left: Date, right: Date): boolean {
-  throw new UnimplementedError();
+  return left.getTime() === right.getTime();
 }
 
 // Less Than ------------------------------------------------------------------
@@ -50,7 +50,7 @@ export function booleanLessThan(left: boolean, right: boolean) {
 }
 
 export function dateTimeLessThan(left: Date, right: Date): boolean {
-  throw new UnimplementedError();
+  return left.getTime() < right.getTime();
 }
 
 // Greater Than
@@ -64,7 +64,7 @@ export function booleanGreaterThan(left: boolean, right: boolean) {
 }
 
 export function dateTimeGreaterThan(left: Date, right: Date): boolean {
-  throw new UnimplementedError();
+  return left.getTime() > right.getTime();
 }
 
 // ----------------------------------------------------------------------------

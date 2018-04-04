@@ -87,6 +87,7 @@ export class OverloadedFunction implements E.ISPARQLFunc<E.SimpleApplication> {
     if (!func) {
       throw new InvalidArgumentTypes(args, this.operator);
     }
+
     return func(args);
   }
 

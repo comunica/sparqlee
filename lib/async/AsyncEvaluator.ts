@@ -33,6 +33,10 @@ export class AsyncEvaluator {
     });
   }
 
+  public _evaluateAsInternal(mapping: Bindings): Promise<E.ITermExpression> {
+    return this._eval(this._expr, mapping);
+  }
+
   private _eval(expr: E.IExpression, mapping: Bindings): Promise<E.ITermExpression> {
     const types = E.expressionTypes;
     switch (expr.expressionType) {

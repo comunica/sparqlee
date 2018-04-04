@@ -25,14 +25,15 @@ async function testEval() {
   //   a: RDF.literal("true", C.make(DT.XSD_BOOLEAN)),
   //   b: RDF.literal("true", C.make(DT.XSD_BOOLEAN)),
   // }));
-  // const ex = new Example('?a = "b"', () => Bindings({
-  //   a: RDF.literal('a'),
+  const ex = new Example('"1999-03-17T06:00:00+04:00"^^xsd:dateTime',
+    () => Bindings({
+      // a: RDF.literal('a'),
+    }));
+  // const ex = new Example('?a IN (?b, "")', () => Bindings({
+  //   a: RDF.literal("aaa"),
   // }));
-  const ex = new Example('?a IN (?b, "")', () => Bindings({
-    a: RDF.literal("aaa"),
-  }));
   const evaluator = new AsyncEvaluator(ex.expression, mockLookup);
-  const presult = evaluator.evaluate(ex.mapping()).catch((err) => console.log(err));
+  const presult = evaluator._evaluateAsInternal(ex.mapping()).catch((err) => console.log(err));
   const val = await presult;
   console.log(val);
 }

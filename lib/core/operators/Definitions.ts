@@ -297,12 +297,10 @@ function binary<T, R>(op: LiteralOp<T, R>, args: E.ITermExpression[]): R {
 }
 
 function invalidLexicalForm(index: number) {
-  return (args: Term[]) =>
-    binary((_args: E.Literal<any>[]) => {
-      throw new InvalidLexicalForm(_args[index].toRDF());
-    }, args);
+  return (args: Term[]) => {
+    throw new InvalidLexicalForm(args[index - 1].toRDF());
+  };
 }
-
 // // https://gist.github.com/JamieMason/172460a36a0eaef24233e6edb2706f83
 // const compose = (...fns: Function[]) =>
 //   fns.reverse().reduce((prevFn, nextFn) =>
