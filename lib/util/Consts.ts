@@ -126,6 +126,7 @@ export function decategorize(cat: DataTypeCategory): DataType {
 // ----------------------------------------------------------------------------
 // Operators
 // ----------------------------------------------------------------------------
+// TODO: Maybe rename to functions to match?
 
 // TODO: Operator enum (with special operators)
 export type OperatorType = keyof typeof Operator;

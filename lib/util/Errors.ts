@@ -58,3 +58,9 @@ export class InvalidTermType extends Error {
     super('The given term type is invalid.');
   }
 }
+
+export class UnexpectedError extends Error {
+  constructor(message: string, public payload?: any) {
+    super('Programmer Error ' + message);
+  }
+}

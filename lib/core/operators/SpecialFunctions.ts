@@ -2,30 +2,29 @@
 import * as Promise from 'bluebird';
 
 import * as C from '../../util/Consts';
-import {
-  CoalesceError, InvalidArgumentTypes, InvalidArity, UnimplementedError, InError,
-} from '../../util/Errors';
-import { Bindings } from '../Bindings';
-import { makeOp } from './Definitions';
-import { bool } from './Helpers';
-
+import * as Err from '../../util/Errors';
 import * as E from '../Expressions';
+
+import { Bindings } from '../Bindings';
+import { bool } from './Helpers';
+import { functions } from './index';
+import { OverloadedFunction, SpecialFunctionAsync } from './Types';
 
 export type AsyncTerm = Promise<E.ITermExpression>;
 export type Evaluator = (expr: E.IExpression, mapping: Bindings) => AsyncTerm;
 
-export class Bound extends E.SpecialOperatorAsync {
+export class Bound extends SpecialFunctionAsync {
   public apply(args: E.IExpression[], mapping: Bindings, evaluate: Evaluator): AsyncTerm {
     const variable = args[0] as E.IVariableExpression;
     if (variable.expressionType !== 'variable') {
-      throw new InvalidArgumentTypes(args, C.Operator.BOUND);
+      throw new Err.InvalidArgumentTypes(args, C.Operator.BOUND);
     }
     const val = mapping.has(variable.name) && !!mapping.get(variable.name);
     return Promise.resolve(bool(val));
   }
 }
 
-export class If extends E.SpecialOperatorAsync {
+export class If extends SpecialFunctionAsync {
   public apply(args: E.IExpression[], mapping: Bindings, evaluate: Evaluator): AsyncTerm {
     const valFirstP = evaluate(args[0], mapping);
     return valFirstP.then((valFirst) => {
@@ -37,7 +36,7 @@ export class If extends E.SpecialOperatorAsync {
   }
 }
 
-export class Coalesce extends E.SpecialOperatorAsync {
+export class Coalesce extends SpecialFunctionAsync {
   public apply(args: E.IExpression[], mapping: Bindings, evaluate: Evaluator): AsyncTerm {
     return Promise
       .mapSeries(args, (expr) =>
@@ -52,7 +51,7 @@ export class Coalesce extends E.SpecialOperatorAsync {
             }
           }))
       .map((continuer: CoalesceContinuer) => continuer.err)
-      .then((errors) => { throw new CoalesceError(errors); })
+      .then((errors) => { throw new Err.CoalesceError(errors); })
       .catch(CoalesceBreaker, (br) => {
         return br.val;
       });
@@ -74,7 +73,7 @@ class CoalesceContinuer implements CoalesceController {
 
 // TODO: Might benefit from some smart people's input
 // https://www.w3.org/TR/sparql11-query/#func-logical-or
-export class LogicalOrAsync extends E.SpecialOperatorAsync {
+export class LogicalOrAsync extends SpecialFunctionAsync {
   public apply(args: E.IExpression[], mapping: Bindings, evaluate: Evaluator): AsyncTerm {
     const [left, right] = args;
     // TODO: Fix coercion error bug
@@ -106,7 +105,7 @@ export class LogicalOrAsync extends E.SpecialOperatorAsync {
 }
 
 // https://www.w3.org/TR/sparql11-query/#func-logical-and
-export class LogicalAndAsync extends E.SpecialOperatorAsync {
+export class LogicalAndAsync extends SpecialFunctionAsync {
   public apply(args: E.IExpression[], mapping: Bindings, evaluate: Evaluator): AsyncTerm {
     const [left, right] = args;
     const wrap = (p: AsyncTerm) => p.then((term) => term.coerceEBV()).reflect();
@@ -136,9 +135,24 @@ export class LogicalAndAsync extends E.SpecialOperatorAsync {
   }
 }
 
-export class In extends E.SpecialOperatorAsync {
+// Maybe put some place else
+export function RDFTermEqual(_left: E.ITermExpression, _right: E.ITermExpression) {
+  const left = _left.toRDF();
+  const right = _right.toRDF();
+  const val = left.equals(right);
+  if (!val && (left.termType === 'Literal') && (right.termType === 'Literal')) {
+    throw new Err.RDFEqualTypeError([_left, _right]);
+  }
+  return val;
+}
+
+export function sameTerm(left: E.ITermExpression, right: E.ITermExpression) {
+  return left.toRDF().equals(right.toRDF());
+}
+
+export class In extends SpecialFunctionAsync {
   public apply(args: E.IExpression[], mapping: Bindings, evaluate: Evaluator): AsyncTerm {
-    if (args.length < 1) { throw new InvalidArity(args, C.Operator.IN); }
+    if (args.length < 1) { throw new Err.InvalidArity(args, C.Operator.IN); }
     const [left, ...remaining] = args;
     const thunks = remaining.map((expr) => () => evaluate(expr, mapping));
     return evaluate(left, mapping)
@@ -150,12 +164,12 @@ function inR(left: E.ITermExpression, args: (() => AsyncTerm)[], results: (Error
   if (args.length === 0) {
     return (results.every((v) => !v))
       ? Promise.resolve(bool(false))
-      : Promise.reject(new InError(results));
+      : Promise.reject(new Err.InError(results));
   }
   const first = args.shift();
   return first()
     .then((v) => {
-      const op = makeOp('=', [left, left]) as E.OverloadedOperator;
+      const op: E.ISPARQLFunc<E.SimpleApplication> = functions.get(C.Operator.EQUAL);
       return op.apply([left, v]);
     })
     .then(
@@ -165,42 +179,6 @@ function inR(left: E.ITermExpression, args: (() => AsyncTerm)[], results: (Error
       (err) => inR(left, args, [...results, err]),
   );
 }
-
-// export class In extends E.SpecialOperatorAsync {
-//   public apply(args: E.IExpression[], mapping: Bindings, evaluate: Evaluator): AsyncTerm {
-//     if (args.length < 1) { throw new InvalidArity(args, C.Operator.IN); }
-//     const [_left, ..._exprList] = args;
-//     return evaluate(_left, mapping)
-//       .then((left) => {
-//         const pExrList = _exprList.map((expr) => evaluate(expr, mapping));
-//         return Promise
-//           .all(pExrList)
-//           .map((expr: E.IExpression) => evaluate(expr, mapping))
-//           .map((term: E.ITermExpression) => {
-//             const op = makeOp('=', [_left, term]) as E.OverloadedOperator;
-//             return Promise
-//               .try(() => op.apply([left, term]))
-//               .then((result: E.ITermExpression) => {
-//                 return ((result as E.BooleanLiteral).typedValue)
-//                   ? new InBreakerTrue()
-//                   : new InContinuerFalse();
-//               })
-//               .catch((err) => new InContinuerError(err));
-//           });
-//       })
-//       .then((controllers: InController[]) => {
-//         if (controllers.some((c) => c.type === 'continuerError')) {
-//           throw new InError(controllers.map((c) => {
-//             return (c.type === 'continuerError')
-//               ? (c as InContinuerError).err
-//               : false;
-//           }));
-//         }
-//       })
-//       .then(() => bool(false))
-//       .catch(InBreakerTrue, () => bool(true));
-//   }
-// }
 
 // tslint:disable-next-line:interface-over-type-literal
 type InController = { type: 'breaker' | 'continuerFalse' | 'continuerError' };
@@ -216,9 +194,9 @@ class InContinuerError implements InController {
   constructor(public err: Error) { }
 }
 
-export class NotIn extends E.SpecialOperatorAsync {
+export class NotIn extends SpecialFunctionAsync {
   public apply(args: E.IExpression[], mapping: Bindings, evaluate: Evaluator): AsyncTerm {
-    return new In(C.Operator.IN, args)
+    return new In(C.Operator.IN)
       .apply(args, mapping, evaluate)
       .then((term: E.ITermExpression) => (term as E.BooleanLiteral).typedValue)
       .then((isIn) => bool(!isIn));

@@ -2,16 +2,14 @@ import * as Promise from 'bluebird';
 import * as RDF from 'rdf-js';
 import { Algebra as Alg } from 'sparqlalgebrajs';
 
-import { Bindings } from '../core/Bindings';
 import * as E from '../core/Expressions';
-import { makeOp } from '../core/operators/Definitions';
+import * as Err from '../util/Errors';
+import * as P from '../util/Parsing';
+
+import { Bindings } from '../core/Bindings';
+import { makeOp } from '../core/operators/index';
 import { Lookup } from "../FromExpressionStream";
 import { DataType as DT } from '../util/Consts';
-import {
-  InvalidExpressionType, InvalidLexicalForm, InvalidTermType,
-  UnimplementedError,
-} from '../util/Errors';
-import * as P from '../util/Parsing';
 
 export class AsyncEvaluator {
   private _expr: E.IExpression;
@@ -45,15 +43,15 @@ export class AsyncEvaluator {
           this._evalVar(<E.IVariableExpression> expr, mapping)
         ));
       case types.OPERATOR:
-        return this._evalOp(<E.IOperatorExpression> expr, mapping);
+        return this._evalOp(<E.IOperatorExpression<any>> expr, mapping);
       // TODO
       case types.NAMED:
-        throw new UnimplementedError();
+        throw new Err.UnimplementedError();
       case types.EXISTENCE:
-        throw new UnimplementedError();
+        throw new Err.UnimplementedError();
       case types.AGGREGATE:
-        throw new UnimplementedError();
-      default: throw new InvalidExpressionType(expr);
+        throw new Err.UnimplementedError();
+      default: throw new Err.InvalidExpressionType(expr);
     }
   }
 
@@ -70,23 +68,24 @@ export class AsyncEvaluator {
     }
   }
 
-  private _evalOp(expr: E.IOperatorExpression, mapping: Bindings): Promise<E.ITermExpression> {
-    switch (expr.operatorClass) {
+  private _evalOp(expr: E.IOperatorExpression<any>, mapping: Bindings): Promise<E.ITermExpression> {
+    const { func, args } = expr;
+    switch (func.functionClass) {
       case 'simple': {
-        const pArgs = expr.args.map((a) => this._eval(a, mapping));
-        const op = <E.SimpleOperator> expr;
-        return Promise.all(pArgs).then((args) => op.apply(args));
+        const pArgs = args.map((arg) => this._eval(arg, mapping));
+        const sFunc: E.ISPARQLFunc<E.SimpleApplication> = func;
+        return Promise.all(pArgs).then(func.apply);
       }
       case 'overloaded': {
-        const pArgs = expr.args.map((a) => this._eval(a, mapping));
-        const op = <E.OverloadedOperator> expr;
-        return Promise.all(pArgs).then((args) => op.apply(args));
+        const pArgs = args.map((arg) => this._eval(arg, mapping));
+        const oFunc: E.ISPARQLFunc<E.SimpleApplication> = func;
+        return Promise.all(pArgs).then(func.apply);
       }
       case 'special': {
-        const op = <E.SpecialOperatorAsync> expr;
-        return op.apply(expr.args, mapping, this._eval.bind(this));
+        const oFunc: E.ISPARQLFunc<E.SpecialApplication> = func;
+        return oFunc.apply(args, mapping, this._eval.bind(this));
       }
-      default: throw new TypeError("Unknown operator class.");
+      default: throw new Err.UnexpectedError("Unknown function class.");
     }
   }
 
@@ -101,10 +100,10 @@ export class AsyncEvaluator {
         return makeOp(opIn.operator, args);
       }
       // TODO
-      case types.NAMED: throw new UnimplementedError();
-      case types.EXISTENCE: throw new UnimplementedError();
-      case types.AGGREGATE: throw new UnimplementedError();
-      default: throw new InvalidExpressionType(expr);
+      case types.NAMED: throw new Err.UnimplementedError();
+      case types.EXISTENCE: throw new Err.UnimplementedError();
+      case types.AGGREGATE: throw new Err.UnimplementedError();
+      default: throw new Err.InvalidExpressionType(expr);
     }
   }
 
@@ -113,11 +112,12 @@ export class AsyncEvaluator {
       case 'Variable': return new E.Variable(term.term.value);
       case 'Literal': return this._tranformLiteral(<RDF.Literal> term.term);
       // TODO
-      case 'NamedNode': throw new UnimplementedError();
-      default: throw new InvalidTermType(term);
+      case 'NamedNode': throw new Err.UnimplementedError();
+      default: throw new Err.InvalidTermType(term);
     }
   }
 
+  // TODO: Maybe do this with a map?
   private _tranformLiteral(lit: RDF.Literal): E.Literal<any> {
     switch (lit.datatype.value) {
       case null:

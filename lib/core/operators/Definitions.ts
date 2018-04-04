@@ -7,54 +7,19 @@ import { DataType as DT } from '../../util/Consts';
 import { InvalidArity, UnimplementedError } from '../../util/Errors';
 import * as E from './../Expressions';
 import { bool, list, number } from './Helpers';
-import * as S from './SPARQLFunctions';
 import * as Special from './SpecialFunctions';
+import {
+  ArgumentType, OverloadedFunction, OverloadMap, SimpleFunction, SpecialFunctionAsync,
+} from './Types';
 import * as X from './XPath';
-
-// TODO: If args are known, try to calculate already
-export function makeOp(opString: string, args: E.IExpression[]): E.IOperatorExpression {
-  if (!C.Operators.contains(opString)) {
-    throw new TypeError("Unknown operator");
-  }
-  const op = opString as C.Operator;
-
-  const definitionMeta = definitions.get(op);
-  const { category, arity, definition } = definitionMeta;
-
-  if (!definition) { throw new UnimplementedError(); }
-
-  // We can check for arity allready (assuming no programming mistakes) because
-  // each (term) argument should already represented by the expressions that
-  // generates it.
-  // Infinity is used to represent var-args.
-  if (args.length !== arity && arity !== Infinity) {
-    throw new InvalidArity(args, op);
-  }
-
-  switch (category) {
-    case 'simple': {
-      const { types, apply } = <SimpleDefinition> definition;
-      return new E.SimpleOperator(op, arity, args, types, apply);
-    }
-    case 'overloaded': {
-      const overloadMap = <OverloadedDefinition> definition;
-      return new E.OverloadedOperator(op, arity, args, overloadMap);
-    }
-    case 'special': {
-      // tslint:disable-next-line:variable-name
-      const SpecialOp = <SpecialDefinition> definition;
-      return new SpecialOp(op, args);
-    }
-  }
-}
 
 // ----------------------------------------------------------------------------
 // The definitions and functionality for all operators
 // ----------------------------------------------------------------------------
 
-interface IOperatorDefinition { }
-type SpecificDefinition = SimpleDefinition | OverloadedDefinition | SpecialDefinition;
-interface IDefinition {
+export type SpecificDefinition = SimpleDefinition | OverloadedDefinition | SpecialDefinition;
+
+export interface IDefinition {
   category: C.OperatorCategory;
   arity: number;
   definition: SpecificDefinition;
@@ -63,15 +28,14 @@ interface IDefinition {
 type IDefinitionMap = {[key in C.Operator]: IDefinition };
 
 // tslint:disable-next-line:interface-over-type-literal
-type SimpleDefinition = {
-  types: E.ArgumentType[];
+export type SimpleDefinition = {
+  types: ArgumentType[];
   apply(args: any[]): E.ITermExpression;
 };
+export type OverloadedDefinition = OverloadMap;
+export type SpecialDefinition = new (op: C.Operator) => SpecialFunctionAsync;
 
-type OverloadedDefinition = E.OverloadMap;
-
-type SpecialDefinition = new (op: C.Operator, args: E.IExpression[]) => E.IOperatorExpression;
-
+// TODO Maybe split in definitions for simple, overloaded and async functions.
 const _definitions: IDefinitionMap = {
   // TODO: Check expressions parent types
   '!': {
@@ -142,7 +106,7 @@ const _definitions: IDefinitionMap = {
     ).set(
       list('term', 'term'),
       (args: Term[]) => {
-        return bool(S.RDFTermEqual(args[0], args[1]));
+        return bool(Special.RDFTermEqual(args[0], args[1]));
       },
     ),
   },
@@ -217,7 +181,7 @@ const _definitions: IDefinitionMap = {
     definition: {
       types: ['term', 'term'],
       apply(args: Term[]) {
-        return bool(S.sameTerm(args[1], args[2]));
+        return bool(Special.sameTerm(args[1], args[2]));
       },
     },
   },
@@ -233,7 +197,7 @@ const _definitions: IDefinitionMap = {
   },
 };
 
-const definitions = Map<C.Operator, IDefinition>(_definitions);
+export const definitions = Map<C.Operator, IDefinition>(_definitions);
 
 // ----------------------------------------------------------------------------
 // Utility helpers
@@ -247,7 +211,7 @@ type Term = E.ITermExpression;
  * https://www.w3.org/TR/sparql11-query/#OperatorMapping
  */
 type ArithmeticOperator = (left: number, right: number) => number;
-function arithmetic(op: ArithmeticOperator): E.OverloadMap {
+function arithmetic(op: ArithmeticOperator): OverloadMap {
   const func = (dt?: DT) => (
     (args: Term[]) => number(binary(op, args), dt || DT.XSD_FLOAT)
   );
@@ -266,7 +230,7 @@ function xPathTest(
   strOp: XPathTest<string>,
   boolOp: XPathTest<boolean>,
   dateOp: XPathTest<Date>,
-): E.OverloadMap {
+): OverloadMap {
   const numericHelper = (args: Term[]) => bool(binary(op, args));
 
   const wrap = (func: XPathTest<any>) => (args: Term[]) => bool(binary(func, args));
@@ -278,7 +242,7 @@ function xPathTest(
   ].concat(numeric((dt?: DT) => numericHelper)));
 }
 
-type OpFactory = (dt?: C.DataType) => E.SimpleEvaluator;
+type OpFactory = (dt?: C.DataType) => E.SimpleApplication;
 
 /*
  * DataType will be generalized to float,

@@ -8,6 +8,7 @@
     "test-debug-lin": "node --nolazy --debug-brk=5858 ./node_modules/.bin/jest",
     "test-debug-win": "node --debug-brk=5858 ./node_modules/jest/bin/jest.js",
     "prepare": "npm run build",
+    "watch": "gulp watch",
     "build": "tsc"
   },
   "repository": {

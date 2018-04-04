@@ -42,21 +42,19 @@ export interface INamedExpression extends IExpression {
   args: IExpression[];
 }
 
-export interface IOperatorExpression extends IExpression {
+export interface IOperatorExpression<Application extends ApplicationType> extends IExpression {
   expressionType: 'operator';
-  operator: string;
   args: IExpression[];
-  operatorClass: 'simple' | 'overloaded' | 'special';
-  // apply(args: Expression[], mapping: Bindings): TermExpression;
+  func: ISPARQLFunc<Application>;
 }
 
-export type TermType = 'namedNode' | 'literal';
 export interface ITermExpression extends IExpression {
   expressionType: 'term';
   termType: TermType;
   coerceEBV(): boolean;
   toRDF(): RDF.Term;
 }
+export type TermType = 'namedNode' | 'literal';
 
 export interface IVariableExpression extends IExpression {
   expressionType: 'variable';
@@ -73,163 +71,6 @@ export class Variable implements IVariableExpression {
   constructor(name: string) {
     this.name = name;
   }
-}
-
-// ----------------------------------------------------------------------------
-// Operators
-// ---------------------------------------------------------------------------
-// TODO: Not all functions are operators, and a distinction should be made.
-// All operators are functions though.
-//
-// https://math.stackexchange.com/questions/168378/what-is-an-operator-in-mathematics
-// ----------------------------------------------------------------------------
-
-// Argument Types and their specificity ---------------------------------------
-
-// Function and operator arguments are 'flattened' in the SPARQL spec.
-// If the argument is a literal, the datatype often also matters.
-export type ArgumentType = 'term' | TermType | C.DataTypeCategory;
-
-type TypeParents = {[key in ArgumentType]: List<ArgumentType>};
-
-// TODO: Urgent
-// const _typePairs: TypeParents = {
-//   term: List(),
-//   namedNode: List(),
-//   literal: List(),
-//   string: List(),
-//   date: List(),
-//   boolean: List(),
-//   integer: List(),
-//   decimal: List(),
-//   float: List(),
-//   double: List(),
-//   simple: List(),
-//   plain: List(),
-//   other: List(),
-// };
-
-// // tslint:disable-next-line:variable-name
-// export const CommonParentMap: Map<ArgumentType, List<ArgumentType>>
-//   = Map(<any> _typePairs);
-
-// Simple Operators -----------------------------------------------------------
-
-// TODO Remove args argument
-
-export class SimpleOperator implements IOperatorExpression {
-  public expressionType: 'operator' = 'operator';
-  public operatorClass: 'simple' = 'simple';
-
-  constructor(
-    public operator: C.Operator,
-    public arity: number,
-    public args: IExpression[],
-    public types: ArgumentType[],
-    protected _apply: (args: ITermExpression[]) => ITermExpression,
-  ) { }
-
-  public apply(args: ITermExpression[]): ITermExpression {
-    if (!this._isValidTypes(args)) {
-      throw new InvalidArgumentTypes(args, this.operator);
-    }
-    return this._apply(args);
-  }
-
-  // TODO: Test
-  // TODO Can be optimised probably
-  private _isValidTypes(args: ITermExpression[]): boolean {
-    const argTypes = args.map((a: any) => a.category || a.termType);
-    return _.isEqual(this.types, argTypes)
-      || _.isEqual(this.types, ['term', 'term']);
-  }
-}
-
-// Overloaded Operators -------------------------------------------------------
-
-/*
- * Varying kinds of operators take arguments of different types on which the
- * specific behaviour is dependant. Although their behaviour is often varying,
- * it is always relatively simple, and better suited for synced behaviour.
- * The types of their arguments are always terms, but might differ in
- * their term-type (eg: iri, literal),
- * their specific literal type (eg: string, integer),
- * their arity (see BNODE),
- * or even their specific numeric type (eg: integer, float).
- *
- * Examples include:
- *  - Arithmetic operations such as: *, -, /, +
- *  - Bool operators such as: =, !=, <=, <, ...
- *  - Functions such as: str, IRI
- *
- * Note: functions that have multiple arities do not belong in this category.
- * Eg: BNODE.
- * 
- * TODO: Make overloadMaps static and unique (use Definitions);
- *
- * See also: https://www.w3.org/TR/sparql11-query/#func-rdfTerms
- * and https://www.w3.org/TR/sparql11-query/#OperatorMapping
- */
-
-// Maps argument types on their specific implementation.
-export type OverloadMap = Map<List<ArgumentType>, SimpleEvaluator>;
-export type SimpleEvaluator = (args: ITermExpression[]) => ITermExpression;
-
-export class OverloadedOperator implements IOperatorExpression {
-  public expressionType: 'operator' = 'operator';
-  public operatorClass: 'overloaded' = 'overloaded';
-
-  constructor(
-    public operator: C.Operator,
-    public arity: number,
-    public args: IExpression[],
-    private overloadMap: OverloadMap,
-  ) { }
-
-  public apply(args: ITermExpression[]): ITermExpression {
-    const func = this._monomorph(args);
-    if (!func) {
-      throw new InvalidArgumentTypes(args, this.operator);
-    }
-    return func(args);
-  }
-
-  private _monomorph(args: ITermExpression[]): SimpleEvaluator {
-    const argTypes = List(args.map((a: any) => a.category || a.termType));
-    return this.overloadMap.get(argTypes)
-      || this.overloadMap.get(List(Array(this.arity).fill('term')));
-  }
-}
-
-// Special Operators ----------------------------------------------------------
-/*
- * Special operators are those that don't really fit in sensible categories and
- * have extremely heterogeneous signatures that make them impossible to abstract
- * over. They are small in number, and their behaviour is often complex and open
- * for multiple correct implementations with different trade-offs.
- *
- * Due to their varying nature, they need all available information present
- * during evaluation. This reflects in the signature of the apply() method.
- *
- * They need access to an evaluator to be able to even implement their logic.
- * Especially relevant for IF, and the logical connectives.
- *
- * They can have both sync and async implementations, and both would make sense
- * in some contexts.
- */
-
-export abstract class SpecialOperatorAsync implements IOperatorExpression {
-  public expressionType: 'operator' = 'operator';
-  public operatorClass: 'special' = 'special';
-
-  constructor(public operator: C.Operator, public args: IExpression[]) { }
-
-  public abstract apply(
-    args: IExpression[],
-    mapping: Bindings,
-    evaluate: (e: IExpression, mapping: Bindings) => Promise<ITermExpression>,
-  ): Promise<ITermExpression>;
-
 }
 
 // ----------------------------------------------------------------------------
@@ -331,7 +172,7 @@ export class StringLiteral extends Literal<string> {
  * invalid lexical form are still valid terms, and as such we can not error
  * immediately. This class makes sure that the typedValue will remain undefined,
  * and the category 'other'. This way, only when operators apply to the
- * 'other' category, they will keep working, otherwise they will throw a 
+ * 'other' category, they will keep working, otherwise they will throw a
  * type error.
  * This seems to match the spec.
  *
@@ -352,3 +193,32 @@ export class NonLexicalLiteral extends Literal<undefined> {
     this.category = 'other';
   }
 }
+
+// ----------------------------------------------------------------------------
+// Functions
+// ----------------------------------------------------------------------------
+
+/*
+ * An Application is a type for a function, depending in the Application,
+ * the evaluator needs to pass more info to the function (eg: SpecialApplication).
+ *
+ * Both SimpleFunctions and OverloadedFunctions have a simple application.
+ * (although they evaluate in different manners, the API is the same).
+ */
+
+export interface ISPARQLFunc<Application extends ApplicationType> {
+  functionClass: 'simple' | 'overloaded' | 'special';
+  apply: Application;
+}
+export type SimpleApplication = (args: ITermExpression[]) => ITermExpression;
+
+export type SpecialApplication =
+  (
+    args: IExpression[],
+    mapping: Bindings,
+    evaluate: Evaluator,
+  ) => Promise<ITermExpression>;
+
+export type ApplicationType = SimpleApplication | SpecialApplication;
+
+export type Evaluator = (e: IExpression, mapping: Bindings) => Promise<ITermExpression>;
