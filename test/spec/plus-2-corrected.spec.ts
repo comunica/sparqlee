@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: plus-2-corrected.rq
  *
@@ -12,7 +14,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :plus-2-corrected a mf:QueryEvaluationTest ;
  *     mf:name    "plus-2-corrected" ;
  *     rdfs:comment  "plus operator in combination with str(), i.e.  str(?x) + str(?y), on string and numeric values" ;
@@ -25,7 +27,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the plus-2-corrected spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

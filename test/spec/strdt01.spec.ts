@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: strdt01.rq
  *
@@ -12,7 +14,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :strdt01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "STRDT()" ;
  *   mf:feature sparql:strdt ;
@@ -26,7 +28,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the strdt01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

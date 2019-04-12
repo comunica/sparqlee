@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: month-01.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :month rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "MONTH()" ;
  *   mf:feature sparql:month ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the month-01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: sha512-01.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  *   mf:feature sparql:sha512 ;
  *     dawgt:approval dawgt:Approved ;
  *     dawgt:approvedBy <http://www.w3.org/2009/sparql/meeting/2012-01-31#resolution_3> ;
@@ -30,7 +32,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the sha512-01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

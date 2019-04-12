@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: encode01.rq
  *
@@ -11,7 +13,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :encode01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "ENCODE_FOR_URI()" ;
  *   mf:feature sparql:encode_for_uri ;
@@ -25,7 +27,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the encode01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: sha256-02.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :sha256-02 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "SHA256() on Unicode data" ;
  *   mf:feature sparql:sha256 ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the sha256-02 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

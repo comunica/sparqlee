@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: struuid01.rq
  *
@@ -13,7 +15,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :struuid01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "STRUUID() pattern match" ;
  *   mf:feature sparql:struuid ;
@@ -27,7 +29,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the struuid01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

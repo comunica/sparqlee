@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: if02.rq
  *
@@ -7,7 +9,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :if02 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "IF() error propogation" ;
  *   mf:feature sparql:if ;
@@ -21,7 +23,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the if02 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

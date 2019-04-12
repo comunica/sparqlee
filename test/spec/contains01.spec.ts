@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: contains01.rq
  *
@@ -12,7 +14,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :contains01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "CONTAINS()" ;
  *   mf:feature sparql:contains ;
@@ -26,7 +28,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the contains01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

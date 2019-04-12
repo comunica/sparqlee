@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: in02.rq
  *
@@ -9,7 +11,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :in02 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "IN 2" ;
  *   mf:feature sparql:in ;
@@ -23,7 +25,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the in02 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

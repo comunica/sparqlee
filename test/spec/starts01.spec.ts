@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: starts01.rq
  *
@@ -12,7 +14,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :starts01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "STRSTARTS()" ;
  *   mf:feature sparql:strstarts ;
@@ -26,7 +28,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the starts01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: lcase01.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :lcase01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "LCASE()" ;
  *   mf:feature sparql:lcase ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the lcase01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

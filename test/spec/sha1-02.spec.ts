@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: sha1-02.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :sha1-02 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "SHA1() on Unicode data" ;
  *   mf:feature sparql:sha1 ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the sha1-02 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

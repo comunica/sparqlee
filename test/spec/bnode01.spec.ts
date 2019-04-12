@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: bnode01.rq
  *
@@ -16,7 +18,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :bnode01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "BNODE(str)" ;
  *   mf:feature sparql:bnode ;
@@ -30,7 +32,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the bnode01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

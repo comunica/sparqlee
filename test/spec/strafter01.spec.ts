@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: strafter01.rq
  *
@@ -11,7 +13,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :strafter01a rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "STRAFTER()" ;
  *   mf:feature sparql:strafter ;
@@ -25,7 +27,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the strafter01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: seconds-01.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :seconds rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "SECONDS()" ;
  *   mf:feature sparql:seconds ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the seconds-01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

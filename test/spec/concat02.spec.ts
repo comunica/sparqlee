@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: concat02.rq
  *
@@ -11,7 +13,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :concat02 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "CONCAT() 2" ;
  *   mf:feature sparql:concat ;
@@ -25,7 +27,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the concat02 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

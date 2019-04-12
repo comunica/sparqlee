@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: strbefore01.rq
  *
@@ -11,7 +13,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :strbefore01a rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "STRBEFORE()" ;
  *   mf:feature sparql:strbefore ;
@@ -25,7 +27,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the strbefore01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

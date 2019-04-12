@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: strdt03.rq
  *
@@ -11,7 +13,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :strdt03-rdf11 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "STRDT() TypeErrors (updated for RDF 1.1)" ;
  *   mf:feature sparql:strdt ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the strdt03 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

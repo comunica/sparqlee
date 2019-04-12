@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: timezone-01.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :timezone rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "TIMEZONE()" ;
  *   mf:feature sparql:timezone ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the timezone-01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

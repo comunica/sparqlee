@@ -41,6 +41,8 @@ ls $source | grep .*\.rq | while read file ; do
   # Template
   content="import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: $file
  *
@@ -48,12 +50,17 @@ $request_comment
  */
 
 /**
- *
+ * Manifest Entry
 $manifest_entry
  */
 
 describe('We should respect the $filename spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

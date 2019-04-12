@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: length01.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :length01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "STRLEN()" ;
  *   mf:feature sparql:strlen ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the length01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

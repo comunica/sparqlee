@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: substring01.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :substring01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "SUBSTR() (3-argument)" ;
  *   mf:feature sparql:substr ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the substring01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

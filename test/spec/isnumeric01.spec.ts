@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: isnumeric01.rq
  *
@@ -11,7 +13,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :isnumeric01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "isNumeric()" ;
  *   mf:feature sparql:isnumeric ;
@@ -25,7 +27,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the isnumeric01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

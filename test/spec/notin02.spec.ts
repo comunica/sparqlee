@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: notin02.rq
  *
@@ -9,7 +11,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :notin02 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "NOT IN 2" ;
  *   mf:feature sparql:in ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the notin02 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

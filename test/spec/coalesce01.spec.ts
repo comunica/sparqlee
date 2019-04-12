@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: coalesce01.rq
  *
@@ -19,7 +21,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :coalesce01 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "COALESCE()" ;
  *   mf:feature sparql:coalesce ;
@@ -33,7 +35,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the coalesce01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

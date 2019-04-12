@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: replace03.rq
  *
@@ -11,7 +13,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :replace03 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "REPLACE() with captured substring" ;
  *   mf:feature sparql:replace ;
@@ -25,7 +27,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the replace03 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

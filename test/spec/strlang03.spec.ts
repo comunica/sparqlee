@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: strlang03.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :strlang03-rdf11 rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "STRLANG() TypeErrors (updated for RDF 1.1)" ;
  *   mf:feature sparql:strlang ;
@@ -23,7 +25,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the strlang03 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**

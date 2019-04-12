@@ -1,5 +1,7 @@
 import * as Data from './_data';
 
+import { aliases as a, testAll } from '../util/utils';
+
 /**
  * REQUEST: tz-01.rq
  *
@@ -10,7 +12,7 @@ import * as Data from './_data';
  */
 
 /**
- *
+ * Manifest Entry
  * :tz rdf:type mf:QueryEvaluationTest ;
  *   mf:name    "TZ()" ;
  *   mf:feature sparql:tz ;
@@ -24,7 +26,12 @@ import * as Data from './_data';
  */
 
 describe('We should respect the tz-01 spec', () => {
+  it('should handle all test cases correctly', () => {
+    const {} = Data.data();
+    testAll([
 
+    ]);
+  });
 });
 
 /**
