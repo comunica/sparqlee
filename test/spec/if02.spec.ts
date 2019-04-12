@@ -1,6 +1,4 @@
-import * as Data from './_data';
-
-import { aliases as a, testAll } from '../util/utils';
+import { testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: if02.rq
@@ -23,9 +21,8 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the if02 spec', () => {
-  const {} = Data.data();
-  testAll([
-
+  testAllErrors([
+    'IF(1/0, false, true) = error',
   ]);
 });
 
@@ -44,4 +41,3 @@ describe('We should respect the if02 spec', () => {
  * </sparql>
  *
  */
-

@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, decimal, int, testAll } from '../util/utils';
 
 /**
  * REQUEST: floor01.rq
@@ -27,9 +27,13 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the floor01 spec', () => {
-  const {} = Data.data();
+  const { n1, n2, n3, n4, n5 } = Data.data();
   testAll([
-
+    `FLOOR(${n1}) = ${int('-1')}`,
+    `FLOOR(${n2}) = ${decimal('-2')}`,
+    `FLOOR(${n3}) = ${decimal('1')}`,
+    `FLOOR(${n4}) = ${int('-2')}`,
+    `FLOOR(${n5}) = ${decimal('2')}`,
   ]);
 });
 

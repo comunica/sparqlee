@@ -27,9 +27,15 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the encode01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data();
   testAll([
-
+    `ENCODE_FOR_URI(${s1}) = "foo"`,
+    `ENCODE_FOR_URI(${s2}) = "bar"`,
+    `ENCODE_FOR_URI(${s3}) = "BAZ"`,
+    `ENCODE_FOR_URI(${s4}) = "%E9%A3%9F%E3%81%B9%E7%89%A9"`,
+    `ENCODE_FOR_URI(${s5}) = "100%25"`,
+    `ENCODE_FOR_URI(${s6}) = "abc"^^http://www.w3.org/2001/XMLSchema#string`,
+    `ENCODE_FOR_URI(${s7}) = "DEF"^^http://www.w3.org/2001/XMLSchema#string`,
   ]);
 });
 

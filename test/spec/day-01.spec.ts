@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, int, testAll } from '../util/utils';
 
 /**
  * REQUEST: day-01.rq
@@ -26,9 +26,12 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the day-01 spec', () => {
-  const {} = Data.data();
+  const { d1, d2, d3, d4 } = Data.data();
   testAll([
-
+    `DAY(${d1}) = ${int('21')}`,
+    `DAY(${d2}) = ${int('21')}`,
+    `DAY(${d3}) = ${int('20')}`,
+    `DAY(${d4}) = ${int('1')}`,
   ]);
 });
 

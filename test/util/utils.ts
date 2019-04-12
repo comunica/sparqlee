@@ -7,7 +7,7 @@ import { evaluate } from '../../util/Util';
 export function testAll(exprs: string[]) {
   exprs.forEach((_expr) => {
     const expr = _expr.trim();
-    const equals = expr.match(/ = .*$/)[0];
+    const equals = expr.match(/ = [^=]*$/g).pop();
     const body = expr.replace(equals, '');
     const _result = equals.replace(' = ', '');
     const result = replacePrefix(_result);

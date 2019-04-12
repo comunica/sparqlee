@@ -28,9 +28,15 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the ends01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data();
   testAll([
-
+    `STRENDS(${s1}, "bc") = ${a.false}`,
+    `STRENDS(${s2}, "bc") = ${a.false}`,
+    `STRENDS(${s3}, "bc") = ${a.false}`,
+    `STRENDS(${s4}, "bc") = ${a.false}`,
+    `STRENDS(${s5}, "bc") = ${a.false}`,
+    `STRENDS(${s6}, "bc") = ${a.true}`,
+    `STRENDS(${s7}, "bc") = ${a.false}`,
   ]);
 });
 

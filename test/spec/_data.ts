@@ -43,6 +43,11 @@ export function data() {
     s5: '"100%"',
     s6: '"abc"^^xsd:string',
     s7: '"DEF"^^xsd:string',
+
+    d1: date('2010-06-21T11:28:01Z'),
+    d2: date('2010-12-21T15:38:02-08:00'),
+    d3: date('2008-06-20T23:59:00Z'),
+    d4: date('2011-02-01T01:02:03'),
   };
 }
 
@@ -124,4 +129,8 @@ function decimal(value: string): string {
 
 function double(value: string): string {
   return termToString(literal(value, 'xsd:double'));
+}
+
+function date(value: string): string {
+  return termToString(literal(value, 'xsd:dateTime'));
 }
