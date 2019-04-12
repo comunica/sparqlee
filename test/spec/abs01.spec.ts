@@ -27,9 +27,13 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the abs01 spec', () => {
-  const {} = Data.data();
+  const { n1, n2, n3, n4, n5 } = Data.data();
   testAll([
-
+    `abs(${n1}) >= 2 = ${a.false}`,
+    `abs(${n2}) >= 2 = ${a.false}`,
+    `abs(${n3}) >= 2 = ${a.false}`,
+    `abs(${n4}) >= 2 = ${a.true}`,
+    `abs(${n5}) >= 2 = ${a.true}`,
   ]);
 });
 

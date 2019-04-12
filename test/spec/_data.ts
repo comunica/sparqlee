@@ -6,10 +6,10 @@ import { termToString } from 'rdf-string';
 // @prefix : <http://example.org/> .
 
 // # numeric data
-// :n4 :num -2 .
 // :n1 :num -1 .
 // :n2 :num -1.6 .
 // :n3 :num 1.1 .
+// :n4 :num -2 .
 // :n5 :num 2.5 .
 //
 // # string data
@@ -34,7 +34,7 @@ export function data() {
     n2: decimal('-1.6'),
     n3: decimal('1.1'),
     n4: int('-2'),
-    n5: int('2.5'),
+    n5: decimal('2.5'),
   };
 }
 

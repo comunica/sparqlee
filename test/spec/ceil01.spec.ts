@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { decimal, int, testAll } from '../util/utils';
 
 /**
  * REQUEST: ceil01.rq
@@ -27,9 +27,13 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the ceil01 spec', () => {
-  const {} = Data.data();
+  const { n1, n2, n3, n4, n5 } = Data.data();
   testAll([
-
+    `ceil(${n1}) = ${int('-1')}`,
+    `ceil(${n2}) = ${decimal('-1')}`,
+    `ceil(${n3}) = ${decimal('2')}`,
+    `ceil(${n4}) = ${int('-2')}`,
+    `ceil(${n5}) = ${decimal('3')}`,
   ]);
 });
 

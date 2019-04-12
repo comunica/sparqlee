@@ -1,3 +1,4 @@
+import { literal } from '@rdfjs/data-model';
 import { stringToTerm, termToString } from 'rdf-string';
 
 import { ExpressionError } from '../../lib/util/Errors';
@@ -36,6 +37,22 @@ export const aliases = {
   true: '"true"^^xsd:boolean',
   false: '"false"^^xsd:boolean',
 };
+
+export function int(value: string): string {
+  return termToString(literal(value, 'xsd:integer'));
+}
+
+export function float(value: string): string {
+  return termToString(literal(value, 'xsd:float'));
+}
+
+export function decimal(value: string): string {
+  return termToString(literal(value, 'xsd:decimal'));
+}
+
+export function double(value: string): string {
+  return termToString(literal(value, 'xsd:double'));
+}
 
 export const prefixes: { [key: string]: string } = {
   xsd: 'http://www.w3.org/2001/XMLSchema#',
