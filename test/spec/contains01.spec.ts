@@ -28,9 +28,15 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the contains01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data();
   testAll([
-
+    `CONTAINS(${s1}, "a") = ${a.false}`,
+    `CONTAINS(${s2}, "a") = ${a.true}`,
+    `CONTAINS(${s3}, "a") = ${a.false}`,
+    `CONTAINS(${s4}, "a") = ${a.false}`,
+    `CONTAINS(${s5}, "a") = ${a.false}`,
+    `CONTAINS(${s6}, "a") = ${a.true}`,
+    `CONTAINS(${s7}, "a") = ${a.false}`,
   ]);
 });
 

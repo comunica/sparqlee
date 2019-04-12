@@ -27,9 +27,9 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the concat01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data();
   testAll([
-
+    `CONCAT(${s6}, ${s7}) = "abcDEF"^^xsd:string`,
   ]);
 });
 

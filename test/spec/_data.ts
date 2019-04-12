@@ -35,6 +35,14 @@ export function data() {
     n3: decimal('1.1'),
     n4: int('-2'),
     n5: decimal('2.5'),
+
+    s1: '"foo"',
+    s2: '"bar"@en',
+    s3: '"BAZ"',
+    s4: '"食べ物"',
+    s5: '"100%"',
+    s6: '"abc"^^xsd:string',
+    s7: '"DEF"^^xsd:string',
   };
 }
 
@@ -55,7 +63,15 @@ export function data() {
 
 // https://raw.githubusercontent.com/w3c/rdf-tests/gh-pages/sparql11/data-sparql11/functions/data2.ttl
 export function data2() {
-
+  return {
+    s1: '"123"',
+    s2: '"日本語"@ja',
+    s3: '"english"@en',
+    s4: '"français"@fr',
+    s5: '"abc"^^xsd:string',
+    s6: '"def"^^xsd:string',
+    s7: int('7'),
+  };
 }
 
 // data 3 ----------------------------------------------------------------------

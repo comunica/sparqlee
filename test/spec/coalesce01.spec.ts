@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors, int, decimal } from '../util/utils';
 
 /**
  * REQUEST: coalesce01.rq
@@ -34,10 +34,48 @@ import { aliases as a, testAll } from '../util/utils';
  *   .
  */
 
-describe('We should respect the coalesce01 spec', () => {
-  const {} = Data.data();
-  testAll([
+// # numeric data
+// :n0 :p 1 .
+// :n1 :p 0 ; :q 0 .
+// :n2 :p 0 ; :q 2 .
+// :n3 :p 4 ; :q 2 .
 
+describe('We should respect the coalesce01 spec', () => {
+  const { n0, q0, n1, n2, n3, q1, q2, q3 } = {
+    n0: int('1'),
+    q0: '?unbound',
+    n1: int('0'),
+    q1: int('0'),
+    q2: int('2'),
+    q3: int('2'),
+    n2: int('0'),
+    n3: int('4'),
+  };
+
+  testAll([
+    // :n0
+    `COALESCE(${q0}, -1) = ${int('-1')}`,
+    `COALESCE(${n0}/${q0}, -2) = ${int('-2')}`,
+    `COALESCE(?z, -3) = ${int('-3')}`,
+
+    // :n1
+    `COALESCE(${q1}, -1) = ${q1}`,
+    `COALESCE(${n1}/${q1}) = ${int('-2')}`,
+    `COALESCE(?z, -3) = ${int('-3')}`,
+
+    // :n2
+    `COALESCE(${q2}, -1) = ${q2}`,
+    `COALESCE(${n2}/${q2}) = ${decimal('0.0')}`,
+    `COALESCE(?z, -3) = ${int('-3')}`,
+
+    // :n3
+    `COALESCE(${q3}, -1) = ${q3}`,
+    `COALESCE(${n3}/${q3}) = ${decimal('2.0')}`,
+    `COALESCE(?z, -3) = ${int('-3')}`,
+  ]);
+
+  testAllErrors([
+    'COALESCE(?z) = error',
   ]);
 });
 
@@ -77,4 +115,3 @@ describe('We should respect the coalesce01 spec', () => {
  * </sparql>
  *
  */
-
