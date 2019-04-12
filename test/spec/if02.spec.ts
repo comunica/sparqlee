@@ -23,12 +23,10 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the if02 spec', () => {
-  it('should handle all test cases correctly', () => {
-    const {} = Data.data();
-    testAll([
+  const {} = Data.data();
+  testAll([
 
-    ]);
-  });
+  ]);
 });
 
 /**

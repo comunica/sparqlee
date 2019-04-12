@@ -55,12 +55,10 @@ $manifest_entry
  */
 
 describe('We should respect the $filename spec', () => {
-  it('should handle all test cases correctly', () => {
-    const {} = Data.data();
-    testAll([
+  const {} = Data.data();
+  testAll([
 
-    ]);
-  });
+  ]);
 });
 
 /**

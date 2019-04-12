@@ -1,5 +1,5 @@
-import { literal } from "@rdfjs/data-model";
-import * as RDF from 'rdf-js';
+import { literal } from '@rdfjs/data-model';
+import { termToString } from 'rdf-string';
 
 // data ------------------------------------------------------------------------
 // @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -94,18 +94,18 @@ export function data4() {
 
 // helpers ---------------------------------------------------------------------
 
-function int(value: string): RDF.Term {
-  return literal(value, 'http://www.w3.org/2001/XMLSchema#integer');
+function int(value: string): string {
+  return termToString(literal(value, 'xsd:integer'));
 }
 
-function float(value: string): RDF.Term {
-  return literal(value, 'http://www.w3.org/2001/XMLSchema#float');
+function float(value: string): string {
+  return termToString(literal(value, 'xsd:float'));
 }
 
-function decimal(value: string): RDF.Term {
-  return literal(value, 'http://www.w3.org/2001/XMLSchema#decimal');
+function decimal(value: string): string {
+  return termToString(literal(value, 'xsd:decimal'));
 }
 
-function double(value: string): RDF.Term {
-  return literal(value, 'http://www.w3.org/2001/XMLSchema#double');
+function double(value: string): string {
+  return termToString(literal(value, 'xsd:double'));
 }

@@ -27,12 +27,10 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the plus-2-corrected spec', () => {
-  it('should handle all test cases correctly', () => {
-    const {} = Data.data();
-    testAll([
+  const {} = Data.data();
+  testAll([
 
-    ]);
-  });
+  ]);
 });
 
 /**
