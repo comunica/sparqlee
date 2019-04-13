@@ -25,8 +25,8 @@ import { aliases as a, testAll } from '../util/utils';
  *   .
  */
 
-describe('We should respect the iri01 spec', () => {
-  const {} = Data.data();
+describe.skip('We should respect the iri01 spec', () => {
+  const { } = Data.data();
   testAll([
 
   ]);
@@ -50,4 +50,3 @@ describe('We should respect the iri01 spec', () => {
  * </sparql>
  *
  */
-

@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, int } from '../util/utils';
 
 /**
  * REQUEST: minutes-01.rq
@@ -26,9 +26,12 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the minutes-01 spec', () => {
-  const {} = Data.data();
+  const { d1, d2, d3, d4 } = Data.data();
   testAll([
-
+    `MINUTES(${d1}) = ${int('28')}`,
+    `MINUTES(${d2}) = ${int('38')}`,
+    `MINUTES(${d3}) = ${int('59')}`,
+    `MINUTES(${d4}) = ${int('2')}`,
   ]);
 });
 

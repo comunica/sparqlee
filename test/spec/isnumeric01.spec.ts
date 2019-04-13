@@ -27,9 +27,26 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the isnumeric01 spec', () => {
-  const {} = Data.data();
+  const { n1, n2, n3, n4, n5, s1, s2, s3, s4, s5, s6, s7, d1, d2, d3, d4 } = Data.data();
   testAll([
+    `isNumeric(${n1}) = ${a.true}`,
+    `isNumeric(${n2}) = ${a.true}`,
+    `isNumeric(${n3}) = ${a.true}`,
+    `isNumeric(${n4}) = ${a.true}`,
+    `isNumeric(${n5}) = ${a.true}`,
 
+    `isNumeric(${s1}) = ${a.false}`,
+    `isNumeric(${s2}) = ${a.false}`,
+    `isNumeric(${s3}) = ${a.false}`,
+    `isNumeric(${s4}) = ${a.false}`,
+    `isNumeric(${s5}) = ${a.false}`,
+    `isNumeric(${s6}) = ${a.false}`,
+    `isNumeric(${s7}) = ${a.false}`,
+
+    `isNumeric(${d1}) = ${a.false}`,
+    `isNumeric(${d2}) = ${a.false}`,
+    `isNumeric(${d3}) = ${a.false}`,
+    `isNumeric(${d4}) = ${a.false}`,
   ]);
 });
 
@@ -66,4 +83,3 @@ describe('We should respect the isnumeric01 spec', () => {
  * </results>
  * </sparql>
  */
-

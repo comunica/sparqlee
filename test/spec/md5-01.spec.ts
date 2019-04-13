@@ -32,9 +32,9 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the md5-01 spec', () => {
-  const {} = Data.data();
+  const { s1 } = Data.data();
   testAll([
-
+    `MD5(${s1}) = "acbd18db4cc2f85cedef654fccc4a4d8"`,
   ]);
 });
 

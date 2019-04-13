@@ -25,8 +25,8 @@ import { aliases as a, testAll } from '../util/utils';
  *     .
  */
 
-describe('We should respect the plus-1-corrected spec', () => {
-  const {} = Data.data();
+describe.skip('We should respect the plus-1-corrected spec', () => {
+  const { } = Data.data();
   testAll([
 
   ]);
@@ -116,4 +116,3 @@ describe('We should respect the plus-1-corrected spec', () => {
  *   </results>
  * </sparql>
  */
-

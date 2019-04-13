@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, int, testAll } from '../util/utils';
 
 /**
  * REQUEST: month-01.rq
@@ -26,9 +26,12 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the month-01 spec', () => {
-  const {} = Data.data();
+  const { d1, d2, d3, d4 } = Data.data();
   testAll([
-
+    `MONTH(${d1}) = ${int('6')}`,
+    `MONTH(${d2}) = ${int('12')}`,
+    `MONTH(${d3}) = ${int('6')}`,
+    `MONTH(${d4}) = ${int('2')}`,
   ]);
 });
 

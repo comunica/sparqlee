@@ -1,5 +1,3 @@
-import * as Data from './_data';
-
 import { aliases as a, testAll } from '../util/utils';
 
 /**
@@ -26,9 +24,8 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the notin02 spec', () => {
-  const {} = Data.data();
   testAll([
-
+    `2 NOT IN (1/0, 2) = ${a.false}`,
   ]);
 });
 
@@ -41,4 +38,3 @@ describe('We should respect the notin02 spec', () => {
  * <boolean>false</boolean>
  * </sparql>
  */
-

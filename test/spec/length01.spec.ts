@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, int } from '../util/utils';
 
 /**
  * REQUEST: length01.rq
@@ -26,9 +26,15 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the length01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data();
   testAll([
-
+    `STRLEN(${s1}) = ${int('3')}`,
+    `STRLEN(${s2}) = ${int('3')}`,
+    `STRLEN(${s3}) = ${int('3')}`,
+    `STRLEN(${s4}) = ${int('3')}`,
+    `STRLEN(${s5}) = ${int('4')}`,
+    `STRLEN(${s6}) = ${int('3')}`,
+    `STRLEN(${s7}) = ${int('3')}`,
   ]);
 });
 

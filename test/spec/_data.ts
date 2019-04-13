@@ -113,6 +113,19 @@ export function data4() {
 
 }
 
+// data builtin ----------------------------------------------------------------
+// @prefix : <http://example/> .
+// @prefix  xsd:    <http://www.w3.org/2001/XMLSchema#> .
+//
+// :x1 :p  "a" ; :q 1 .
+// :x2 :p  _:b ; :q "1".
+// :x3 :p  :a ; :q "1".
+// :x4 :p  1 ; :q 2 .
+// :x5 :p  1.0 ; :q 2 .
+// :x6 :p  "1" ; :q "2" .
+// :x7 :p  "1"^^xsd:string ; :q "2" .
+// :x8 :p "1"^^xsd:string ; :q 2 .
+
 // helpers ---------------------------------------------------------------------
 
 function int(value: string): string {

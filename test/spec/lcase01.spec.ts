@@ -26,9 +26,15 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the lcase01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data();
   testAll([
-
+    `LCASE(${s1}) = "foo"`,
+    `LCASE(${s2}) = "bar"@en`,
+    `LCASE(${s3}) = "baz"`,
+    `LCASE(${s4}) = "食べ物"`,
+    `LCASE(${s5}) = "100%"`,
+    `LCASE(${s6}) = "abc"^^xsd:string`,
+    `LCASE(${s7}) = "def"^^xsd:string`,
   ]);
 });
 

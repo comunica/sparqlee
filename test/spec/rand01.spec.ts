@@ -27,9 +27,9 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the rand01 spec', () => {
-  const {} = Data.data();
+  const { } = Data.data();
   testAll([
-
+    `RAND() = xsd:double && RAND() >= 0.0 && RAND() < 1.0 = ${a.true}`,
   ]);
 });
 
