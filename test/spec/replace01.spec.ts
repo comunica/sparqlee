@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: replace01.rq
@@ -27,9 +27,22 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the replace01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7, s8, s9 } = Data.data3();
   testAll([
+    `REPLACE(${s1}, "[^a-z0-9]", "-") = "123"`,
+    `REPLACE(${s2}, "[^a-z0-9]", "-") = "---"@ja`,
+    `REPLACE(${s3}, "[^a-z0-9]", "-") = "-nglish"@en`,
 
+    `REPLACE(${s4}, "[^a-z0-9]", "-") = "-ran-ais"@fr`,
+    `REPLACE(${s5}, "[^a-z0-9]", "-") = "abc"^^xsd:string`,
+    `REPLACE(${s6}, "[^a-z0-9]", "-") = "def"^^xsd:string`,
+
+    `REPLACE(${s8}, "[^a-z0-9]", "-") = "banana"`,
+    `REPLACE(${s9}, "[^a-z0-9]", "-") = "abcd"`,
+  ]);
+
+  testAllErrors([
+    `REPLACE(${s7}, "[^a-z0-9]", "-") = error`,
   ]);
 });
 

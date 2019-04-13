@@ -27,9 +27,9 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the replace02 spec', () => {
-  const {} = Data.data();
+  const { s8 } = Data.data3();
   testAll([
-
+    `REPLACE(${s8}, "ana", "*") = "b*na"`,
   ]);
 });
 

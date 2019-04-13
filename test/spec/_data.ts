@@ -96,7 +96,17 @@ export function data2() {
 // https://raw.githubusercontent.com/w3c/rdf-tests/gh-pages/sparql11/data-sparql11/functions/data3.ttl
 
 export function data3() {
-
+  return {
+    s1: '"123"',
+    s2: '"日本語"@ja',
+    s3: '"English"@en',
+    s4: '"Français"@fr',
+    s5: '"abc"^^xsd:string',
+    s6: '"def"^^xsd:string',
+    s7: int('7'),
+    s8: '"banana"',
+    s9: '"abcd"',
+  };
 }
 
 // data 4 ----------------------------------------------------------------------
@@ -125,6 +135,10 @@ export function data4() {
 // :x6 :p  "1" ; :q "2" .
 // :x7 :p  "1"^^xsd:string ; :q "2" .
 // :x8 :p "1"^^xsd:string ; :q 2 .
+
+export function dataBuiltin() {
+
+}
 
 // helpers ---------------------------------------------------------------------
 

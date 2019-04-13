@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, int, decimal } from '../util/utils';
 
 /**
  * REQUEST: round01.rq
@@ -27,9 +27,13 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the round01 spec', () => {
-  const {} = Data.data();
+  const { n1, n2, n3, n4, n5 } = Data.data();
   testAll([
-
+    `ROUND(${n1}) = ${int('-1')}`,
+    `ROUND(${n2}) = ${decimal('-2')}`,
+    `ROUND(${n3}) = ${decimal('1')}`,
+    `ROUND(${n4}) = ${int('-2')}`,
+    `ROUND(${n5}) = ${decimal('3')}`,
   ]);
 });
 
