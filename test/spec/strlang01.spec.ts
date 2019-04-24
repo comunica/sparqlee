@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: strlang01.rq
@@ -27,9 +27,9 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strlang01 spec', () => {
-  const {} = Data.data();
-  testAll([
-
+  const { s2 } = Data.data();
+  testAllErrors([
+    `STRLANG(${s2}, "en-US") = error`,
   ]);
 });
 

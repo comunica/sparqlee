@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: strlang03.rq
@@ -25,9 +25,29 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strlang03 spec', () => {
-  const {} = Data.data();
+  const { n1, n2, n3, n4, n5, s1, s2, s3, s4, s5, s6, s7, d1, d2, d3, d4 } = Data.data();
   testAll([
+    `STRLANG(${s1}, "en-US") = "foo"@en-us`,
+    `STRLANG(${s3}, "en-US") = "BAZ"@en-us`,
+    `STRLANG(${s4}, "en-US") = "食べ物"@en-us`,
+    `STRLANG(${s5}, "en-US") = "100%"@en-us`,
+  ]);
 
+  testAllErrors([
+    `STRLANG(${n1}, "en-US") = error`,
+    `STRLANG(${n2}, "en-US") = error`,
+    `STRLANG(${n3}, "en-US") = error`,
+    `STRLANG(${n4}, "en-US") = error`,
+    `STRLANG(${n5}, "en-US") = error`,
+
+    `STRLANG(${s2}, "en-US") = error`,
+    `STRLANG(${s6}, "en-US") = error`,
+    `STRLANG(${s7}, "en-US") = error`,
+
+    `STRLANG(${d1}, "en-US") = error`,
+    `STRLANG(${d2}, "en-US") = error`,
+    `STRLANG(${d3}, "en-US") = error`,
+    `STRLANG(${d4}, "en-US") = error`,
   ]);
 });
 
@@ -46,7 +66,7 @@ describe('We should respect the strlang03 spec', () => {
  *     <result><binding name="s"><uri>http://example.org/n3</uri></binding></result>
  *     <result><binding name="s"><uri>http://example.org/n4</uri></binding></result>
  *     <result><binding name="s"><uri>http://example.org/n5</uri></binding></result>
- *     
+ *
  *     <result>
  *       <binding name="s"><uri>http://example.org/s1</uri></binding>
  *       <binding name="str1"><literal xml:lang="en-us">foo</literal></binding>

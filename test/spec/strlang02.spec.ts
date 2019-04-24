@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: strlang02.rq
@@ -27,9 +27,9 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strlang02 spec', () => {
-  const {} = Data.data();
+  const { s2 } = Data.data();
   testAll([
-
+    `STRLANG(STR(${s2}), "en-US") = "bar"@en-US`,
   ]);
 });
 
@@ -50,4 +50,3 @@ describe('We should respect the strlang02 spec', () => {
  * </results>
  * </sparql>
  */
-
