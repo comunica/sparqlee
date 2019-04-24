@@ -26,9 +26,12 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the tz-01 spec', () => {
-  const {} = Data.data();
+  const { d1, d2, d3, d4 } = Data.data();
   testAll([
-
+    `TZ(${d1}) = "Z"`,
+    `TZ(${d2}) = "-08:00"`,
+    `TZ(${d3}) = "Z"`,
+    `TZ(${d4}) = ""`,
   ]);
 });
 

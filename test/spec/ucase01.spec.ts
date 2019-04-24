@@ -26,9 +26,15 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the ucase01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data();
   testAll([
-
+    `UCASE(${s1}) = "FOO"`,
+    `UCASE(${s2}) = "BAR"@en`,
+    `UCASE(${s3}) = "BAZ"`,
+    `UCASE(${s4}) = "食べ物"`,
+    `UCASE(${s5}) = "100%"`,
+    `UCASE(${s6}) = "ABC"^^xsd:string`,
+    `UCASE(${s7}) = "DEF"^^xsd:string`,
   ]);
 });
 
@@ -73,4 +79,3 @@ describe('We should respect the ucase01 spec', () => {
  * </results>
  * </sparql>
  */
-

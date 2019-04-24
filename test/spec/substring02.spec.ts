@@ -26,9 +26,15 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the substring02 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data();
   testAll([
-
+    `SUBSTR(${s1}, 2) = "oo"`,
+    `SUBSTR(${s2}, 2) = "ar"@en`,
+    `SUBSTR(${s3}, 2) = "AZ"`,
+    `SUBSTR(${s4}, 2) = "べ物"`,
+    `SUBSTR(${s5}, 2) = "00%"`,
+    `SUBSTR(${s6}, 2) = "bc"^^xsd:string`,
+    `SUBSTR(${s7}, 2) = "EF"^^xsd:string`,
   ]);
 });
 

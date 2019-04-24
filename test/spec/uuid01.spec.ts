@@ -29,9 +29,11 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the uuid01 spec', () => {
-  const {} = Data.data();
+  const { } = Data.data();
   testAll([
-
+    `(ISIRI(STRUUID())
+     && REGEX(STR(STRUUID()), "^urn:uuid:[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$", "i")
+     && (STRLEN(STRUUID()) = 45)) = ${a.true}`,
   ]);
 });
 

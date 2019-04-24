@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, int } from '../util/utils';
 
 /**
  * REQUEST: year-01.rq
@@ -26,9 +26,12 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the year-01 spec', () => {
-  const {} = Data.data();
+  const { d1, d2, d3, d4 } = Data.data();
   testAll([
-
+    `YEAR(${d1}) = ${int('2010')}`,
+    `YEAR(${d2}) = ${int('2010')}`,
+    `YEAR(${d3}) = ${int('2008')}`,
+    `YEAR(${d4}) = ${int('2011')}`,
   ]);
 });
 
@@ -61,4 +64,3 @@ describe('We should respect the year-01 spec', () => {
  * </results>
  * </sparql>
  */
-

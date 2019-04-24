@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: substring01.rq
@@ -26,9 +26,15 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the substring01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data();
   testAll([
-
+    `SUBSTR(${s1}, 1, 1) = "f"`,
+    `SUBSTR(${s2}, 1, 1) = "b"@en`,
+    `SUBSTR(${s3}, 1, 1) = "B"`,
+    `SUBSTR(${s4}, 1, 1) = "食"`,
+    `SUBSTR(${s5}, 1, 1) = "1"`,
+    `SUBSTR(${s6}, 1, 1) = "a"^^xsd:string`,
+    `SUBSTR(${s7}, 1, 1) = "D"^^xsd:string`,
   ]);
 });
 
