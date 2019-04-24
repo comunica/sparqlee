@@ -252,7 +252,7 @@ const STRLANG = {
   overloads: declare()
     .onBinaryTyped(
       ['string', 'string'],
-      (val: string, language: string) => new E.LangStringLiteral(val, language),
+      (val: string, language: string) => new E.LangStringLiteral(val, language.toLowerCase()),
     )
     .collect(),
 };
