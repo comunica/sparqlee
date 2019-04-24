@@ -10,12 +10,13 @@ export function testAll(exprs: string[]) {
     const equals = expr.match(/ = [^=]*$/g).pop();
     const body = expr.replace(equals, '');
     const _result = equals.replace(' = ', '');
-    const result = replacePrefix(_result);
+    const result = stringToTerm(replacePrefix(_result));
     // console.log(`${expr}\n${equals}\n${body}\n${_result}\n${result}`);
     it(`${body} should evaluate to ${_result}`, () => {
-      return expect(evaluate(body).then(termToString))
+      return expect(evaluate(body)
+        .then(termToString))
         .resolves
-        .toEqual(result);
+        .toBe(termToString(result));
     });
   });
 }
