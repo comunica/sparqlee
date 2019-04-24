@@ -1,3 +1,0 @@
-[submodule "test/spec/_rdf-tests"]
-	path = test/spec/_rdf-tests
-	url = git@github.com:w3c/rdf-tests.git
