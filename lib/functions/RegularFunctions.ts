@@ -401,8 +401,9 @@ const STRBEFORE = {
     .onBinary(
       ['langString', 'string'],
       (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
-        const sub = arg1.typedValue.substr(0, arg1.typedValue.indexOf(arg2.typedValue));
-        return (sub) ? langString(sub, arg1.language) : string(sub);
+        const [a1, a2] = [arg1.typedValue, arg2.typedValue];
+        const sub = arg1.typedValue.substr(0, a1.indexOf(a2));
+        return (sub || !a2) ? langString(sub, arg1.language) : string(sub);
       },
     )
     .onBinary(
@@ -411,8 +412,9 @@ const STRBEFORE = {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
         }
-        const sub = arg1.typedValue.substr(0, arg1.typedValue.indexOf(arg2.typedValue));
-        return (sub) ? langString(sub, arg1.language) : string(sub);
+        const [a1, a2] = [arg1.typedValue, arg2.typedValue];
+        const sub = arg1.typedValue.substr(0, a1.indexOf(a2));
+        return (sub || !a2) ? langString(sub, arg1.language) : string(sub);
       })
     .collect(),
 };
