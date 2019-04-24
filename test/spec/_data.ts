@@ -120,7 +120,11 @@ export function data3() {
 // https://github.com/w3c/rdf-tests/blob/gh-pages/sparql11/data-sparql11/functions/data4.ttl
 
 export function data4() {
-
+  return {
+    s1: '"abc"',
+    s2: '"abc"@en',
+    s3: '"abc"^^xsd:string',
+  };
 }
 
 // data builtin ----------------------------------------------------------------
@@ -138,6 +142,19 @@ export function data4() {
 
 export function dataBuiltin() {
 
+}
+
+// hash unicode ----------------------------------------------------------------
+// @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+// @prefix : <http://example.org/> .
+
+// # string data
+// :s8 :str "\u98DF" .
+
+export function hashUnicode() {
+  return {
+    s8: '"\u98DF"',
+  };
 }
 
 // helpers ---------------------------------------------------------------------

@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: strbefore02.rq
@@ -37,9 +37,36 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strbefore02 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3 } = Data.data4();
   testAll([
+    `STRBEFORE(${s1}, "b") = "a"`,
+    `STRBEFORE(${s1}, "bc") = "a"`,
+    `STRBEFORE(${s1}, "") = ""`,
+    `STRBEFORE(${s1}, "b"^^xsd:string) = "a"`,
+    `STRBEFORE(${s1}, "xyz"^^xsd:string) = ""`,
 
+    `STRBEFORE(${s2}, "b") = "a"@en`,
+    `STRBEFORE(${s2}, "bc") = "a"@en`,
+    `STRBEFORE(${s2}, "") = ""@en`,
+    `STRBEFORE(${s2}, ""@en) = ""@en`,
+    `STRBEFORE(${s2}, "b"^^xsd:string) = "a"@en`,
+    `STRBEFORE(${s2}, "xyz"^^xsd:string) = ""`,
+
+    `STRBEFORE(${s3}, "b") = "a"^^xsd:string`,
+    `STRBEFORE(${s3}, "bc") = "a"^^xsd:string`,
+    `STRBEFORE(${s3}, "") = ""^^xsd:string`,
+    `STRBEFORE(${s3}, "b"^^xsd:string) = "a"^^xsd:string`,
+    `STRBEFORE(${s3}, "xyz"^^xsd:string) = ""^^xsd:string`,
+  ]);
+
+  testAllErrors([
+    `STRBEFORE(${s1}, "b"@cy) = error`,
+    `STRBEFORE(${s1}, ""@en)  = error`,
+
+    `STRBEFORE(${s2}, "b"@cy) = error`,
+
+    `STRBEFORE(${s3}, ""@en)  = error`,
+    `STRBEFORE(${s3}, "b"@cy) = error`,
   ]);
 });
 

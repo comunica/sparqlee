@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { decimal, testAll } from '../util/utils';
 
 /**
  * REQUEST: seconds-01.rq
@@ -26,9 +26,12 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the seconds-01 spec', () => {
-  const {} = Data.data();
+  const { d1, d2, d3, d4 } = Data.data();
   testAll([
-
+    `SECONDS(${d1}) = ${decimal('1')}`,
+    `SECONDS(${d2}) = ${decimal('2')}`,
+    `SECONDS(${d3}) = ${decimal('0')}`,
+    `SECONDS(${d4}) = ${decimal('3')}`,
   ]);
 });
 

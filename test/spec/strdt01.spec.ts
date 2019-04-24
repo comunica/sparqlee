@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: strdt01.rq
@@ -28,9 +28,9 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strdt01 spec', () => {
-  const {} = Data.data();
-  testAll([
-
+  const { s2 } = Data.data();
+  testAllErrors([
+    `STRDT(${s2}, xsd:string) = error`,
   ]);
 });
 

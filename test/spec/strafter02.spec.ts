@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: strafter02.rq
@@ -37,9 +37,36 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strafter02 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3 } = Data.data4();
   testAll([
+    `STRAFTER(${s1}, "b") = "c"`,
+    `STRAFTER(${s1}, "ab") = "c"`,
+    `STRAFTER(${s1}, "") = "abc"`,
+    `STRAFTER(${s1}, "b"^^xsd:string) = "c"`,
+    `STRAFTER(${s1}, "xyz"^^xsd:string) = ""`,
 
+    `STRAFTER(${s2}, "b") = "c"@en`,
+    `STRAFTER(${s2}, "ab") = "c"@en`,
+    `STRAFTER(${s2}, "") = "abc"@en`,
+    `STRAFTER(${s2}, ""@en) = "abc"@en`,
+    `STRAFTER(${s2}, "b"^^xsd:string) = "c"@en`,
+    `STRAFTER(${s2}, "xyz"^^xsd:string) = ""`,
+
+    `STRAFTER(${s3}, "b") = "c"^^xsd:string`,
+    `STRAFTER(${s3}, "ab") = "c"^^xsd:string`,
+    `STRAFTER(${s3}, "") = "abc"^^xsd:string`,
+    `STRAFTER(${s3}, "b"^^xsd:string) = "c"^^xsd:string`,
+    `STRAFTER(${s3}, "xyz"^^xsd:string) = ""^^xsd:string`,
+  ]);
+
+  testAllErrors([
+    `STRAFTER(${s1}, "b"@cy) = error`,
+    `STRAFTER(${s1}, ""@en)  = error`,
+
+    `STRAFTER(${s2}, "b"@cy) = error`,
+
+    `STRAFTER(${s3}, ""@en)  = error`,
+    `STRAFTER(${s3}, "b"@cy) = error`,
   ]);
 });
 

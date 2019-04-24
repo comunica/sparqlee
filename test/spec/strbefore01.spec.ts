@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: strbefore01.rq
@@ -27,9 +27,18 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strbefore01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data2();
   testAll([
+    `STRBEFORE(${s1}, "s") = ""`,
+    `STRBEFORE(${s2}, "s") = ""@ja`,
+    `STRBEFORE(${s3}, "s") = "engli"@en`,
+    `STRBEFORE(${s4}, "s") = "françai"@fr`,
+    `STRBEFORE(${s5}, "s") = ""^^xsd:string`,
+    `STRBEFORE(${s6}, "s") = ""^^xsd:string`,
+  ]);
 
+  testAllErrors([
+    `STRBEFORE(${s7}, "s") = error`,
   ]);
 });
 

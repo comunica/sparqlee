@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: strdt03.rq
@@ -26,9 +26,29 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strdt03 spec', () => {
-  const {} = Data.data();
+  const { n1, n2, n3, n4, n5, s1, s2, s3, s4, s5, s6, s7, d1, d2, d3, d4 } = Data.data();
   testAll([
+    `STRDT(${s1}, xsd:string) = "foo"^^xsd:string`,
+    `STRDT(${s3}, xsd:string) = "BAZ"^^xsd:string`,
+    `STRDT(${s4}, xsd:string) = "食べ物"^^xsd:string`,
+    `STRDT(${s5}, xsd:string) = "100%"^^xsd:string`,
+  ]);
 
+  testAllErrors([
+    `STRDT(${n1}, xsd:string) = error`,
+    `STRDT(${n2}, xsd:string) = error`,
+    `STRDT(${n3}, xsd:string) = error`,
+    `STRDT(${n4}, xsd:string) = error`,
+    `STRDT(${n5}, xsd:string) = error`,
+
+    `STRDT(${s2}, xsd:string) = error`,
+    `STRDT(${s6}, xsd:string) = error`,
+    `STRDT(${s7}, xsd:string) = error`,
+
+    `STRDT(${d1}, xsd:string) = error`,
+    `STRDT(${d2}, xsd:string) = error`,
+    `STRDT(${d3}, xsd:string) = error`,
+    `STRDT(${d4}, xsd:string) = error`,
   ]);
 });
 
@@ -47,7 +67,7 @@ describe('We should respect the strdt03 spec', () => {
  *     <result><binding name="s"><uri>http://example.org/n3</uri></binding></result>
  *     <result><binding name="s"><uri>http://example.org/n4</uri></binding></result>
  *     <result><binding name="s"><uri>http://example.org/n5</uri></binding></result>
- *     
+ *
  *     <result>
  *       <binding name="s"><uri>http://example.org/s1</uri></binding>
  *       <binding name="str1"><literal datatype="http://www.w3.org/2001/XMLSchema#string">foo</literal></binding>
@@ -75,4 +95,3 @@ describe('We should respect the strdt03 spec', () => {
  * </results>
  * </sparql>
  */
-

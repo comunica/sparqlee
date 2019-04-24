@@ -26,9 +26,9 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the sha1-02 spec', () => {
-  const {} = Data.data();
+  const { s8 } = Data.hashUnicode();
   testAll([
-
+    `SHA1(${s8}) = "d46696735b6a09ff407bfc1a9407e008840db9c9"`,
   ]);
 });
 

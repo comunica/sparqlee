@@ -28,9 +28,25 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the starts01 spec', () => {
-  const {} = Data.data();
+  const { n1, n2, n3, n4, s1, s2, s3, s4, s5, s6, s7, d1, d2, d3, d4 } = Data.data();
   testAll([
+    `STRSTARTS(STR(${n1}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${n2}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${n3}), "1") = ${a.true}`,
+    `STRSTARTS(STR(${n4}), "1") = ${a.false}`,
 
+    `STRSTARTS(STR(${s1}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${s2}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${s3}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${s4}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${s5}), "1") = ${a.true}`,
+    `STRSTARTS(STR(${s6}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${s7}), "1") = ${a.false}`,
+
+    `STRSTARTS(STR(${d1}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${d2}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${d3}), "1") = ${a.false}`,
+    `STRSTARTS(STR(${d4}), "1") = ${a.false}`,
   ]);
 });
 

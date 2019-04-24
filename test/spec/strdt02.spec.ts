@@ -28,9 +28,9 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strdt02 spec', () => {
-  const {} = Data.data();
+  const { s2 } = Data.data();
   testAll([
-
+    `STRDT(STR(${s2}), xsd:string) = "bar"^^xsd:string`,
   ]);
 });
 

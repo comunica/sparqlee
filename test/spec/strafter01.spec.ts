@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, testAllErrors } from '../util/utils';
 
 /**
  * REQUEST: strafter01.rq
@@ -27,9 +27,18 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the strafter01 spec', () => {
-  const {} = Data.data();
+  const { s1, s2, s3, s4, s5, s6, s7 } = Data.data2();
   testAll([
+    `STRAFTER(${s1}, "e") = ""`,
+    `STRAFTER(${s2}, "e") = ""@ja`,
+    `STRAFTER(${s3}, "e") = "nglish"@en`,
+    `STRAFTER(${s4}, "e") = ""@fr`,
+    `STRAFTER(${s5}, "e") = ""^^xsd:string`,
+    `STRAFTER(${s6}, "e") = "f"^^xsd:string`,
+  ]);
 
+  testAllErrors([
+    `STRAFTER(${s7}, "e") = error`,
   ]);
 });
 

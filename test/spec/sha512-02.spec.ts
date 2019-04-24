@@ -26,9 +26,10 @@ import { aliases as a, testAll } from '../util/utils';
  */
 
 describe('We should respect the sha512-02 spec', () => {
-  const {} = Data.data();
+  const { s8 } = Data.hashUnicode();
   testAll([
-
+    // tslint:disable-next-line: max-line-length
+    `SHA512(${s8}) = "b433ed0e60c818bea72d3aa1a43db89b3ed2b624597407b7912bbb7685f2e45ae5500e092da5f938391d282b26bc43e4035b12460c93ab5e2e1a05d582331d85"`,
   ]);
 });
 
