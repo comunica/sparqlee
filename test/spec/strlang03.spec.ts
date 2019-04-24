@@ -31,6 +31,8 @@ describe('We should respect the strlang03 spec', () => {
     `STRLANG(${s3}, "en-US") = "BAZ"@en-us`,
     `STRLANG(${s4}, "en-US") = "食べ物"@en-us`,
     `STRLANG(${s5}, "en-US") = "100%"@en-us`,
+    `STRLANG(${s6}, "en-US") = "abc"@en-us`,
+    `STRLANG(${s7}, "en-US") = "DEF"@en-us`,
   ]);
 
   testAllErrors([
@@ -41,8 +43,6 @@ describe('We should respect the strlang03 spec', () => {
     `STRLANG(${n5}, "en-US") = error`,
 
     `STRLANG(${s2}, "en-US") = error`,
-    `STRLANG(${s6}, "en-US") = error`,
-    `STRLANG(${s7}, "en-US") = error`,
 
     `STRLANG(${d1}, "en-US") = error`,
     `STRLANG(${d2}, "en-US") = error`,
@@ -84,8 +84,14 @@ describe('We should respect the strlang03 spec', () => {
  *       <binding name="s"><uri>http://example.org/s5</uri></binding>
  *       <binding name="str1"><literal xml:lang="en-us">100%</literal></binding>
  *     </result>
- *     <result><binding name="s"><uri>http://example.org/s6</uri></binding></result>
- *     <result><binding name="s"><uri>http://example.org/s7</uri></binding></result>
+ *     <result>
+ *        <binding name="s"><uri>http://example.org/s6</uri></binding>
+ *        <binding name="str1"><literal xml:lang="en-us">abc</literal></binding>
+ *      </result>
+ *     <result>
+ *        <binding name="s"><uri>http://example.org/s7</uri></binding>
+ *        <binding name="str1"><literal xml:lang="en-us">DEF</literal></binding>
+ *      </result>
  *
  *     <result><binding name="s"><uri>http://example.org/d1</uri></binding></result>
  *     <result><binding name="s"><uri>http://example.org/d2</uri></binding></result>
