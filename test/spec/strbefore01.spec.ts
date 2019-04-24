@@ -30,7 +30,7 @@ describe('We should respect the strbefore01 spec', () => {
   const { s1, s2, s3, s4, s5, s6, s7 } = Data.data2();
   testAll([
     `STRBEFORE(${s1}, "s") = ""`,
-    `STRBEFORE(${s2}, "s") = ""@ja`,
+    `STRBEFORE(${s2}, "s") = ""`,
     `STRBEFORE(${s3}, "s") = "engli"@en`,
     `STRBEFORE(${s4}, "s") = "françai"@fr`,
     `STRBEFORE(${s5}, "s") = ""^^xsd:string`,
@@ -58,7 +58,7 @@ describe('We should respect the strbefore01 spec', () => {
  *     </result>
  *     <result>
  *       <binding name="s"><uri>http://example.org/s2</uri></binding>
- *       <binding name="prefix"><literal xml:lang="ja"></literal></binding>
+ *       <binding name="prefix"><literal></literal></binding>
  *     </result>
  *     <result>
  *       <binding name="s"><uri>http://example.org/s3</uri></binding>
