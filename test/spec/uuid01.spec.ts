@@ -1,6 +1,6 @@
 import * as Data from './_data';
 
-import { aliases as a, testAll } from '../util/utils';
+import { aliases as a, testAll, int } from '../util/utils';
 
 /**
  * REQUEST: uuid01.rq
@@ -31,9 +31,9 @@ import { aliases as a, testAll } from '../util/utils';
 describe('We should respect the uuid01 spec', () => {
   const { } = Data.data();
   testAll([
-    `(ISIRI(STRUUID())
-     && REGEX(STR(STRUUID()), "^urn:uuid:[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$", "i")
-     && (STRLEN(STRUUID()) = 45)) = ${a.true}`,
+    `ISIRI(STRUUID() = ${a.true}`,
+    `REGEX(STR(STRUUID()), "^urn:uuid:[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$", "i") = ${a.true}`,
+    `STRLEN(STRUUID()) = ${int('45')}`,
   ]);
 });
 
