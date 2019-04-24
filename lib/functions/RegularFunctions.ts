@@ -194,7 +194,7 @@ const isNumeric = {
   arity: 1,
   overloads: declare()
     .onNumeric1((term) => bool(true))
-    .set(['nonlexical'], (term) => bool(false))
+    .onTerm1((term) => bool(false))
     .collect(),
 };
 
