@@ -34,8 +34,8 @@ describe('We should respect the encode01 spec', () => {
     `ENCODE_FOR_URI(${s3}) = "BAZ"`,
     `ENCODE_FOR_URI(${s4}) = "%E9%A3%9F%E3%81%B9%E7%89%A9"`,
     `ENCODE_FOR_URI(${s5}) = "100%25"`,
-    `ENCODE_FOR_URI(${s6}) = "abc"^^http://www.w3.org/2001/XMLSchema#string`,
-    `ENCODE_FOR_URI(${s7}) = "DEF"^^http://www.w3.org/2001/XMLSchema#string`,
+    `ENCODE_FOR_URI(${s6}) = "abc"^^xsd:string`,
+    `ENCODE_FOR_URI(${s7}) = "DEF"^^xsd:string`,
   ]);
 });
 
