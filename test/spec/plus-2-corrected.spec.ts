@@ -29,7 +29,7 @@ import { aliases as a, testAll } from '../util/utils';
 describe.skip('We should respect the plus-2-corrected spec', () => {
   const { } = Data.data();
   testAll([
-
+    'BNODE() = "foo"',
   ]);
 });
 

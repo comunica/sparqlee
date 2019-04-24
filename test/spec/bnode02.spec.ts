@@ -28,7 +28,7 @@ import { aliases as a, testAll } from '../util/utils';
 describe.skip('We should respect the bnode02 spec', () => {
   const { } = Data.data();
   testAll([
-
+    'BNODE() = "foo"',
   ]);
 });
 
