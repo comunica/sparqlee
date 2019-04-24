@@ -429,7 +429,7 @@ const STRAFTER = {
       (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
         const [a1, a2] = [arg1.typedValue, arg2.typedValue];
         const sub = a1.substr(a1.indexOf(a2)).substr(a2.length);
-        return (sub) ? langString(sub, arg1.language) : string(sub);
+        return (sub || !a2) ? langString(sub, arg1.language) : string(sub);
       },
     )
     .onBinary(
@@ -440,7 +440,7 @@ const STRAFTER = {
         }
         const [a1, a2] = [arg1.typedValue, arg2.typedValue];
         const sub = a1.substr(a1.indexOf(a2)).substr(a2.length);
-        return (sub) ? langString(sub, arg1.language) : string(sub);
+        return (sub || !a2) ? langString(sub, arg1.language) : string(sub);
       })
     .collect(),
 };

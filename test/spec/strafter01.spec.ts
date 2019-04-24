@@ -30,9 +30,9 @@ describe('We should respect the strafter01 spec', () => {
   const { s1, s2, s3, s4, s5, s6, s7 } = Data.data2();
   testAll([
     `STRAFTER(${s1}, "e") = ""`,
-    `STRAFTER(${s2}, "e") = ""@ja`,
+    `STRAFTER(${s2}, "e") = ""`,
     `STRAFTER(${s3}, "e") = "nglish"@en`,
-    `STRAFTER(${s4}, "e") = ""@fr`,
+    `STRAFTER(${s4}, "e") = ""`,
     `STRAFTER(${s5}, "e") = ""^^xsd:string`,
     `STRAFTER(${s6}, "e") = "f"^^xsd:string`,
   ]);
@@ -58,7 +58,7 @@ describe('We should respect the strafter01 spec', () => {
  *     </result>
  *     <result>
  *       <binding name="s"><uri>http://example.org/s2</uri></binding>
- *       <binding name="suffix"><literal xml:lang="ja"></literal></binding>
+ *       <binding name="suffix"><literal></literal></binding>
  *     </result>
  *     <result>
  *       <binding name="s"><uri>http://example.org/s3</uri></binding>
@@ -66,11 +66,11 @@ describe('We should respect the strafter01 spec', () => {
  *     </result>
  *     <result>
  *       <binding name="s"><uri>http://example.org/s4</uri></binding>
- *       <binding name="suffix"><literal xml:lang="fr"></literal></binding>
+ *       <binding name="suffix"><literal></literal></binding>
  *     </result>
  *     <result>
  *       <binding name="s"><uri>http://example.org/s5</uri></binding>
- *       <binding name="suffix"><literal datatype="http://www.w3.org/2001/XMLSchema#string"></literal></binding>
+ *       <binding name="suffix"><literal></literal></binding>
  *     </result>
  *     <result>
  *       <binding name="s"><uri>http://example.org/s6</uri></binding>
@@ -82,4 +82,3 @@ describe('We should respect the strafter01 spec', () => {
  * </results>
  * </sparql>
  */
-
