@@ -89,7 +89,7 @@ export class AsyncEvaluator {
   }
 
   private async evalExistence(expr: Existence, mapping: Bindings): Promise<Term> {
-    const result = await expr.exists_with(mapping);
+    const result = await expr.existsWith(mapping);
     return transformRDFTermUnsafe(
       RDFDM.literal(result.toString(), C.make(C.TypeURL.XSD_BOOLEAN)),
     );
