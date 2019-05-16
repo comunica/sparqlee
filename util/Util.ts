@@ -4,7 +4,7 @@ import { Algebra as Alg, translate } from 'sparqlalgebrajs';
 
 import * as C from '../lib/util/Consts';
 
-import { AsyncEvaluator } from '../lib/evaluators/AsyncEvaluator';
+import { Evaluator } from '../lib/evaluators/Evaluator';
 import { Bindings, Hooks } from '../lib/Types';
 import { TypeURL as DT } from '../lib/util/Consts';
 
@@ -18,7 +18,7 @@ export class Example {
   }
 
   async evaluate(mapping?: Bindings): Promise<RDF.Term> {
-    const evaluator = new AsyncEvaluator(this.expression, mockHooks);
+    const evaluator = new Evaluator(this.expression, mockHooks);
     return mapping
       ? evaluator.evaluate(mapping)
       : evaluator.evaluate(this.mapping());
@@ -45,7 +45,7 @@ export const example1 = (() => {
 })();
 
 export function evaluate(expr: string, bindings = Bindings({})): Promise<RDF.Term> {
-  const evaluator = new AsyncEvaluator(parse(expr), mockHooks);
+  const evaluator = new Evaluator(parse(expr), mockHooks);
   return evaluator.evaluate(bindings);
 }
 

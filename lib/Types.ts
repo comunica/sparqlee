@@ -21,6 +21,10 @@ export function Bindings(hash: { [key: string]: RDF.Term }): Bindings {
   return Map(hash);
 }
 
+export interface ExpressionEvaluator<ExpressionType, TermType> {
+  evaluate(expr: ExpressionType, mapping: Bindings): TermType;
+}
+
 export type Hooks = {
   existence?: ExistenceHook;
   aggregate?: AggregateHook;

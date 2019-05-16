@@ -14,6 +14,7 @@ export class Existence implements ExistenceExpression {
     public expression: Alg.ExistenceExpression,
   ) { }
 
+  // TODO: Remove
   existsWith(mapping: Bindings): Promise<boolean> {
     return this.exists(this.expression, mapping);
   }

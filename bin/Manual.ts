@@ -7,7 +7,7 @@ import { Algebra as Alg, toSparql, toSparqlJs } from 'sparqlalgebrajs';
 import * as A from 'sparqlalgebrajs';
 
 import { ArrayIterator, AsyncIterator } from 'asynciterator';
-import { AsyncEvaluator } from '../lib/evaluators/AsyncEvaluator';
+import { Evaluator } from '../lib/evaluators/Evaluator';
 import { Bindings } from '../lib/Types';
 import { TypeURL as DT } from '../lib/util/Consts';
 import * as C from '../lib/util/Consts';
@@ -32,7 +32,7 @@ async function testEval() {
   // tslint:disable-next-line:no-any
   console.log(ex.expression);
 
-  const evaluator = new AsyncEvaluator(ex.expression, U.mockHooks);
+  const evaluator = new Evaluator(ex.expression, U.mockHooks);
   const presult = evaluator.evaluateAsInternal(ex.mapping()).catch((err) => console.log(err));
   const val = await presult;
   console.log(val);
