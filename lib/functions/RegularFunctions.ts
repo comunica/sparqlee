@@ -567,10 +567,8 @@ function parseDate(dateLit: E.DateTimeLiteral): P.SplittedDate {
   return P.parseXSDDateTime(dateLit.strValue);
 }
 
-const now = {
-  arity: 0,
-  overloads: declare().unimplemented('now').collect(),
-};
+// See special operators
+// const now = {};
 
 const year = {
   arity: 1,
@@ -762,7 +760,7 @@ const _definitions: { [key in C.RegularOperator]: Definition } = {
   // Functions on Dates and Times
   // https://www.w3.org/TR/sparql11-query/#func-date-time
   // --------------------------------------------------------------------------
-  'now': now,
+  // 'now': now (see special operators),
   'year': year,
   'month': month,
   'day': day,

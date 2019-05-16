@@ -230,7 +230,7 @@ export enum RegularOperator {
 
   // Functions on Dates and Times
   // https://www.w3.org/TR/sparql11-query/#func-date-time
-  NOW = 'now',
+  // NOW = 'now' (see special operators)
   YEAR = 'year',
   MONTH = 'month',
   DAY = 'day',
@@ -267,8 +267,11 @@ export enum SpecialOperator {
   IN = 'in',
   NOT_IN = 'notin',
 
-  // Functions that are annoying
+  // Annoying functions
   CONCAT = 'concat', // Has variable arity
+
+  // Context dependant functions
+  NOW = 'now',
 }
 
 export const RegularOperators = Set(Object.values(RegularOperator));

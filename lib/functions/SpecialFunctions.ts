@@ -11,6 +11,10 @@ import { regularFunctions, specialFunctions } from './index';
 type Term = E.TermExpression;
 type PTerm = Promise<E.TermExpression>;
 
+// ----------------------------------------------------------------------------
+// Functional forms
+// ----------------------------------------------------------------------------
+
 function _bound({ args, mapping }: { args: E.Expression[], mapping: Bindings }) {
   const variable = args[0] as E.VariableExpression;
   if (variable.expressionType !== E.ExpressionType.Variable) {
@@ -252,6 +256,10 @@ const notInSPARQL = {
   },
 };
 
+// ----------------------------------------------------------------------------
+// Annoying functions
+// ----------------------------------------------------------------------------
+
 // CONCAT
 function typeCheckConcatArg(term: Term, args: E.Expression[]): E.Literal<string> | never {
   if (term.termType !== 'literal') {
@@ -297,6 +305,20 @@ const concat = {
 };
 
 // ----------------------------------------------------------------------------
+// Context dependant functions
+// ----------------------------------------------------------------------------
+
+const now = {
+  arity: 0,
+  async applyAsync({ context }: E.EvalContext<PTerm>): PTerm {
+    return new E.DateTimeLiteral(context.now, context.now.toUTCString());
+  },
+  applySync({ context }: E.EvalContext<Term>): Term {
+    return new E.DateTimeLiteral(context.now, context.now.toUTCString());
+  },
+};
+
+// ----------------------------------------------------------------------------
 // Wrap these declarations into functions
 // ----------------------------------------------------------------------------
 
@@ -323,6 +345,9 @@ const _specialDefinitions: { [key in C.SpecialOperator]: SpecialDefinition } = {
 
   // Annoying functions
   'concat': concat,
+
+  // Context dependent functions
+  'now': now,
 };
 
 export const specialDefinitions = Map<C.SpecialOperator, SpecialDefinition>(_specialDefinitions);
