@@ -219,11 +219,8 @@ const datatype = {
     .collect(),
 };
 
-// https://www.w3.org/TR/sparql11-query/#func-iri
-const IRI = {
-  arity: 1,
-  overloads: declare().unimplemented('IRI').collect(),
-};
+// See special operators
+// const IRI = {};
 
 // https://www.w3.org/TR/sparql11-query/#func-bnode
 // id has to be distinct over all id's in dataset
@@ -477,11 +474,6 @@ const REGEX = {
     .collect(),
 };
 
-const replace3 = (arg: string, pattern: string, replacement: string) =>
-  string(X.replace(arg, pattern, replacement));
-const replace4 = (arg: string, pattern: string, replacement: string, flags: string) =>
-  string(X.replace(arg, pattern, replacement, flags));
-
 const REPLACE = {
   arity: [3, 4],
   overloads: declare()
@@ -719,8 +711,8 @@ const _definitions: { [key in C.RegularOperator]: Definition } = {
   'str': toString,
   'lang': lang,
   'datatype': datatype,
-  'iri': IRI,
-  'uri': IRI,
+  // 'iri': IRI (see special operators),
+  // 'uri': IRI (see special operators),
   'BNODE': BNODE,
   'strdt': STRDT,
   'strlang': STRLANG,

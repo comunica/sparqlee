@@ -1,11 +1,12 @@
 import { Map } from 'immutable';
+import * as URI from 'uri-js';
 
 import * as E from '../expressions';
 import * as C from '../util/Consts';
 import * as Err from '../util/Errors';
 
 import { Bindings } from '../Types';
-import { bool, langString, string } from './Helpers';
+import { bool, langString, string, typeCheckLit } from './Helpers';
 import { regularFunctions, specialFunctions } from './index';
 
 type Term = E.TermExpression;
@@ -261,31 +262,13 @@ const notInSPARQL = {
 // ----------------------------------------------------------------------------
 
 // CONCAT
-function typeCheckConcatArg(term: Term, args: E.Expression[]): E.Literal<string> | never {
-  if (term.termType !== 'literal') {
-    throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.CONCAT);
-  }
-
-  // tslint:disable-next-line:no-any
-  const lit = term as E.Literal<any>;
-
-  if (lit.type !== 'string' && lit.type !== 'langString') {
-    throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.CONCAT);
-  }
-
-  return lit as E.Literal<string>;
-}
-
-function langAllEqual(lits: Array<E.Literal<string>>): boolean {
-  return lits.length > 0 && lits.every((lit) => lit.language === lits[0].language);
-}
-
 const concat = {
   arity: Infinity,
   async applyAsync({ args, evaluate, mapping }: E.EvalContext<PTerm>): PTerm {
     const pLits = args
       .map(async (expr) => evaluate(expr, mapping))
-      .map(async (pTerm) => typeCheckConcatArg(await pTerm, args));
+      .map(async (pTerm) =>
+        typeCheckLit<string>(await pTerm, ['string', 'langString'], args, C.SpecialOperator.CONCAT));
     const lits = await Promise.all(pLits);
     const strings = lits.map((lit) => lit.typedValue);
     const joined = strings.join('');
@@ -296,13 +279,17 @@ const concat = {
   applySync({ args, evaluate, mapping }: E.EvalContext<Term>): Term {
     const lits = args
       .map((expr) => evaluate(expr, mapping))
-      .map((pTerm) => typeCheckConcatArg(pTerm, args));
+      .map((pTerm) => typeCheckLit<string>(pTerm, ['string', 'langString'], args, C.SpecialOperator.CONCAT));
     const strings = lits.map((lit) => lit.typedValue);
     const joined = strings.join('');
     const lang = langAllEqual(lits) ? lits[0].language : undefined;
     return (lang) ? langString(joined, lang) : string(joined);
   },
 };
+
+function langAllEqual(lits: Array<E.Literal<string>>): boolean {
+  return lits.length > 0 && lits.every((lit) => lit.language === lits[0].language);
+}
 
 // ----------------------------------------------------------------------------
 // Context dependant functions
@@ -317,6 +304,28 @@ const now = {
     return new E.DateTimeLiteral(context.now, context.now.toUTCString());
   },
 };
+
+// https://www.w3.org/TR/sparql11-query/#func-iri
+const IRI = {
+  arity: 1,
+  async applyAsync({ args, evaluate, mapping, context }: E.EvalContext<PTerm>): PTerm {
+    const input = await evaluate(args[0], mapping);
+    return IRI_(input, context.baseIRI, args);
+  },
+  applySync({ args, evaluate, mapping, context }: E.EvalContext<Term>): Term {
+    const input = evaluate(args[0], mapping);
+    return IRI_(input, context.baseIRI, args);
+  },
+};
+
+function IRI_(input: Term, baseIRI: string | undefined, args: E.Expression[]): Term {
+  const lit = (input.termType !== 'namedNode')
+    ? typeCheckLit<string>(input, ['string'], args, C.SpecialOperator.IRI)
+    : input as E.NamedNode;
+
+  const iri = URI.resolve(baseIRI || '', lit.str());
+  return new E.NamedNode(iri);
+}
 
 // ----------------------------------------------------------------------------
 // Wrap these declarations into functions
@@ -348,6 +357,8 @@ const _specialDefinitions: { [key in C.SpecialOperator]: SpecialDefinition } = {
 
   // Context dependent functions
   'now': now,
+  'iri': IRI,
+  'uri': IRI,
 };
 
 export const specialDefinitions = Map<C.SpecialOperator, SpecialDefinition>(_specialDefinitions);

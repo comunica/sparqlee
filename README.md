@@ -136,7 +136,7 @@ if (stream.length === 0) {
 | str            | ✓ | ✓ | I | ✓ | Occurs in many tests |
 | lang           | ✓ | ✓ | I | ✓ | Occurs in many tests |
 | datatype       | ✓ | ✓ | I | ✓ | Occurs in now01, rand01 |
-| IRI            | X | X | X | X |   |
+| IRI            | ✓ | X | ✓ |   |   |
 | BNODE          | X | X | X | X |   |
 | STRDT          | ✓ | X | ✓ |   |   |
 | STRLANG        | ✓ | X | ✓ |   |   |
@@ -167,7 +167,7 @@ if (stream.length === 0) {
 | RAND           | ✓ | X | ✓ |   |   |
 | _Notes         |   |   |   |   |   |
 | [On Dates and Times](https://www.w3.org/TR/sparql11-query/#func-date-time)
-| now            | X | X | X | X |   |
+| now            | ✓ | X | ✓ | ✓ | Whether this is spec compliant depends on whether you pass a spec compliant 'now' config argument |
 | year           | ✓ | X | ✓ |   |   |
 | month          | ✓ | X | ✓ |   |   |
 | day            | ✓ | X | ✓ |   |   |
