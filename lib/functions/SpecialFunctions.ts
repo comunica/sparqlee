@@ -23,10 +23,10 @@ function _bound({ args, mapping }: { args: E.Expression[], mapping: Bindings }) 
 // BOUND ----------------------------------------------------------------------
 const bound = {
   arity: 1,
-  async applyAsync({ args, mapping }: E.EvalContextAsync): PTerm {
+  async applyAsync({ args, mapping }: E.EvalContext<PTerm>): PTerm {
     return _bound({ args, mapping });
   },
-  applySync({ args, mapping }: E.EvalContextSync): Term {
+  applySync({ args, mapping }: E.EvalContext<Term>): Term {
     return _bound({ args, mapping });
   },
 };
@@ -34,14 +34,14 @@ const bound = {
 // IF -------------------------------------------------------------------------
 const ifSPARQL = {
   arity: 3,
-  async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
+  async applyAsync({ args, mapping, evaluate }: E.EvalContext<PTerm>): PTerm {
     const valFirst = await evaluate(args[0], mapping);
     const ebv = valFirst.coerceEBV();
     return (ebv)
       ? evaluate(args[1], mapping)
       : evaluate(args[2], mapping);
   },
-  applySync({ args, mapping, evaluate }: E.EvalContextSync): Term {
+  applySync({ args, mapping, evaluate }: E.EvalContext<Term>): Term {
     const valFirst = evaluate(args[0], mapping);
     const ebv = valFirst.coerceEBV();
     return (ebv)
@@ -53,7 +53,7 @@ const ifSPARQL = {
 // COALESCE -------------------------------------------------------------------
 const coalesce = {
   arity: Infinity,
-  async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
+  async applyAsync({ args, mapping, evaluate }: E.EvalContext<PTerm>): PTerm {
     const errors: Error[] = [];
     for (const expr of args) {
       try {
@@ -64,7 +64,7 @@ const coalesce = {
     }
     throw new Err.CoalesceError(errors);
   },
-  applySync({ args, mapping, evaluate }: E.EvalContextSync): Term {
+  applySync({ args, mapping, evaluate }: E.EvalContext<Term>): Term {
     const errors: Error[] = [];
     for (const expr of args) {
       try {
@@ -81,7 +81,7 @@ const coalesce = {
 // https://www.w3.org/TR/sparql11-query/#func-logical-or
 const logicalOr = {
   arity: 2,
-  async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
+  async applyAsync({ args, mapping, evaluate }: E.EvalContext<PTerm>): PTerm {
     const [leftExpr, rightExpr] = args;
     try {
       const leftTerm = await evaluate(leftExpr, mapping);
@@ -97,7 +97,7 @@ const logicalOr = {
       return bool(true);
     }
   },
-  applySync({ args, mapping, evaluate }: E.EvalContextSync): Term {
+  applySync({ args, mapping, evaluate }: E.EvalContext<Term>): Term {
     const [leftExpr, rightExpr] = args;
     try {
       const leftTerm = evaluate(leftExpr, mapping);
@@ -119,7 +119,7 @@ const logicalOr = {
 // https://www.w3.org/TR/sparql11-query/#func-logical-and
 const logicalAnd = {
   arity: 2,
-  async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
+  async applyAsync({ args, mapping, evaluate }: E.EvalContext<PTerm>): PTerm {
     const [leftExpr, rightExpr] = args;
     try {
       const leftTerm = await evaluate(leftExpr, mapping);
@@ -135,7 +135,7 @@ const logicalAnd = {
       return bool(false);
     }
   },
-  applySync({ args, mapping, evaluate }: E.EvalContextSync): Term {
+  applySync({ args, mapping, evaluate }: E.EvalContext<Term>): Term {
     const [leftExpr, rightExpr] = args;
     try {
       const leftTerm = evaluate(leftExpr, mapping);
@@ -156,13 +156,13 @@ const logicalAnd = {
 // sameTerm -------------------------------------------------------------------
 const sameTerm = {
   arity: 2,
-  async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
+  async applyAsync({ args, mapping, evaluate }: E.EvalContext<PTerm>): PTerm {
     const [leftExpr, rightExpr] = args.map((a) => evaluate(a, mapping));
     const left = await leftExpr;
     const right = await rightExpr;
     return bool(left.toRDF().equals(right.toRDF()));
   },
-  applySync({ args, mapping, evaluate }: E.EvalContextSync): Term {
+  applySync({ args, mapping, evaluate }: E.EvalContext<Term>): Term {
     const [left, right] = args.map((a) => evaluate(a, mapping));
     return bool(left.toRDF().equals(right.toRDF()));
   },
@@ -172,21 +172,21 @@ const sameTerm = {
 const inSPARQL = {
   arity: Infinity,
   checkArity(args: E.Expression[]) { return args.length >= 1; },
-  async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
+  async applyAsync({ args, mapping, evaluate, context }: E.EvalContext<PTerm>): PTerm {
     const [leftExpr, ...remaining] = args;
     const left = await evaluate(leftExpr, mapping);
-    return inRecursiveAsync(left, { args: remaining, mapping, evaluate }, []);
+    return inRecursiveAsync(left, { args: remaining, mapping, evaluate, context }, []);
   },
-  applySync({ args, mapping, evaluate }: E.EvalContextSync): Term {
+  applySync({ args, mapping, evaluate, context }: E.EvalContext<Term>): Term {
     const [leftExpr, ...remaining] = args;
     const left = evaluate(leftExpr, mapping);
-    return inRecursiveSync(left, { args: remaining, mapping, evaluate }, []);
+    return inRecursiveSync(left, { args: remaining, mapping, evaluate, context }, []);
   },
 };
 
 async function inRecursiveAsync(
   needle: Term,
-  { args, mapping, evaluate }: E.EvalContextAsync,
+  { args, mapping, evaluate, context }: E.EvalContext<PTerm>,
   results: Array<Error | false>,
 ): PTerm {
 
@@ -201,16 +201,16 @@ async function inRecursiveAsync(
     if ((isEqual.apply([needle, next]) as E.BooleanLiteral).typedValue === true) {
       return bool(true);
     } else {
-      return inRecursiveAsync(needle, { args, mapping, evaluate }, [...results, false]);
+      return inRecursiveAsync(needle, { args, mapping, evaluate, context }, [...results, false]);
     }
   } catch (err) {
-    return inRecursiveAsync(needle, { args, mapping, evaluate }, [...results, err]);
+    return inRecursiveAsync(needle, { args, mapping, evaluate, context }, [...results, err]);
   }
 }
 
 function inRecursiveSync(
   needle: Term,
-  { args, mapping, evaluate }: E.EvalContextSync,
+  { args, mapping, evaluate, context }: E.EvalContext<Term>,
   results: Array<Error | false>,
 ): Term {
 
@@ -229,10 +229,10 @@ function inRecursiveSync(
     if ((isEqual.apply([needle, next]) as E.BooleanLiteral).typedValue === true) {
       return bool(true);
     } else {
-      return inRecursiveSync(needle, { args, mapping, evaluate }, [...results, false]);
+      return inRecursiveSync(needle, { args, mapping, evaluate, context }, [...results, false]);
     }
   } catch (err) {
-    return inRecursiveSync(needle, { args, mapping, evaluate }, [...results, err]);
+    return inRecursiveSync(needle, { args, mapping, evaluate, context }, [...results, err]);
   }
 }
 
@@ -240,12 +240,12 @@ function inRecursiveSync(
 const notInSPARQL = {
   arity: Infinity,
   checkArity(args: E.Expression[]) { return args.length >= 1; },
-  async applyAsync(context: E.EvalContextAsync): PTerm {
+  async applyAsync(context: E.EvalContext<PTerm>): PTerm {
     const _in = specialFunctions.get(C.SpecialOperator.IN);
     const isIn = await _in.applyAsync(context);
     return bool(!(isIn as E.BooleanLiteral).typedValue);
   },
-  applySync(context: E.EvalContextSync): Term {
+  applySync(context: E.EvalContext<Term>): Term {
     const _in = specialFunctions.get(C.SpecialOperator.IN);
     const isIn = _in.applySync(context);
     return bool(!(isIn as E.BooleanLiteral).typedValue);
@@ -274,7 +274,7 @@ function langAllEqual(lits: Array<E.Literal<string>>): boolean {
 
 const concat = {
   arity: Infinity,
-  async applyAsync({ args, evaluate, mapping }: E.EvalContextAsync): PTerm {
+  async applyAsync({ args, evaluate, mapping }: E.EvalContext<PTerm>): PTerm {
     const pLits = args
       .map(async (expr) => evaluate(expr, mapping))
       .map(async (pTerm) => typeCheckConcatArg(await pTerm, args));
@@ -285,7 +285,7 @@ const concat = {
     return (lang) ? langString(joined, lang) : string(joined);
   },
 
-  applySync({ args, evaluate, mapping }: E.EvalContextSync): Term {
+  applySync({ args, evaluate, mapping }: E.EvalContext<Term>): Term {
     const lits = args
       .map((expr) => evaluate(expr, mapping))
       .map((pTerm) => typeCheckConcatArg(pTerm, args));

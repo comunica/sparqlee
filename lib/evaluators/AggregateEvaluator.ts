@@ -15,23 +15,23 @@ import { number, string } from '../functions/Helpers';
 import { Bindings } from '../Types';
 import { parseXSDFloat } from '../util/Parsing';
 import { SetFunction, TypeURL } from './../util/Consts';
-import { Evaluator } from './Evaluator';
+import { SyncEvaluator } from './SyncEvaluator';
 
 // TODO: Support hooks
 export class AggregateEvaluator {
   private expression: Algebra.AggregateExpression;
   private aggregator: BaseAggregator<any>;
-  private evaluator: Evaluator;
+  private evaluator: SyncEvaluator;
   private throwError = false;
   private state: any;
 
   constructor(expr: Algebra.AggregateExpression, start: Bindings, throwError?: boolean) {
     this.expression = expr;
-    this.evaluator = new Evaluator(expr.expression);
+    this.evaluator = new SyncEvaluator(expr.expression);
     this.aggregator = new aggregators[expr.aggregator as SetFunction](expr);
     this.throwError = throwError;
     try {
-      const startTerm = this.evaluator.evaluateSync(start);
+      const startTerm = this.evaluator.evaluate(start);
       this.state = this.aggregator.init(startTerm);
     } catch (err) {
       if (throwError) {
@@ -68,7 +68,7 @@ export class AggregateEvaluator {
    */
   put(bindings: Bindings): void {
     try {
-      const term = this.evaluator.evaluateSync(bindings);
+      const term = this.evaluator.evaluate(bindings);
       this.state = this.aggregator.put(this.state, term);
     } catch (err) {
       if (this.throwError) {

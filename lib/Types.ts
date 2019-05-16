@@ -25,13 +25,13 @@ export interface ExpressionEvaluator<ExpressionType, TermType> {
   evaluate(expr: ExpressionType, mapping: Bindings): TermType;
 }
 
-export type Hooks = {
-  existence?: ExistenceHook;
-  aggregate?: AggregateHook;
-  namedFunc?: NamedFuncHook;
-};
+// export type Hooks = {
+//   existence?: ExistenceHook;
+//   aggregate?: AggregateHook;
+//   namedFunc?: NamedFuncHook;
+// };
 
-// TODO: Document
-export type NamedFuncHook = (expression: Alg.NamedExpression) => Promise<RDF.Term>;
-export type AggregateHook = (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
-export type ExistenceHook = (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;
+// // TODO: Document
+// export type NamedFuncHook = (expression: Alg.NamedExpression) => Promise<RDF.Term>;
+// export type AggregateHook = (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
+// export type ExistenceHook = (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;

@@ -1,11 +1,11 @@
-import * as RDFDM from '@rdfjs/data-model';
-
-import * as E from '../expressions/Expressions';
-import * as C from '../util/Consts';
+import * as E from '../expressions';
 import * as Err from '../util/Errors';
 
 import { transformRDFTermUnsafe } from '../Transformation';
 import { Bindings, ExpressionEvaluator } from '../Types';
+
+import { AsyncEvaluatorContext } from './AsyncEvaluator';
+import { SyncEvaluatorContext } from './SyncEvaluator';
 
 type Expression = E.Expression;
 type Term = E.TermExpression;
@@ -46,6 +46,8 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
       [E.ExpressionType.Aggregate]: this.evalAggregate,
     };
 
+  constructor(private context: AsyncEvaluatorContext) { }
+
   async evaluate(expr: Expression, mapping: Bindings): Promise<Term> {
     const evaluator = this.subEvaluators[expr.expressionType];
     if (!evaluator) { throw new Err.InvalidExpressionType(expr); }
@@ -60,7 +62,15 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
 
   private async evalSpecialOperator(expr: SpecialOperator, mapping: Bindings): Promise<Term> {
     const evaluate = this.evaluate.bind(this);
-    const context = { args: expr.args, mapping, evaluate };
+    const context = {
+      args: expr.args,
+      mapping,
+      evaluate,
+      context: {
+        now: this.context.now,
+        baseIRI: this.context.baseIRI,
+      },
+    };
     return expr.applyAsync(context);
   }
 
@@ -71,15 +81,24 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
   }
 
   private async evalExistence(expr: Existence, mapping: Bindings): Promise<Term> {
-    const result = await expr.existsWith(mapping);
-    return transformRDFTermUnsafe(
-      RDFDM.literal(result.toString(), C.make(C.TypeURL.XSD_BOOLEAN)),
-    );
+    if (!this.context.exists) {
+      throw new Err.NoExistenceHook();
+    }
+
+    return new E.BooleanLiteral(await this
+      .context
+      .exists(expr.expression, mapping));
   }
 
   // TODO: Remove?
   private async evalAggregate(expr: Aggregate, _mapping: Bindings): Promise<Term> {
-    return transformRDFTermUnsafe(await expr.aggregate());
+    if (!this.context.aggregate) {
+      throw new Err.NoExistenceHook();
+    }
+
+    return transformRDFTermUnsafe(await this
+      .context
+      .aggregate(expr.expression));
   }
 }
 
@@ -100,6 +119,8 @@ export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, T
       [E.ExpressionType.Aggregate]: this.evalAggregate,
     };
 
+  constructor(private context: SyncEvaluatorContext) { }
+
   evaluate(expr: Expression, mapping: Bindings): Term {
     const evaluator = this.subEvaluators[expr.expressionType];
     if (!evaluator) { throw new Err.InvalidExpressionType(expr); }
@@ -113,7 +134,15 @@ export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, T
 
   private evalSpecialOperator(expr: SpecialOperator, mapping: Bindings): Term {
     const evaluate = this.evaluate.bind(this);
-    const context = { args: expr.args, mapping, evaluate };
+    const context = {
+      args: expr.args,
+      mapping,
+      evaluate,
+      context: {
+        now: this.context.now,
+        baseIRI: this.context.baseIRI,
+      },
+    };
     return expr.applySync(context);
   }
 
@@ -122,14 +151,24 @@ export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, T
     return expr.apply(args);
   }
 
-  // TODO
   private evalExistence(expr: Existence, mapping: Bindings): Term {
-    throw new UnsupportedOperation('EXISTS');
+    if (!this.context.exists) {
+      throw new Err.NoExistenceHook();
+    }
+
+    return new E.BooleanLiteral(this
+      .context
+      .exists(expr.expression, mapping));
   }
 
-  // TODO
   private evalAggregate(expr: Aggregate, mapping: Bindings): Term {
-    throw new UnsupportedOperation(`aggregate ${expr.name}`);
+    if (!this.context.aggregate) {
+      throw new Err.NoAggregator();
+    }
+
+    return transformRDFTermUnsafe(this
+      .context
+      .aggregate(expr.expression));
   }
 }
 
