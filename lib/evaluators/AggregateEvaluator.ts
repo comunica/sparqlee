@@ -58,8 +58,10 @@ export class AggregateEvaluator {
    */
   put(bindings: Bindings): void {
     this.init(bindings);
-    this.put = this.__put;
-    this.result = this.__result;
+    if (this.state) {
+      this.put = this.__put;
+      this.result = this.__result;
+    }
   }
 
   result(): RDF.Term {
