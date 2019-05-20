@@ -69,6 +69,7 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
       context: {
         now: this.context.now,
         baseIRI: this.context.baseIRI,
+        bnode: this.context.bnode,
       },
     };
     return expr.applyAsync(context);
@@ -141,6 +142,7 @@ export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, T
       context: {
         now: this.context.now,
         baseIRI: this.context.baseIRI,
+        bnode: this.context.bnode,
       },
     };
     return expr.applySync(context);

@@ -197,7 +197,7 @@ export enum RegularOperator {
   DATATYPE = 'datatype',
   // IRI = 'iri', (see special operators)
   // URI = 'uri', (see special operators)
-  BNODE = 'BNODE',
+  // BNODE = 'BNODE', (see special operators)
   STRDT = 'strdt',
   STRLANG = 'strlang',
   UUID = 'uuid',
@@ -274,6 +274,7 @@ export enum SpecialOperator {
   NOW = 'now',
   IRI = 'iri',
   URI = 'uri',
+  BNODE = 'BNODE',
 }
 
 export const RegularOperators = Set(Object.values(RegularOperator));

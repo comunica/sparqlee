@@ -222,15 +222,8 @@ const datatype = {
 // See special operators
 // const IRI = {};
 
-// https://www.w3.org/TR/sparql11-query/#func-bnode
-// id has to be distinct over all id's in dataset
-const BNODE = {
-  arity: [0, 1],
-  overloads: declare()
-    // .set([], () => new E.BlankNode()) // TODO
-    .onString1Typed((val) => new E.BlankNode(val))
-    .collect(),
-};
+// See special functions
+// const BNODE = {};
 
 const STRDT = {
   arity: 2,
@@ -712,7 +705,7 @@ const _definitions: { [key in C.RegularOperator]: Definition } = {
   'datatype': datatype,
   // 'iri': IRI (see special operators),
   // 'uri': IRI (see special operators),
-  'BNODE': BNODE,
+  // 'BNODE': BNODE (see special operators),
   'strdt': STRDT,
   'strlang': STRLANG,
   'uuid': UUID,

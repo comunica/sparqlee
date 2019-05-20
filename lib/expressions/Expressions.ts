@@ -53,15 +53,21 @@ export type OperatorExpression = ExpressionProps & {
   apply: SimpleApplication;
 };
 
-export type SpecialApplicationAsync = SpecialApplication<Promise<TermExpression>>;
-export type SpecialApplicationSync = SpecialApplication<TermExpression>;
-export type SpecialApplication<Term> = (context: EvalContext<Term>) => Term;
-export type EvalContext<Term> = {
+export type SpecialApplication<Term, BNode> = (context: EvalContext<Term, BNode>) => Term;
+
+export type SpecialApplicationAsync = SpecialApplication<Promise<TermExpression>, Promise<RDF.BlankNode>>;
+export type EvalContextAsync = EvalContext<Promise<TermExpression>, Promise<RDF.BlankNode>>;
+
+export type SpecialApplicationSync = SpecialApplication<TermExpression, RDF.BlankNode>;
+export type EvalContextSync = EvalContext<TermExpression, RDF.BlankNode>;
+
+export type EvalContext<Term, BNode> = {
   args: Expression[],
   mapping: Bindings,
   context: {
     now: Date,
     baseIRI?: string,
+    bnode(input?: string): BNode,
   },
   evaluate(expr: Expression, mapping: Bindings): Term,
 };
@@ -69,8 +75,8 @@ export type EvalContext<Term> = {
 export type SpecialOperatorExpression = ExpressionProps & {
   expressionType: ExpressionType.SpecialOperator,
   args: Expression[],
-  applyAsync: SpecialApplication<Promise<TermExpression>>,
-  applySync: SpecialApplication<TermExpression>,
+  applyAsync: SpecialApplicationAsync,
+  applySync: SpecialApplicationSync,
 };
 
 // TODO: Create alias Term = TermExpression

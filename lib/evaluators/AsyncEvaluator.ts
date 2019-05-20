@@ -17,15 +17,12 @@ export interface AsyncEvaluatorConfig {
 
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;
   aggregate?: (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
+  bnode?: (input?: string) => Promise<RDF.BlankNode>;
 }
 
-export interface AsyncEvaluatorContext {
+export type AsyncEvaluatorContext = AsyncEvaluatorConfig & {
   now: Date;
-  baseIRI?: string;
-
-  exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;
-  aggregate?: (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
-}
+};
 
 export class AsyncEvaluator {
   private expr: Expression;

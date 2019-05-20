@@ -17,15 +17,12 @@ export interface SyncEvaluatorConfig {
 
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => boolean;
   aggregate?: (expression: Alg.AggregateExpression) => RDF.Term;
+  bnode?: (input?: string) => RDF.BlankNode;
 }
 
-export interface SyncEvaluatorContext {
+export type SyncEvaluatorContext = SyncEvaluatorConfig & {
   now: Date;
-  baseIRI?: string;
-
-  exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => boolean;
-  aggregate?: (expression: Alg.AggregateExpression) => RDF.Term;
-}
+};
 
 export class SyncEvaluator {
   private expr: Expression;
@@ -34,7 +31,7 @@ export class SyncEvaluator {
   constructor(public algExpr: Alg.Expression, public config: SyncEvaluatorConfig = {}) {
     this.expr = transformAlgebra(algExpr);
 
-    const context = {
+    const context: SyncEvaluatorContext = {
       now: config.now || new Date(Date.now()),
       baseIRI: config.baseIRI || undefined,
       exists: config.exists,
