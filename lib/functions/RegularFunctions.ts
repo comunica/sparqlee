@@ -555,8 +555,7 @@ const rand = {
 // ----------------------------------------------------------------------------
 
 function parseDate(dateLit: E.DateTimeLiteral): P.SplittedDate {
-  // TODO: This is assuming datelits always have a string
-  return P.parseXSDDateTime(dateLit.strValue);
+  return P.parseXSDDateTime(dateLit.str());
 }
 
 // See special operators
