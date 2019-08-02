@@ -1,5 +1,6 @@
 import * as RDFDM from '@rdfjs/data-model';
 import * as hash from 'create-hash';
+import * as decimaljs from 'decimal.js';
 import * as uuid from 'uuid';
 
 import { Map } from 'immutable';
@@ -52,21 +53,24 @@ const unaryMinus = {
 const multiplication = {
   arity: 2,
   overloads: declare()
-    .arithmetic((left, right) => left * right)
+  // @ts-ignore
+    .arithmetic((left, right) => decimaljs.mul(left, right).toNumber())
     .collect(),
 };
 
 const division = {
   arity: 2,
   overloads: declare()
-    .arithmetic((left, right) => left / right)
+  // @ts-ignore
+    .arithmetic((left, right) => decimaljs.div(left, right).toNumber())
     .onBinaryTyped(
       ['integer', 'integer'],
       (left: number, right: number) => {
         if (right === 0) {
           throw new Err.ExpressionError('Integer division by 0');
         }
-        return number(left / right, TypeURL.XSD_DECIMAL);
+        // @ts-ignore
+        return number(decimaljs.div(left, right).toNumber(), TypeURL.XSD_DECIMAL);
       })
     .collect(),
 };
@@ -74,14 +78,16 @@ const division = {
 const addition = {
   arity: 2,
   overloads: declare()
-    .arithmetic((left, right) => left + right)
+  // @ts-ignore
+    .arithmetic((left, right) => decimaljs.add(left, right).toNumber())
     .collect(),
 };
 
 const subtraction = {
   arity: 2,
   overloads: declare()
-    .arithmetic((left, right) => left - right)
+  // @ts-ignore
+    .arithmetic((left, right) => decimaljs.sub(left, right).toNumber())
     .collect(),
 };
 
