@@ -28,7 +28,6 @@ describe('ordering literals', () => {
   it('integers type identical', () => {
       const numA = int("11");
       const numB = int("11");
-      console.log(numA.termType);
       expect(orderTypes(numA,numB, true)).toEqual(0);
   });
   it('string type identical', () => {

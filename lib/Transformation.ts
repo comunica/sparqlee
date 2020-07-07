@@ -6,7 +6,7 @@ import * as E from './expressions';
 import * as C from './util/Consts';
 import * as Err from './util/Errors';
 import * as P from './util/Parsing';
-import * as T from "./expressions/Term";
+import * as T from './expressions/Term';
 
 import {
   namedFunctions,
@@ -200,8 +200,8 @@ export function transformExistence(expr: Alg.ExistenceExpression) {
 
 // Ordering 2 given strings
 export function orderTypes(litA: RDF.Literal, litB: RDF.Literal, isAscending:boolean){
-  const a = transformLiteral(litA); 
-  const b = transformLiteral(litB); 
+  const a = transformLiteral(litA);
+  const b = transformLiteral(litB);
   return order(a, b, isAscending);
 }
 
