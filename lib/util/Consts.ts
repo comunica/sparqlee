@@ -140,8 +140,8 @@ export function type(typeURL: string): Type {
   }
 }
 
+// Ordering 2 given strings
 export function orderTypes(a:string, b:string, isAscending:boolean){
-   // Type of the elements
    const typeURLA = getLiteralType(a);
    const typeURLB =getLiteralType(b);
    const typeA = type(typeURLA);
@@ -169,21 +169,25 @@ export function orderTypes(a:string, b:string, isAscending:boolean){
      return isString ? order(a, b, isAscending) : order(numA, numB, isAscending);
    }
 
-   //different types automatically use string compare
+   // different types automatically use string compare
    return order(a, b, isAscending);
    
 }
 
-export function getLiteralType(literal: string) {
+// Retrieving value without type
+function literalValue(literal: string) {
+  const match = /^"([^]*)"/.exec(literal);
+  return match && match[1] || '';
+}
+
+// Retrieving type url
+function getLiteralType(literal: string) {
   const match = /^"[^]*"(?:\^\^([^"]+)|(@)[^@"]+)?$/.exec(literal);
-  return match && match[1] || 'http://www.w3.org/2001/XMLSchema#string';
+  return match && match[1] || (match && match[2]
+    ? 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString' : 'http://www.w3.org/2001/XMLSchema#string');
 }
 
-export function literalValue(literal: string) {
-  const match = /^"([^]*)"/.exec(literal);  
-  return match && match[1];
-}
-
+// Effective ordering
 export function order(orderA:number|string|undefined, orderB: number|string|undefined, isAscending:boolean){
   if (!orderA || !orderB || orderA === orderB) {
     return 0;
