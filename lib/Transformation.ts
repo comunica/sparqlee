@@ -198,7 +198,6 @@ export function transformExistence(expr: Alg.ExistenceExpression) {
   return new E.Existence(expr);
 }
 
-
 // Ordering 2 given strings
 export function orderTypes(litA: RDF.Literal, litB: RDF.Literal, isAscending:boolean){
   const a = transformLiteral(litA); 
