@@ -152,12 +152,12 @@ export function orderTypes(a:string, b:string, isAscending:boolean){
      let isString = true;
      switch (typeA) {
        case "integer":
-         numA = parseInt("" + literalValue(a));
-         numB = parseInt("" + literalValue(b));
+         numA = parseInt("" + literalValue(a), 10);
+         numB = parseInt("" + literalValue(b), 10);
          isString = false;
          break;
        case "float":
-       case "decimal": 
+       case "decimal":
        case "double":
          numA = parseFloat("" + literalValue(a));
          numB = parseFloat("" + literalValue(b));
@@ -168,10 +168,8 @@ export function orderTypes(a:string, b:string, isAscending:boolean){
      }
      return isString ? order(a, b, isAscending) : order(numA, numB, isAscending);
    }
-
    // different types automatically use string compare
    return order(a, b, isAscending);
-   
 }
 
 // Retrieving value without type
