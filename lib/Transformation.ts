@@ -6,6 +6,7 @@ import * as E from './expressions';
 import * as C from './util/Consts';
 import * as Err from './util/Errors';
 import * as P from './util/Parsing';
+import * as T from "./expressions/Term";
 
 import {
   namedFunctions,
@@ -110,7 +111,6 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
 
     case DT.XSD_INTEGER:
     case DT.XSD_DECIMAL:
-
     case DT.XSD_NEGATIVE_INTEGER:
     case DT.XSD_NON_NEGATIVE_INTEGER:
     case DT.XSD_NON_POSITIVE_INTEGER:
@@ -196,4 +196,20 @@ export function transformAggregate(expr: Alg.AggregateExpression) {
 
 export function transformExistence(expr: Alg.ExistenceExpression) {
   return new E.Existence(expr);
+}
+
+
+// Ordering 2 given strings
+export function orderTypes(litA: RDF.Literal, litB: RDF.Literal, isAscending:boolean){
+  const a = transformLiteral(litA); 
+  const b = transformLiteral(litB); 
+  return order(a, b, isAscending);
+}
+
+// Effective ordering
+export function order(orderA: T.Literal<any>, orderB: T.Literal<any>, isAscending:boolean){
+  if (!orderA || !orderB || orderA.typedValue === orderB.typedValue) {
+    return 0;
+  }
+  return orderA.typedValue > orderB.typedValue === isAscending ? 1 : -1;
 }

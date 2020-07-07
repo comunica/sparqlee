@@ -1,6 +1,6 @@
 // tslint:disable:variable-name
 import * as RDFDM from '@rdfjs/data-model';
-import { Map, Set } from 'immutable';
+import { Map, Set, is } from 'immutable';
 import * as RDF from 'rdf-js';
 
 export const TRUE_STR = '"true"^^xsd:boolean';
@@ -138,59 +138,6 @@ export function type(typeURL: string): Type {
     case TypeURL.XSD_POSITIVE_INTEGER: return 'integer';
     default: return 'other';
   }
-}
-
-// Ordering 2 given strings
-export function orderTypes(a:string, b:string, isAscending:boolean){
-   const typeURLA = getLiteralType(a);
-   const typeURLB =getLiteralType(b);
-   const typeA = type(typeURLA);
-   const typeB = type(typeURLB);
-   if (typeA === typeB) {
-     let numA = 0;
-     let numB = 0;
-     let isString = true;
-     switch (typeA) {
-       case "integer":
-         numA = parseInt("" + literalValue(a), 10);
-         numB = parseInt("" + literalValue(b), 10);
-         isString = false;
-         break;
-       case "float":
-       case "decimal":
-       case "double":
-         numA = parseFloat("" + literalValue(a));
-         numB = parseFloat("" + literalValue(b));
-         isString = false;
-         break;
-       default:
-         break;
-     }
-     return isString ? order(a, b, isAscending) : order(numA, numB, isAscending);
-   }
-   // different types automatically use string compare
-   return order(a, b, isAscending);
-}
-
-// Retrieving value without type
-function literalValue(literal: string) {
-  const match = /^"([^]*)"/.exec(literal);
-  return match && match[1] || '';
-}
-
-// Retrieving type url
-function getLiteralType(literal: string) {
-  const match = /^"[^]*"(?:\^\^([^"]+)|(@)[^@"]+)?$/.exec(literal);
-  return match && match[1] || (match && match[2]
-    ? 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString' : 'http://www.w3.org/2001/XMLSchema#string');
-}
-
-// Effective ordering
-export function order(orderA:number|string|undefined, orderB: number|string|undefined, isAscending:boolean){
-  if (!orderA || !orderB || orderA === orderB) {
-    return 0;
-  }
-  return orderA > orderB === isAscending ? 1 : -1;
 }
 
 // If datatypes get lost or lose specificity during operations, we can insert a
