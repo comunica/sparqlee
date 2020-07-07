@@ -140,6 +140,57 @@ export function type(typeURL: string): Type {
   }
 }
 
+export function orderTypes(a:string, b:string, isAscending:boolean){
+   // Type of the elements
+   const typeURLA = getLiteralType(a);
+   const typeURLB =getLiteralType(b);
+   const typeA = type(typeURLA);
+   const typeB = type(typeURLB);
+   if (typeA === typeB) {
+     let numA = 0;
+     let numB = 0;
+     let isString = true;
+     switch (typeA) {
+       case "integer":
+         numA = parseInt("" + literalValue(a));
+         numB = parseInt("" + literalValue(b));
+         isString = false;
+         break;
+       case "float":
+       case "decimal": 
+       case "double":
+         numA = parseFloat("" + literalValue(a));
+         numB = parseFloat("" + literalValue(b));
+         isString = false;
+         break;
+       default:
+         break;
+     }
+     return isString ? order(a, b, isAscending) : order(numA, numB, isAscending);
+   }
+
+   //different types automatically use string compare
+   return order(a, b, isAscending);
+   
+}
+
+export function getLiteralType(literal: string) {
+  const match = /^"[^]*"(?:\^\^([^"]+)|(@)[^@"]+)?$/.exec(literal);
+  return match && match[1] || 'http://www.w3.org/2001/XMLSchema#string';
+}
+
+export function literalValue(literal: string) {
+  const match = /^"([^]*)"/.exec(literal);  
+  return match && match[1];
+}
+
+export function order(orderA:number|string|undefined, orderB: number|string|undefined, isAscending:boolean){
+  if (!orderA || !orderB || orderA === orderB) {
+    return 0;
+  }
+  return orderA > orderB === isAscending ? 1 : -1;
+}
+
 // If datatypes get lost or lose specificity during operations, we can insert a
 // concrete type, since categories should remain the same. This mostly (only)
 // relevant for integer subtypes.
