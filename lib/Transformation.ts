@@ -110,6 +110,7 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
 
     case DT.XSD_INTEGER:
     case DT.XSD_DECIMAL:
+
     case DT.XSD_NEGATIVE_INTEGER:
     case DT.XSD_NON_NEGATIVE_INTEGER:
     case DT.XSD_NON_POSITIVE_INTEGER:
