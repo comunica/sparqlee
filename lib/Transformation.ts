@@ -6,7 +6,6 @@ import * as E from './expressions';
 import * as C from './util/Consts';
 import * as Err from './util/Errors';
 import * as P from './util/Parsing';
-import * as T from "./expressions/Term";
 
 import {
   namedFunctions,
@@ -196,25 +195,4 @@ export function transformAggregate(expr: Alg.AggregateExpression) {
 
 export function transformExistence(expr: Alg.ExistenceExpression) {
   return new E.Existence(expr);
-}
-
-// Ordering 2 given strings
-export function orderTypes(litA: RDF.NamedNode | RDF.BlankNode | RDF.Literal | RDF.Variable | RDF.DefaultGraph | undefined, 
-                        litB: RDF.NamedNode | RDF.BlankNode | RDF.Literal | RDF.Variable | RDF.DefaultGraph | undefined, 
-                        isAscending:boolean){
-  if (litA && litA.termType === "Literal" && litB && litB.termType === "Literal" ){
-    const a = transformLiteral(litA);
-    const b = transformLiteral(litB); 
-    return order(a, b, isAscending);
-  }else{
-    return 0;
-  }
-}
-
-// Effective ordering
-export function order(orderA: T.Literal<any>, orderB: T.Literal<any>, isAscending:boolean){
-  if (!orderA || !orderB || orderA.typedValue === orderB.typedValue) {
-    return 0;
-  }
-  return orderA.typedValue > orderB.typedValue === isAscending ? 1 : -1;
 }

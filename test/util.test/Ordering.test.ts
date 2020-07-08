@@ -2,7 +2,7 @@ import * as RDF from 'rdf-js';
 
 import { literal } from '@rdfjs/data-model';
 import { TypeURL as DT } from '../../lib/util/Consts';
-import { orderTypes } from '../../lib/Transformation';
+import { orderTypes } from '../../lib/util/Ordering';
 
 function int(value: string): RDF.Literal {
   return literal(value, DT.XSD_INTEGER);
