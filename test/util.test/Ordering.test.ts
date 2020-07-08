@@ -25,6 +25,12 @@ function string(value: string): RDF.Literal {
 }
 
 describe('ordering literals', () => {
+  it('undefined passed to ordertypes', () => {
+    const numB = int("11");
+    expect(orderTypes(undefined, numB, true)).toEqual(0);
+    expect(orderTypes(undefined, undefined, true)).toEqual(0);
+    expect(orderTypes(numB, undefined, true)).toEqual(0);
+  }); 
   it('integers type identical', () => {
       const numA = int("11");
       const numB = int("11");
