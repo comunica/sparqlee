@@ -2,7 +2,7 @@ import * as RDF from 'rdf-js';
 import * as T from '../expressions/Term';
 import { transformLiteral } from '../Transformation';
 
-// Ordering 2 given strings
+// Determine the relative numerical order of the two given terms.
 export function orderTypes(litA: RDF.Term | undefined, litB: RDF.Term | undefined, isAscending:boolean){
     if (litA && litA.termType === 'Literal' && litB && litB.termType === 'Literal') {
         const a = transformLiteral(litA);
