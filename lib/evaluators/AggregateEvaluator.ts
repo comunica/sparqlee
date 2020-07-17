@@ -17,6 +17,8 @@ import { parseXSDFloat } from '../util/Parsing';
 import { SetFunction, TypeURL } from './../util/Consts';
 import { SyncEvaluator, SyncEvaluatorConfig } from './SyncEvaluator';
 
+import { transformLiteral } from '../Transformation';
+
 // TODO: Support hooks
 export class AggregateEvaluator {
   private expression: Algebra.AggregateExpression;
@@ -326,11 +328,6 @@ function extractValue(term: RDF.Term): {value: any, type:string}  {
   if (term.termType !== 'Literal') {
     throw new Error('Term is not a literal');
   }
-  if (C.NumericTypeURLs.contains(term.datatype.value)) {
-    const type: C.NumericTypeURL = term.datatype.value as unknown as C.NumericTypeURL;
-    const value = parseXSDFloat(term.value);
-    return { type, value };
-  } else {
-    return {type: term.termType, value: term.value};
-  }
+  const transformedLit = transformLiteral(term);
+  return {type: transformedLit.typeURL.value, value: transformedLit.typedValue};
 }
