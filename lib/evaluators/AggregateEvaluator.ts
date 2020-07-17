@@ -186,8 +186,8 @@ class Min extends BaseAggregator<MinState> {
   }
 
   put(state: MinState, term: RDF.Term): MinState {
-    let extracted = extractValue(term);
-    let extractedMin = extractValue(state.minTerm);
+    const extracted = extractValue(term);
+    const extractedMin = extractValue(state.minTerm);
     if (extracted.type !== extractedMin.type) {
       throw new Error('Terms have different types');
     }
@@ -213,8 +213,8 @@ class Max extends BaseAggregator<MaxState> {
   }
 
   put(state: MaxState, term: RDF.Term): MaxState {
-    let extracted = extractValue(term);
-    let extractedMin = extractValue(state.maxTerm);
+    const extracted = extractValue(term);
+    const extractedMin = extractValue(state.maxTerm);
     if (extracted.type !== extractedMin.type) {
       throw new Error('Terms have different types');
     }
@@ -325,7 +325,7 @@ function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number, typ
 function extractValue(term: RDF.Term): {value: any, type:string}  {
   if (term.termType !== 'Literal') {
     throw new Error('Term is not a literal');
-  } 
+  }
   if (C.NumericTypeURLs.contains(term.datatype.value)) {
     const type: C.NumericTypeURL = term.datatype.value as unknown as C.NumericTypeURL;
     const value = parseXSDFloat(term.value);
