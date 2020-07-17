@@ -181,15 +181,19 @@ class Sum extends BaseAggregator<SumState> {
 type MinState = { minNum: number, minTerm: RDF.Term };
 class Min extends BaseAggregator<MinState> {
   init(start: RDF.Term): MinState {
-    const { value } = extractNumericValueAndTypeOrError(start);
+    const {value} = extractValue(start);
     return { minNum: value, minTerm: start };
   }
 
   put(state: MinState, term: RDF.Term): MinState {
-    const { value } = extractNumericValueAndTypeOrError(term);
-    if (value < state.minNum) {
+    let extracted = extractValue(term);
+    let extractedMin = extractValue(state.minTerm);
+    if (extracted.type !== extractedMin.type) {
+      throw new Error('Terms have different types');
+    }
+    if (extracted.value < state.minNum) {
       return {
-        minNum: value,
+        minNum: extracted.value,
         minTerm: term,
       };
     }
@@ -204,15 +208,19 @@ class Min extends BaseAggregator<MinState> {
 type MaxState = { maxNum: number, maxTerm: RDF.Term };
 class Max extends BaseAggregator<MaxState> {
   init(start: RDF.Term): MaxState {
-    const { value } = extractNumericValueAndTypeOrError(start);
+    const {value} = extractValue(start);
     return { maxNum: value, maxTerm: start };
   }
 
   put(state: MaxState, term: RDF.Term): MaxState {
-    const { value } = extractNumericValueAndTypeOrError(term);
-    if (value >= state.maxNum) {
+    let extracted = extractValue(term);
+    let extractedMin = extractValue(state.maxTerm);
+    if (extracted.type !== extractedMin.type) {
+      throw new Error('Terms have different types');
+    }
+    if (extracted.value >= state.maxNum) {
       return {
-        maxNum: value,
+        maxNum: extracted.value,
         maxTerm: term,
       };
     }
@@ -312,4 +320,17 @@ function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number, typ
   const type: C.NumericTypeURL = term.datatype.value as unknown as C.NumericTypeURL;
   const value = parseXSDFloat(term.value);
   return { type, value };
+}
+
+function extractValue(term: RDF.Term): {value: any, type:string}  {
+  if (term.termType !== 'Literal') {
+    throw new Error('Term is not a literal');
+  } 
+  if (C.NumericTypeURLs.contains(term.datatype.value)) {
+    const type: C.NumericTypeURL = term.datatype.value as unknown as C.NumericTypeURL;
+    const value = parseXSDFloat(term.value);
+    return { type, value };
+  } else {
+    return {type: term.termType, value: term.value};
+  }
 }

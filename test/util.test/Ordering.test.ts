@@ -1,56 +1,92 @@
-import { orderTypes } from '../../lib/util/Consts';
+import * as RDF from 'rdf-js';
 
-describe('util/ordering', () => {
-  describe('order', () => {
-    test('same strings should be 0', () => {
-        const result = orderTypes('"11"^^http://www.w3.org/2001/XMLSchema#string',
-                                  '"11"^^http://www.w3.org/2001/XMLSchema#string',true);
-        expect(result).toEqual(0);
-    });
-    test('string comparison', () => {
-        const result = orderTypes('2',
-                                  '11',true);
-        expect(result).toEqual(1);
-    });
-    test('same integers should be 0', () => {
-      const result = orderTypes('"2"^^http://www.w3.org/2001/XMLSchema#integer',
-                                '"2"^^http://www.w3.org/2001/XMLSchema#integer',true);
-      expect(result).toEqual(0);
-    });
-    test('strings should be sorted', () => {
-        const result = orderTypes("ab","abb",true);
-        expect(result).toEqual(-1);
-    });
-    test('integers should be sorted smaller', () => {
-        const result = orderTypes('"2"^^http://www.w3.org/2001/XMLSchema#integer',
-                                '"11"^^http://www.w3.org/2001/XMLSchema#integer',true);
+import { literal } from '@rdfjs/data-model';
+import { TypeURL as DT } from '../../lib/util/Consts';
+import { orderTypes } from '../../lib/util/Ordering';
 
-        expect(result).toEqual(-1);
-    });
-    test('integers should be sorted larger', () => {
-        const result = orderTypes('"11"^^http://www.w3.org/2001/XMLSchema#integer',
-                                   '"2"^^http://www.w3.org/2001/XMLSchema#integer',true);
+function int(value: string): RDF.Literal {
+  return literal(value, DT.XSD_INTEGER);
+}
 
-        expect(result).toEqual(1);
-    });
-    test('doubles should be sorted', () => {
-        const result = orderTypes('"2.0e6"^^http://www.w3.org/2001/XMLSchema#double',
-                                  '"11.0e6"^^http://www.w3.org/2001/XMLSchema#double',true);
+function float(value: string): RDF.Literal {
+  return literal(value, DT.XSD_FLOAT);
+}
 
-        expect(result).toEqual(-1);
-      });
-    test('decimal should be sorted', () => {
-    const result = orderTypes('"2"^^http://www.w3.org/2001/XMLSchema#decimal',
-                                '"11"^^http://www.w3.org/2001/XMLSchema#decimal',true);
-    expect(result).toEqual(-1);
-    });
-    test('float should be sorted', () => {
-        const result = orderTypes('"2"^^http://www.w3.org/2001/XMLSchema#float',
-                                    '"11"^^http://www.w3.org/2001/XMLSchema#float',true);
+function decimal(value: string): RDF.Literal {
+  return literal(value, DT.XSD_DECIMAL);
+}
 
-        expect(result).toEqual(-1);
-    });
+function double(value: string): RDF.Literal {
+  return literal(value, DT.XSD_DOUBLE);
+}
+
+function string(value: string): RDF.Literal {
+  return literal(value, DT.XSD_STRING);
+}
+
+describe('ordering literals', () => {
+  it('undefined passed to ordertypes', () => {
+    const numB = int("11");
+    expect(orderTypes(undefined, numB, true)).toEqual(0);
+    expect(orderTypes(undefined, undefined, true)).toEqual(0);
+    expect(orderTypes(numB, undefined, true)).toEqual(0);
+  }); 
+  it('integers type identical', () => {
+      const numA = int("11");
+      const numB = int("11");
+      expect(orderTypes(numA,numB, true)).toEqual(0);
+  });
+  it('string type identical', () => {
+      const numA = string("11");
+      const numB = string("11");
+      expect(orderTypes(numA, numB, true)).toEqual(0);
+      expect(orderTypes(numB, numA, true)).toEqual(0);
+  });
+  it('string type comparison', () => {
+      const numA = string("11");
+      const numB = string("2");
+      expect(orderTypes(numA, numB, true)).toEqual(-1);
+      expect(orderTypes(numB, numA, true)).toEqual(1);
+      expect(orderTypes(numA, numB, false)).toEqual(1);
+      expect(orderTypes(numB, numA, false)).toEqual(-1);
+  });
+  it('integer type comparison', () => {
+      const numA = int("11");
+      const numB = int("2");
+      expect(orderTypes(numA, numB, true)).toEqual(1);
+      expect(orderTypes(numB, numA, true)).toEqual(-1);
+      expect(orderTypes(numA, numB, false)).toEqual(-1);
+      expect(orderTypes(numB, numA, false)).toEqual(1);
+  });
+  it('double type comparison', () => {
+      const numA = double("11");
+      const numB = double("2");
+      expect(orderTypes(numA, numB, true)).toEqual(1);
+      expect(orderTypes(numB, numA, true)).toEqual(-1);
+      expect(orderTypes(numA, numB, false)).toEqual(-1);
+      expect(orderTypes(numB, numA, false)).toEqual(1);
+  });
+  it('decimal type comparison', () => {
+    const numA = decimal("11");
+    const numB = decimal("2");
+    expect(orderTypes(numA, numB, true)).toEqual(1);
+    expect(orderTypes(numB, numA, true)).toEqual(-1);
+    expect(orderTypes(numA, numB, false)).toEqual(-1);
+    expect(orderTypes(numB, numA, false)).toEqual(1);
+  });
+  it('float type comparison', () => {
+    const numA = float("11");
+    const numB = float("2");
+    expect(orderTypes(numA, numB, true)).toEqual(1);
+    expect(orderTypes(numB, numA, true)).toEqual(-1);
+  });
+
+  it('mixed string integer comparison', () => {
+    const numA = string("11");
+    const numB = int("2");
+    const numD = int("11");
+    expect(orderTypes(numA, numB, true)).toEqual(1);
+    expect(orderTypes(numB, numA, true)).toEqual(-1);
+    expect(orderTypes(numA, numD, true)).toEqual(-1);
   });
 });
-
-

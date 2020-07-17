@@ -49,6 +49,10 @@ function double(value: string): RDF.Term {
   return literal(value, 'http://www.w3.org/2001/XMLSchema#double');
 }
 
+function string(value: string): RDF.Term {
+  return literal(value, 'http://www.w3.org/2001/XMLSchema#string');
+}
+
 describe('an aggregate evaluator should be able to', () => {
   describe('count', () => {
     it('a list of bindings', () => {
@@ -150,6 +154,19 @@ describe('an aggregate evaluator should be able to', () => {
       expect(result).toEqual(int('1'));
     });
 
+    it('a list of string bindings', () => {
+      const result = testCase({
+        expr: makeAggregate('min'),
+        input: [
+          Bindings({ '?x': string("11") }),
+          Bindings({ '?x': string('2') }),
+          Bindings({ '?x': string('1') }),
+          Bindings({ '?x': string('3') }),
+        ],
+      });
+      expect(result).toEqual(string('1'));
+    });
+
     it('with respect to empty input', () => {
       const result = testCase({
         expr: makeAggregate('min'),
@@ -171,6 +188,19 @@ describe('an aggregate evaluator should be able to', () => {
         ],
       });
       expect(result).toEqual(int('4'));
+    });
+
+    it('a list of string bindings', () => {
+      const result = testCase({
+        expr: makeAggregate('max'),
+        input: [
+          Bindings({ '?x': string("11") }),
+          Bindings({ '?x': string('2') }),
+          Bindings({ '?x': string('1') }),
+          Bindings({ '?x': string('3') }),
+        ],
+      });
+      expect(result).toEqual(string('3'));
     });
 
     it('with respect to empty input', () => {
