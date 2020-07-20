@@ -174,6 +174,19 @@ describe('an aggregate evaluator should be able to', () => {
       });
       expect(result).toEqual(undefined);
     });
+
+    it('different types compare by string (min)', () => {
+      console.log("minimum");
+      const result = testCase({
+        expr: makeAggregate('min'),
+        input: [
+          Bindings({ '?x': string("11") }),
+          Bindings({ '?x': int('2') }),
+          Bindings({ '?x': string('3') }),
+        ],
+      });
+      expect(result).toEqual(string('11'));
+    });
   });
 
   describe('max', () => {
@@ -209,6 +222,32 @@ describe('an aggregate evaluator should be able to', () => {
         input: [],
       });
       expect(result).toEqual(undefined);
+    });
+
+    it('different types compare by string (max)', () => {
+      console.log("max");
+      const result = testCase({
+        expr: makeAggregate('max'),
+        input: [
+          Bindings({ '?x': string("11") }),
+          Bindings({ '?x': int('2') }),
+          Bindings({ '?x': string('3') }),
+        ],
+      });
+      expect(result).toEqual(string('3'));
+    });
+
+    it('different types compare by string with int type as return (max)', () => {
+      console.log("max int");
+      const result = testCase({
+        expr: makeAggregate('max'),
+        input: [
+          Bindings({ '?x': string("11") }),
+          Bindings({ '?x': int('2') }),
+          Bindings({ '?x': int('3') }),
+        ],
+      });
+      expect(result).toEqual(int('3'));
     });
   });
 
@@ -351,58 +390,6 @@ describe('an aggregate evaluator should be able to', () => {
           testCase({
             expr: makeAggregate('max'),
             input: [],
-            throwError: true,
-          });
-        }).toThrow();
-      });
-
-      it('and the first value errors (max)', () => {
-        expect(() => {
-          testCase({
-            expr: makeAggregate('max'),
-            input: [
-              Bindings({ '?x': literal('1') }),
-              Bindings({ '?x': int('1') }),
-            ],
-            throwError: true,
-          });
-        }).toThrow();
-      });
-
-      it('and any value in the stream errors (max)', () => {
-        expect(() => {
-          testCase({
-            expr: makeAggregate('max'),
-            input: [
-              Bindings({ '?x': int('1') }),
-              Bindings({ '?x': literal('1') }),
-            ],
-            throwError: true,
-          });
-        }).toThrow();
-      });
-
-      it('and the first value errors (min)', () => {
-        expect(() => {
-          testCase({
-            expr: makeAggregate('min'),
-            input: [
-              Bindings({ '?x': literal('1') }),
-              Bindings({ '?x': int('1') }),
-            ],
-            throwError: true,
-          });
-        }).toThrow();
-      });
-
-      it('and any value in the stream errors (min)', () => {
-        expect(() => {
-          testCase({
-            expr: makeAggregate('min'),
-            input: [
-              Bindings({ '?x': int('1') }),
-              Bindings({ '?x': literal('1') }),
-            ],
             throwError: true,
           });
         }).toThrow();

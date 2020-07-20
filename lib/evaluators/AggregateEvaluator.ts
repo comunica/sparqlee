@@ -18,6 +18,7 @@ import { SetFunction, TypeURL } from './../util/Consts';
 import { SyncEvaluator, SyncEvaluatorConfig } from './SyncEvaluator';
 
 import { transformLiteral } from '../Transformation';
+import { orderTypes } from '../util/Ordering';
 
 // TODO: Support hooks
 export class AggregateEvaluator {
@@ -180,57 +181,45 @@ class Sum extends BaseAggregator<SumState> {
   }
 }
 
-type MinState = { minNum: number, minTerm: RDF.Term };
-class Min extends BaseAggregator<MinState> {
-  init(start: RDF.Term): MinState {
+type ExtremeState = { value: number, term: RDF.Term };
+class Min extends BaseAggregator<ExtremeState[]> {
+  init(start: RDF.Term): ExtremeState[] {
     const {value} = extractValue(start);
-    return { minNum: value, minTerm: start };
+    return [{ value: value, term: start }];
   }
 
-  put(state: MinState, term: RDF.Term): MinState {
+  put(state: ExtremeState[], term: RDF.Term): ExtremeState[] {
     const extracted = extractValue(term);
-    const extractedMin = extractValue(state.minTerm);
-    if (extracted.type !== extractedMin.type) {
-      throw new Error('Terms have different types');
-    }
-    if (extracted.value < state.minNum) {
-      return {
-        minNum: extracted.value,
-        minTerm: term,
-      };
-    }
+    state.push({
+      value: extracted.value,
+      term: term,
+    });
     return state;
   }
 
-  result(state: MinState): RDF.Term {
-    return state.minTerm;
+  result(state:  ExtremeState[]): RDF.Term {
+    return getExtreme(state, true);
   }
 }
 
-type MaxState = { maxNum: number, maxTerm: RDF.Term };
-class Max extends BaseAggregator<MaxState> {
-  init(start: RDF.Term): MaxState {
+
+class Max extends BaseAggregator<ExtremeState[]> {
+  init(start: RDF.Term): ExtremeState[] {
     const {value} = extractValue(start);
-    return { maxNum: value, maxTerm: start };
+    return [{ value: value, term: start }];
   }
 
-  put(state: MaxState, term: RDF.Term): MaxState {
+  put(state: ExtremeState[], term: RDF.Term): ExtremeState[] {
     const extracted = extractValue(term);
-    const extractedMin = extractValue(state.maxTerm);
-    if (extracted.type !== extractedMin.type) {
-      throw new Error('Terms have different types');
-    }
-    if (extracted.value >= state.maxNum) {
-      return {
-        maxNum: extracted.value,
-        maxTerm: term,
-      };
-    }
+    state.push({
+      value: extracted.value,
+      term: term,
+    });
     return state;
   }
 
-  result(state: MaxState): RDF.Term {
-    return state.maxTerm;
+  result(state:  ExtremeState[]): RDF.Term {
+    return getExtreme(state, false);
   }
 }
 
@@ -330,4 +319,44 @@ function extractValue(term: RDF.Term): {value: any, type:string}  {
   }
   const transformedLit = transformLiteral(term);
   return {type: transformedLit.typeURL.value, value: transformedLit.typedValue};
+}
+
+function getExtreme(state: ExtremeState[], isMin:boolean): RDF.Term {
+  // Check if all elements are of the same type
+  let sameType = true;
+  const firstElem = extractValue(state[0].term);
+  const type = firstElem.type;
+  for (const element of state) {
+    const extractedElem = extractValue(element.term);
+    if (extractedElem.type !== type) {
+      sameType = false;
+      break;
+    }
+  }
+
+  // Different types will be compared as strings
+  let extreme = state[0].term;
+  let extremeValue;
+  if (sameType) {
+    extremeValue = extreme.value;
+  } else {
+    extremeValue = '' + extreme.value;
+  }
+
+  // Compare elements
+  let elementValue;
+  for (const element of state) {
+    if (sameType) {
+      elementValue = element.value;
+    } else {
+      elementValue = '' + element.value;
+    }
+
+    if (isMin && elementValue < extremeValue) {
+      extreme = element.term;
+    } else if (!isMin && elementValue > extremeValue) {
+      extreme = element.term;
+    }
+  }
+  return extreme;
 }
