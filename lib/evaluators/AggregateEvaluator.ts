@@ -19,6 +19,7 @@ import { SyncEvaluator, SyncEvaluatorConfig } from './SyncEvaluator';
 
 import { transformLiteral } from '../Transformation';
 import { orderTypes } from '../util/Ordering';
+import { termToString } from 'rdf-string';
 
 // TODO: Support hooks
 export class AggregateEvaluator {
@@ -305,7 +306,7 @@ export const aggregators: Readonly<{ [key in SetFunction]: AggregatorClass }> = 
 function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number, type: C.NumericTypeURL } {
   // TODO: Check behaviour
   if (term.termType !== 'Literal' || !C.NumericTypeURLs.contains(term.datatype.value)) {
-    throw new Error('Term is not numeric');
+    throw new Error('Term with value ' + term.value + ' has type ' + term.termType +' and is not a numeric literal');
   }
 
   const type: C.NumericTypeURL = term.datatype.value as unknown as C.NumericTypeURL;
@@ -315,7 +316,7 @@ function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number, typ
 
 function extractValue(term: RDF.Term): {value: any, type:string}  {
   if (term.termType !== 'Literal') {
-    throw new Error('Term is not a literal');
+    throw new Error('Term with value ' + term.value + ' has type ' + term.termType +' and is not a literal');
   }
   const transformedLit = transformLiteral(term);
   return {type: transformedLit.typeURL.value, value: transformedLit.typedValue};
@@ -334,24 +335,11 @@ function getExtreme(state: ExtremeState[], isMin:boolean): RDF.Term {
     }
   }
 
-  // Different types will be compared as strings
   let extreme = state[0].term;
-  let extremeValue;
-  if (sameType) {
-    extremeValue = extreme.value;
-  } else {
-    extremeValue = '' + extreme.value;
-  }
+  const extremeValue = getComparingValue(sameType, state[0]);
 
-  // Compare elements
-  let elementValue;
   for (const element of state) {
-    if (sameType) {
-      elementValue = element.value;
-    } else {
-      elementValue = '' + element.value;
-    }
-
+    const elementValue = getComparingValue(sameType, element);
     if (isMin && elementValue < extremeValue) {
       extreme = element.term;
     } else if (!isMin && elementValue > extremeValue) {
@@ -359,4 +347,9 @@ function getExtreme(state: ExtremeState[], isMin:boolean): RDF.Term {
     }
   }
   return extreme;
+}
+
+// If the type is identical then the real value will be used otherwise it will be stringified
+function getComparingValue(sameType: boolean, element:ExtremeState): any {
+  return sameType ? element.value : '' + element.value;
 }
