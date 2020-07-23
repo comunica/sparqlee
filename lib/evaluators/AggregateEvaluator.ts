@@ -325,8 +325,7 @@ function extractValue(term: RDF.Term): {value: any, type:string}  {
 function getExtreme(state: ExtremeState[], isMin:boolean): RDF.Term {
   // Check if all elements are of the same type
   let sameType = true;
-  const firstElem = extractValue(state[0].term);
-  const type = firstElem.type;
+  const type = extractValue(state[0].term).type;
   for (const element of state) {
     const extractedElem = extractValue(element.term);
     if (extractedElem.type !== type) {
