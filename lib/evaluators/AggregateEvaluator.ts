@@ -340,9 +340,7 @@ function getExtreme(state: ExtremeState[], isMin:boolean): RDF.Term {
 
   for (const element of state) {
     const elementValue = getComparingValue(sameType, element);
-    if (isMin && elementValue < extremeValue) {
-      extreme = element.term;
-    } else if (!isMin && elementValue > extremeValue) {
+    if ((isMin && elementValue < extremeValue) || (!isMin && elementValue > extremeValue)) {
       extreme = element.term;
     }
   }
