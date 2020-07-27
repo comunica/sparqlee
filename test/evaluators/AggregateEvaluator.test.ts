@@ -33,6 +33,10 @@ function makeAggregate(aggregator: string, distinct = false, separator?: string)
   };
 }
 
+function nonLiteral(): RDF.Term {
+  return namedNode('http://www.w3.org/2001/XMLSchema#integer');
+}
+
 function int(value: string): RDF.Term {
   return literal(value, 'http://www.w3.org/2001/XMLSchema#integer');
 }
@@ -380,6 +384,31 @@ describe('an aggregate evaluator should be able to', () => {
         ],
       });
       expect(result).toEqual(undefined);
+    });
+
+    it('passing a non-literal to max should not be accepted', () => {
+      const result = testCase({
+        expr: makeAggregate('max'),
+        input: [
+          Bindings({ '?x': nonLiteral() }),
+          Bindings({ '?x': int('2') }),
+          Bindings({ '?x': int('3') }),
+        ],
+      });
+      expect(result).toEqual(undefined);
+    });
+
+    it('passing a non-literal to sum should not be accepted', () => {
+      const result = testCase({
+        expr: makeAggregate('sum'),
+        input: [
+          Bindings({ '?x': nonLiteral() }),
+          Bindings({ '?x': int('2') }),
+          Bindings({ '?x': int('3') }),
+          Bindings({ '?x': int('4') }),
+        ],
+      });
+      expect(undefined);
     });
 
     describe('when we ask for throwing errors', () => {
