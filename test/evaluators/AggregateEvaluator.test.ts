@@ -141,6 +141,7 @@ describe('an aggregate evaluator should be able to', () => {
   });
 
   describe('min', () => {
+    
     it('a list of bindings', () => {
       const result = testCase({
         expr: makeAggregate('min'),
@@ -158,7 +159,7 @@ describe('an aggregate evaluator should be able to', () => {
       const result = testCase({
         expr: makeAggregate('min'),
         input: [
-          Bindings({ '?x': string("11") }),
+          Bindings({ '?x': string('11') }),
           Bindings({ '?x': string('2') }),
           Bindings({ '?x': string('1') }),
           Bindings({ '?x': string('3') }),
@@ -173,19 +174,6 @@ describe('an aggregate evaluator should be able to', () => {
         input: [],
       });
       expect(result).toEqual(undefined);
-    });
-
-    it('different types compare by string (min)', () => {
-      console.log("minimum");
-      const result = testCase({
-        expr: makeAggregate('min'),
-        input: [
-          Bindings({ '?x': string("11") }),
-          Bindings({ '?x': int('2') }),
-          Bindings({ '?x': string('3') }),
-        ],
-      });
-      expect(result).toEqual(string('11'));
     });
   });
 
@@ -207,7 +195,7 @@ describe('an aggregate evaluator should be able to', () => {
       const result = testCase({
         expr: makeAggregate('max'),
         input: [
-          Bindings({ '?x': string("11") }),
+          Bindings({ '?x': string('11') }),
           Bindings({ '?x': string('2') }),
           Bindings({ '?x': string('1') }),
           Bindings({ '?x': string('3') }),
@@ -222,32 +210,6 @@ describe('an aggregate evaluator should be able to', () => {
         input: [],
       });
       expect(result).toEqual(undefined);
-    });
-
-    it('different types compare by string (max)', () => {
-      console.log("max");
-      const result = testCase({
-        expr: makeAggregate('max'),
-        input: [
-          Bindings({ '?x': string("11") }),
-          Bindings({ '?x': int('2') }),
-          Bindings({ '?x': string('3') }),
-        ],
-      });
-      expect(result).toEqual(string('3'));
-    });
-
-    it('different types compare by string with int type as return (max)', () => {
-      console.log("max int");
-      const result = testCase({
-        expr: makeAggregate('max'),
-        input: [
-          Bindings({ '?x': string("11") }),
-          Bindings({ '?x': int('2') }),
-          Bindings({ '?x': int('3') }),
-        ],
-      });
-      expect(result).toEqual(int('3'));
     });
   });
 
@@ -382,6 +344,42 @@ describe('an aggregate evaluator should be able to', () => {
           ],
         });
       })()).toEqual(undefined);
+    });
+
+    it('different types compare by string (min)', () => {
+      const result = testCase({
+        expr: makeAggregate('min'),
+        input: [
+          Bindings({ '?x': string('11') }),
+          Bindings({ '?x': int('2') }),
+          Bindings({ '?x': string('3') }),
+        ],
+      });
+      expect(result).toEqual(undefined);
+    });
+
+    it('different types compare by string (max)', () => {
+      const result = testCase({
+        expr: makeAggregate('max'),
+        input: [
+          Bindings({ '?x': string('11') }),
+          Bindings({ '?x': int('2') }),
+          Bindings({ '?x': string('3') }),
+        ],
+      });
+      expect(result).toEqual(undefined);
+    });
+
+    it('different types compare by string with int type as return (max)', () => {
+      const result = testCase({
+        expr: makeAggregate('max'),
+        input: [
+          Bindings({ '?x': string('11') }),
+          Bindings({ '?x': int('2') }),
+          Bindings({ '?x': int('3') }),
+        ],
+      });
+      expect(result).toEqual(undefined);
     });
 
     describe('when we ask for throwing errors', () => {

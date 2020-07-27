@@ -182,45 +182,52 @@ class Sum extends BaseAggregator<SumState> {
   }
 }
 
-type ExtremeState = { value: number, term: RDF.Term };
-class Min extends BaseAggregator<ExtremeState[]> {
-  init(start: RDF.Term): ExtremeState[] {
-    const {value} = extractValue(start);
-    return [{ value: value, term: start }];
+type ExtremeState = { extremeValue: number, term: RDF.Literal };
+class Min extends BaseAggregator<ExtremeState> {
+  init(start: RDF.Term): ExtremeState {
+    const {value} = extractValue(null, start);
+    if (start.termType === 'Literal') {
+      return { extremeValue:value, term: start };
+    }
   }
 
-  put(state: ExtremeState[], term: RDF.Term): ExtremeState[] {
-    const extracted = extractValue(term);
-    state.push({
-      value: extracted.value,
-      term: term,
-    });
+  put(state: ExtremeState, term: RDF.Term): ExtremeState {
+    const extracted = extractValue(state.term, term);
+    if (extracted.value < state.extremeValue && term.termType === 'Literal') {
+      return {
+        extremeValue: extracted.value ,
+        term,
+      };
+    }
     return state;
   }
 
-  result(state:  ExtremeState[]): RDF.Term {
-    return getExtreme(state, true);
+  result(state: ExtremeState): RDF.Term {
+    return state.term;
   }
 }
 
-
-class Max extends BaseAggregator<ExtremeState[]> {
-  init(start: RDF.Term): ExtremeState[] {
-    const {value} = extractValue(start);
-    return [{ value: value, term: start }];
+class Max extends BaseAggregator<ExtremeState> {
+  init(start: RDF.Term): ExtremeState {
+    const {value} = extractValue(null, start);
+    if (start.termType === 'Literal') {
+      return { extremeValue:value, term: start };
+    }
   }
 
-  put(state: ExtremeState[], term: RDF.Term): ExtremeState[] {
-    const extracted = extractValue(term);
-    state.push({
-      value: extracted.value,
-      term: term,
-    });
+  put(state: ExtremeState, term: RDF.Term): ExtremeState {
+    const extracted = extractValue(state.term, term);
+    if (extracted.value > state.extremeValue && term.termType === 'Literal') {
+      return {
+        extremeValue: extracted.value ,
+        term,
+      };
+    }
     return state;
   }
 
-  result(state:  ExtremeState[]): RDF.Term {
-    return getExtreme(state, false);
+  result(state: ExtremeState): RDF.Term {
+    return state.term;
   }
 }
 
@@ -305,8 +312,10 @@ export const aggregators: Readonly<{ [key in SetFunction]: AggregatorClass }> = 
 
 function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number, type: C.NumericTypeURL } {
   // TODO: Check behaviour
-  if (term.termType !== 'Literal' || !C.NumericTypeURLs.contains(term.datatype.value)) {
+  if (term.termType !== 'Literal') {
     throw new Error('Term with value ' + term.value + ' has type ' + term.termType +' and is not a numeric literal');
+  } else if (!C.NumericTypeURLs.contains(term.datatype.value)) {
+    throw new Error('Term datatype '+ term.datatype.value +' with value ' + term.value + ' has type ' + term.termType +' and is not a numeric literal');
   }
 
   const type: C.NumericTypeURL = term.datatype.value as unknown as C.NumericTypeURL;
@@ -314,39 +323,14 @@ function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number, typ
   return { type, value };
 }
 
-function extractValue(term: RDF.Term): {value: any, type:string}  {
+function extractValue(extremeTerm: RDF.Literal, term: RDF.Term): {value: any, type:string}  {
   if (term.termType !== 'Literal') {
     throw new Error('Term with value ' + term.value + ' has type ' + term.termType +' and is not a literal');
+  } else if (extremeTerm && extremeTerm.datatype.value !== term.datatype.value) {
+    throw new Error('Inconsistent types were found. Previous term types were of type ' +
+      extremeTerm.datatype.value + ' now type is ' + term.datatype.value +'.');
   }
+
   const transformedLit = transformLiteral(term);
   return {type: transformedLit.typeURL.value, value: transformedLit.typedValue};
-}
-
-function getExtreme(state: ExtremeState[], isMin:boolean): RDF.Term {
-  // Check if all elements are of the same type
-  let sameType = true;
-  const type = extractValue(state[0].term).type;
-  for (const element of state) {
-    const extractedElem = extractValue(element.term);
-    if (extractedElem.type !== type) {
-      sameType = false;
-      break;
-    }
-  }
-
-  let extreme = state[0].term;
-  const extremeValue = getComparingValue(sameType, state[0]);
-
-  for (const element of state) {
-    const elementValue = getComparingValue(sameType, element);
-    if ((isMin && elementValue < extremeValue) || (!isMin && elementValue > extremeValue)) {
-      extreme = element.term;
-    }
-  }
-  return extreme;
-}
-
-// If the type is identical then the real value will be used otherwise it will be stringified
-function getComparingValue(sameType: boolean, element:ExtremeState): any {
-  return sameType ? element.value : '' + element.value;
 }
