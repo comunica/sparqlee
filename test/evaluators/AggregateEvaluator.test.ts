@@ -34,7 +34,7 @@ function makeAggregate(aggregator: string, distinct = false, separator?: string)
 }
 
 function nonLiteral(): RDF.Term {
-  return namedNode('http://www.w3.org/2001/XMLSchema#integer');
+  return namedNode('http://example.org/');
 }
 
 function int(value: string): RDF.Term {
@@ -326,6 +326,19 @@ describe('an aggregate evaluator should be able to', () => {
   });
 
   describe('handle errors', () => {
+    it('and the first value errors', () => {
+      expect(() => {
+        testCase({
+          expr: makeAggregate('max'),
+          input: [
+            Bindings({ '?x': literal('1') }),
+            Bindings({ '?x': int('1') }),
+          ],
+          throwError: true,
+        });
+      }).toThrow();
+    });
+
     it('in the first value', () => {
       expect((() => {
         testCase({
@@ -350,7 +363,7 @@ describe('an aggregate evaluator should be able to', () => {
       })()).toEqual(undefined);
     });
 
-    it('different types compare by string (min)', () => {
+    it('different types compared in min should return undefined', () => {
       const result = testCase({
         expr: makeAggregate('min'),
         input: [
@@ -362,7 +375,7 @@ describe('an aggregate evaluator should be able to', () => {
       expect(result).toEqual(undefined);
     });
 
-    it('different types compare by string (max)', () => {
+    it('different types compared in max should return undefined', () => {
       const result = testCase({
         expr: makeAggregate('max'),
         input: [
@@ -374,7 +387,7 @@ describe('an aggregate evaluator should be able to', () => {
       expect(result).toEqual(undefined);
     });
 
-    it('different types compare by string with int type as return (max)', () => {
+    it('different types compared in max should return undefined', () => {
       const result = testCase({
         expr: makeAggregate('max'),
         input: [

@@ -16,10 +16,7 @@ import { Bindings } from '../Types';
 import { parseXSDFloat } from '../util/Parsing';
 import { SetFunction, TypeURL } from './../util/Consts';
 import { SyncEvaluator, SyncEvaluatorConfig } from './SyncEvaluator';
-
 import { transformLiteral } from '../Transformation';
-import { orderTypes } from '../util/Ordering';
-import { termToString } from 'rdf-string';
 
 // TODO: Support hooks
 export class AggregateEvaluator {
