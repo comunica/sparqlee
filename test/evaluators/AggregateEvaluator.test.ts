@@ -325,32 +325,6 @@ describe('an aggregate evaluator should be able to', () => {
     });
   });
 
-  describe('handle errors', () => {
-    it('and the first value errors', () => {
-      expect(() => {
-        testCase({
-          expr: makeAggregate('max'),
-          input: [
-            Bindings({ '?x': literal('1') }),
-            Bindings({ '?x': int('1') }),
-          ],
-          throwError: true,
-        });
-      }).toThrow();
-    });
-
-    it('in the first value', () => {
-      expect((() => {
-        testCase({
-          expr: makeAggregate('sum'),
-          input: [
-            Bindings({ '?x': literal('1') }),
-            Bindings({ '?x': int('1') }),
-          ],
-        });
-      })()).toEqual(undefined);
-    });
-
     it('on a put', () => {
       expect((() => {
         testCase({
@@ -422,6 +396,31 @@ describe('an aggregate evaluator should be able to', () => {
           });
         }).toThrow();
       });
+
+      it('and the first value errors', () => {
+        expect(() => {
+          testCase({
+            expr: makeAggregate('max'),
+            input: [
+              Bindings({ '?x': literal('1') }),
+              Bindings({ '?x': int('1') }),
+            ],
+            throwError: true,
+          });
+        }).toThrow();
+      });
+
+      it('and any value in the stream errors', () => {
+        expect(() => {
+          testCase({
+            expr: makeAggregate('max'),
+            input: [
+              Bindings({ '?x': int('1') }),
+              Bindings({ '?x': literal('1') }),
+            ],
+            throwError: true,
+          });
+        }).toThrow();
     });
   });
 });
