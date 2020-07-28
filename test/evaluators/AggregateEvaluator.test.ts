@@ -387,18 +387,6 @@ describe('an aggregate evaluator should be able to', () => {
       expect(result).toEqual(undefined);
     });
 
-    it('different types compared in max should return undefined', () => {
-      const result = testCase({
-        expr: makeAggregate('max'),
-        input: [
-          Bindings({ '?x': string('11') }),
-          Bindings({ '?x': int('2') }),
-          Bindings({ '?x': int('3') }),
-        ],
-      });
-      expect(result).toEqual(undefined);
-    });
-
     it('passing a non-literal to max should not be accepted', () => {
       const result = testCase({
         expr: makeAggregate('max'),
