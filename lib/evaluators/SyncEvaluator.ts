@@ -19,11 +19,11 @@ export interface SyncEvaluatorConfig {
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => boolean;
   aggregate?: (expression: Alg.AggregateExpression) => RDF.Term;
   bnode?: (input?: string) => RDF.BlankNode;
-  customFunctionCB?: SyncExtensionFunctionCB;
+  extensionFunctionCallback?: SyncExtensionFunctionCallback;
 }
 
 export type SyncExtensionFunction = (args: RDF.Term[]) => RDF.Term;
-export type SyncExtensionFunctionCB = (functionNamedNode: NamedNode) => SyncExtensionFunction;
+export type SyncExtensionFunctionCallback = (functionNamedNode: NamedNode) => SyncExtensionFunction;
 
 export type SyncEvaluatorContext = SyncEvaluatorConfig & {
   now: Date;
@@ -42,7 +42,7 @@ export class SyncEvaluator {
       aggregate: config.aggregate,
     };
 
-    this.expr = transformAlgebra(algExpr, {syncExtensionFunctionCB: config.customFunctionCB});
+    this.expr = transformAlgebra(algExpr, config.extensionFunctionCallback, true);
     this.evaluator = new SyncRecursiveEvaluator(context);
   }
 

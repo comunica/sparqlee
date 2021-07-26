@@ -8,13 +8,13 @@ import {transformAlgebra} from '../Transformation';
 import {Bindings, ExpressionEvaluator} from '../Types';
 
 import {AsyncRecursiveEvaluator} from './RecursiveExpressionEvaluator';
-import {SyncExtensionFunctionCB} from './SyncEvaluator';
+import {SyncExtensionFunctionCallback} from './SyncEvaluator';
 
 type Expression = E.Expression;
 type Term = E.TermExpression;
 
 export type AsyncExtensionFunction = (args: RDF.Term[]) => Promise<RDF.Term>;
-export type AsyncExtensionFunctionCB = (functionNamedNode: NamedNode) => AsyncExtensionFunction;
+export type AsyncExtensionFunctionCallback = (functionNamedNode: NamedNode) => AsyncExtensionFunction;
 
 export interface AsyncEvaluatorConfig {
   now?: Date;
@@ -23,8 +23,7 @@ export interface AsyncEvaluatorConfig {
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;
   aggregate?: (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
   bnode?: (input?: string) => Promise<RDF.BlankNode>;
-  asyncExtensionFunctionCB?: AsyncExtensionFunctionCB;
-  syncExtensionFunctionCB?: SyncExtensionFunctionCB;
+  extensionFunctionCallback?: AsyncExtensionFunctionCallback;
 }
 
 export type AsyncEvaluatorContext = AsyncEvaluatorConfig & {
@@ -44,10 +43,7 @@ export class AsyncEvaluator {
       aggregate: config.aggregate,
     };
 
-    this.expr = transformAlgebra(algExpr, {
-      asyncExtensionFunctionCB: config.asyncExtensionFunctionCB,
-      syncExtensionFunctionCB: config.syncExtensionFunctionCB,
-    });
+    this.expr = transformAlgebra(algExpr, config.extensionFunctionCallback, false);
 
     this.evaluator = new AsyncRecursiveEvaluator(context);
   }

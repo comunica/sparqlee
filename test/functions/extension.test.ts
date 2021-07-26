@@ -45,19 +45,9 @@ describe('extension function: term-equal', () => {
   };
   describe('async evaluation of async function', () => {
     const config = Object.assign(Object.assign({}, configBase), {
-      asyncExtensionFunctionCB: ((functionNamedNode: NamedNode) => {
+      asyncExtensionFunctionCallback: ((functionNamedNode: NamedNode) => {
         if (functionNamedNode.value === 'https://example.org/functions#equal') {
         return (args: RDF.Term[]) => Promise.resolve(extensionTermEqual(args));
-        }
-      })
-    });
-    testTable({...wrap(config), table});
-  });
-  describe('async evaluation of sync function', () => {
-    const config = Object.assign(Object.assign({}, configBase), {
-      syncExtensionFunctionCB: ((functionNamedNode: NamedNode) => {
-        if (functionNamedNode.value === 'https://example.org/functions#equal') {
-          return extensionTermEqual;
         }
       })
     });
