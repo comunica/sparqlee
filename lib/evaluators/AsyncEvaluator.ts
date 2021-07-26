@@ -1,15 +1,20 @@
 import * as RDF from 'rdf-js';
-import { Algebra as Alg } from 'sparqlalgebrajs';
+import {NamedNode} from 'rdf-js';
+import {Algebra as Alg} from 'sparqlalgebrajs';
 
 import * as E from '../expressions/Expressions';
 
-import { transformAlgebra } from '../Transformation';
-import { Bindings, ExpressionEvaluator } from '../Types';
+import {transformAlgebra} from '../Transformation';
+import {Bindings, ExpressionEvaluator} from '../Types';
 
-import { AsyncRecursiveEvaluator } from './RecursiveExpressionEvaluator';
+import {AsyncRecursiveEvaluator} from './RecursiveExpressionEvaluator';
+import {SyncExtensionFunctionCB} from './SyncEvaluator';
 
 type Expression = E.Expression;
 type Term = E.TermExpression;
+
+export type AsyncExtensionFunction = (args: RDF.Term[]) => Promise<RDF.Term>;
+export type AsyncExtensionFunctionCB = (functionNamedNode: NamedNode) => AsyncExtensionFunction;
 
 export interface AsyncEvaluatorConfig {
   now?: Date;
@@ -18,6 +23,8 @@ export interface AsyncEvaluatorConfig {
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;
   aggregate?: (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
   bnode?: (input?: string) => Promise<RDF.BlankNode>;
+  asyncExtensionFunctionCB?: AsyncExtensionFunctionCB;
+  syncExtensionFunctionCB?: SyncExtensionFunctionCB;
 }
 
 export type AsyncEvaluatorContext = AsyncEvaluatorConfig & {
@@ -29,8 +36,6 @@ export class AsyncEvaluator {
   private evaluator: ExpressionEvaluator<Expression, Promise<Term>>;
 
   constructor(public algExpr: Alg.Expression, public config: AsyncEvaluatorConfig = {}) {
-    this.expr = transformAlgebra(algExpr);
-
     const context = {
       now: config.now || new Date(Date.now()),
       bnode: config.bnode || undefined,
@@ -38,6 +43,11 @@ export class AsyncEvaluator {
       exists: config.exists,
       aggregate: config.aggregate,
     };
+
+    this.expr = transformAlgebra(algExpr, {
+      asyncExtensionFunctionCB: config.asyncExtensionFunctionCB,
+      syncExtensionFunctionCB: config.syncExtensionFunctionCB,
+    });
 
     this.evaluator = new AsyncRecursiveEvaluator(context);
   }
