@@ -53,4 +53,5 @@ describe('extension function: term-equal', () => {
     });
     testTable({...wrap(config), table});
   });
+  // TODO: we should test whether the right error is thrown here. (needs to be implemented when we refactor tests)
 });

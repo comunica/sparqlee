@@ -1,5 +1,4 @@
 import * as RDF from 'rdf-js';
-import {NamedNode} from 'rdf-js';
 import {Algebra as Alg} from 'sparqlalgebrajs';
 
 import * as E from '../expressions/Expressions';
@@ -8,13 +7,12 @@ import {transformAlgebra} from '../Transformation';
 import {Bindings, ExpressionEvaluator} from '../Types';
 
 import {AsyncRecursiveEvaluator} from './RecursiveExpressionEvaluator';
-import {SyncExtensionFunctionCallback} from './SyncEvaluator';
 
 type Expression = E.Expression;
 type Term = E.TermExpression;
 
 export type AsyncExtensionFunction = (args: RDF.Term[]) => Promise<RDF.Term>;
-export type AsyncExtensionFunctionCallback = (functionNamedNode: NamedNode) => AsyncExtensionFunction;
+export type AsyncExtensionFunctionCallback = (functionNamedNode: RDF.NamedNode) => AsyncExtensionFunction | null;
 
 export interface AsyncEvaluatorConfig {
   now?: Date;
@@ -43,7 +41,8 @@ export class AsyncEvaluator {
       aggregate: config.aggregate,
     };
 
-    this.expr = transformAlgebra<false>(algExpr, config.extensionFunctionCallback, false);
+    const extensionFunctionCallback = config.extensionFunctionCallback || (() => null);
+    this.expr = transformAlgebra<false>(algExpr, extensionFunctionCallback, false);
 
     this.evaluator = new AsyncRecursiveEvaluator(context);
   }
