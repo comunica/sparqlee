@@ -43,7 +43,7 @@ export class AsyncEvaluator {
       aggregate: config.aggregate,
     };
 
-    this.expr = transformAlgebra(algExpr, config.extensionFunctionCallback, false);
+    this.expr = transformAlgebra<false>(algExpr, config.extensionFunctionCallback, false);
 
     this.evaluator = new AsyncRecursiveEvaluator(context);
   }

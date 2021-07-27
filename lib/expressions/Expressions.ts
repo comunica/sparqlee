@@ -11,7 +11,7 @@ export enum ExpressionType {
   SpecialOperator = 'specialOperator',
   Term = 'term',
   Variable = 'variable',
-  AsyncExpression = 'asyncExpression',
+  AsyncExtension = 'asyncExpression',
   SyncExtension = 'syncExtension',
 }
 
@@ -49,7 +49,7 @@ export type NamedExpression = ExpressionProps & {
 };
 
 export type AsyncExtensionExpression = ExpressionProps & {
-  expressionType: ExpressionType.AsyncExpression;
+  expressionType: ExpressionType.AsyncExtension;
   name: RDF.NamedNode;
   apply: AsyncExtensionApplication;
   args: Expression[];

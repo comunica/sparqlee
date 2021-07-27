@@ -2,7 +2,7 @@ import {AsyncExtensionApplication, AsyncExtensionExpression, Expression, Express
 import * as RDF from 'rdf-js';
 
 export class AsyncExtension implements AsyncExtensionExpression {
-  expressionType: ExpressionType.AsyncExpression = ExpressionType.AsyncExpression;
+  expressionType: ExpressionType.AsyncExtension = ExpressionType.AsyncExtension;
 
   constructor(
     public name: RDF.NamedNode,

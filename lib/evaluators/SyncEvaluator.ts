@@ -42,7 +42,7 @@ export class SyncEvaluator {
       aggregate: config.aggregate,
     };
 
-    this.expr = transformAlgebra(algExpr, config.extensionFunctionCallback, true);
+    this.expr = transformAlgebra<true>(algExpr, config.extensionFunctionCallback, true);
     this.evaluator = new SyncRecursiveEvaluator(context);
   }
 

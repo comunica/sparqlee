@@ -45,8 +45,7 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
       [E.ExpressionType.Named]: this.evalNamed,
       [E.ExpressionType.Existence]: this.evalExistence,
       [E.ExpressionType.Aggregate]: this.evalAggregate,
-      [E.ExpressionType.AsyncExpression]: this.evalAsyncExtension,
-      [E.ExpressionType.SyncExtension]: this.evalSyncExtension,
+      [E.ExpressionType.AsyncExtension]: this.evalAsyncExtension,
     };
 
   constructor(private context: AsyncEvaluatorContext) { }
@@ -85,11 +84,6 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
 
   private async evalNamed(expr: Named, mapping: Bindings): Promise<Term> {
     return expr.apply(await this._evalAsyncArgs(expr.args, mapping));
-  }
-
-  private async evalSyncExtension(expr: SyncExtension, mapping: Bindings): Promise<Term> {
-    return expr.apply(await this._evalAsyncArgs(expr.args, mapping));
-
   }
 
   private async evalAsyncExtension(expr: AsyncExtension, mapping: Bindings): Promise<Term> {

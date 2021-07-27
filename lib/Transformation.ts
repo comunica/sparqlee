@@ -14,9 +14,10 @@ import {namedFunctions, regularFunctions, specialFunctions,} from './functions';
 import {AsyncExtensionFunction, AsyncExtensionFunctionCallback} from './evaluators/AsyncEvaluator';
 import {SyncExtensionFunction, SyncExtensionFunctionCallback} from './evaluators/SyncEvaluator';
 
-type ExtensionFunctionCallback = AsyncExtensionFunctionCallback | SyncExtensionFunctionCallback;
+type ExtensionCallbackType<T extends boolean> = T extends true ? SyncExtensionFunctionCallback : AsyncExtensionFunctionCallback;
 
-export function transformAlgebra(expr: Alg.Expression, extensionFunctionCallback: ExtensionFunctionCallback, sync: boolean): E.Expression {
+export function transformAlgebra<SyncType extends boolean>(expr: Alg.Expression,
+        extensionFunctionCallback: ExtensionCallbackType<SyncType>, sync: SyncType): E.Expression {
   if (!expr) { throw new Err.InvalidExpression(expr); }
   const types = Alg.expressionTypes;
 
@@ -24,9 +25,9 @@ export function transformAlgebra(expr: Alg.Expression, extensionFunctionCallback
     case types.TERM:
       return transformTerm(expr as Alg.TermExpression);
     case types.OPERATOR:
-      return transformOperator(expr as Alg.OperatorExpression, extensionFunctionCallback, sync);
+      return transformOperator<SyncType>(expr as Alg.OperatorExpression, extensionFunctionCallback, sync);
     case types.NAMED:
-      return transformNamed(expr as Alg.NamedExpression, extensionFunctionCallback, sync);
+      return transformNamed<SyncType>(expr as Alg.NamedExpression, extensionFunctionCallback, sync);
     case types.EXISTENCE:
       return transformExistence(expr as Alg.ExistenceExpression);
     case types.AGGREGATE:
@@ -142,11 +143,12 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
   }
 }
 
-function transformOperator(expr: Alg.OperatorExpression, extensionCallback: ExtensionFunctionCallback, sync: boolean)
+function transformOperator<SyncType extends boolean>(expr: Alg.OperatorExpression,
+                                                     extensionCallback: ExtensionCallbackType<SyncType>, sync: SyncType)
   : E.OperatorExpression | E.SpecialOperatorExpression {
   if (C.SpecialOperators.contains(expr.operator)) {
     const op = expr.operator as C.SpecialOperator;
-    const args = expr.args.map((a) => transformAlgebra(a, extensionCallback, sync));
+    const args = expr.args.map((a) => transformAlgebra<SyncType>(a, extensionCallback, sync));
     const func = specialFunctions.get(op);
     if (!func.checkArity(args)) {
       throw new Err.InvalidArity(args, op);
@@ -157,7 +159,7 @@ function transformOperator(expr: Alg.OperatorExpression, extensionCallback: Exte
       throw new Err.UnknownOperator(expr.operator);
     }
     const op = expr.operator as C.RegularOperator;
-    const args = expr.args.map((a) => transformAlgebra(a, extensionCallback, sync));
+    const args = expr.args.map((a) => transformAlgebra<SyncType>(a, extensionCallback, sync));
     const func = regularFunctions.get(op);
     if (!hasCorrectArity(args, func.arity)) { throw new Err.InvalidArity(args, op); }
     return new E.Operator(args, func.apply);
@@ -187,9 +189,9 @@ function wrapAsyncFunction(f: AsyncExtensionFunction, name: string): AsyncExtens
     return transformRDFTermUnsafe(res);
   });
 }
-
 // TODO: Support passing functions to override default behaviour;
-function transformNamed(expr: Alg.NamedExpression, extensionCallback: ExtensionFunctionCallback, sync: boolean)
+function transformNamed<SyncType extends  boolean>(expr: Alg.NamedExpression,
+                                                   extensionCallback: ExtensionCallbackType<SyncType>, sync: SyncType)
   : E.NamedExpression | E.AsyncExtensionExpression | E.SyncExtensionExpression  {
   const funcName = expr.name.value;
   const args = expr.args.map((a) => transformAlgebra(a, extensionCallback, sync));
