@@ -45,7 +45,7 @@ describe('extension function: term-equal', () => {
   };
   describe('async evaluation of async function', () => {
     const config = Object.assign(Object.assign({}, configBase), {
-      asyncExtensionFunctionCallback: ((functionNamedNode: NamedNode) => {
+      asyncExtensionFunctionCreator: ((functionNamedNode: NamedNode) => {
         if (functionNamedNode.value === 'https://example.org/functions#equal') {
         return (args: RDF.Term[]) => Promise.resolve(extensionTermEqual(args));
         }

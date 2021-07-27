@@ -11,7 +11,7 @@ export enum ExpressionType {
   SpecialOperator = 'specialOperator',
   Term = 'term',
   Variable = 'variable',
-  AsyncExtension = 'asyncExpression',
+  AsyncExtension = 'asyncExtension',
   SyncExtension = 'syncExtension',
 }
 

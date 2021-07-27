@@ -2,8 +2,8 @@ import * as RDF from 'rdf-js';
 import { stringToTerm } from 'rdf-string';
 
 import { EvaluationConfig, Notation } from './TruthTable';
-import {AsyncExtensionFunctionCallback} from '../../lib/evaluators/AsyncEvaluator';
-import {SyncExtensionFunctionCallback} from '../../lib/evaluators/SyncEvaluator';
+import {AsyncExtensionFunctionCreator} from '../../lib/evaluators/AsyncEvaluator';
+import {SyncExtensionFunctionCreator} from '../../lib/evaluators/SyncEvaluator';
 
 export type StringMap = { [key: string]: string };
 export type TermMap = { [key: string]: RDF.Term };
@@ -17,17 +17,17 @@ export interface NewEvaluationConfig {
   arity: number;
   aliases: StringMap;
   notation: Notation;
-  asyncExtensionFunctionCallback?: AsyncExtensionFunctionCallback;
-  syncExtensionFunctionCallback?: SyncExtensionFunctionCallback;
+  asyncExtensionFunctionCreator?: AsyncExtensionFunctionCreator;
+  syncExtensionFunctionCreator?: SyncExtensionFunctionCreator;
 }
 
 // Temp function, should remove later
 // TODO
 export function wrap(conf: NewEvaluationConfig): EvaluationConfig {
-  const { op, arity, aliases, notation, asyncExtensionFunctionCallback, syncExtensionFunctionCallback } = conf;
+  const { op, arity, aliases, notation, asyncExtensionFunctionCreator, syncExtensionFunctionCreator } = conf;
   const aliasMap = aliases;
   const resultMap = mapToTerm(aliases);
-  return { op, arity, aliasMap, resultMap, notation, asyncExtensionFunctionCallback, syncExtensionFunctionCallback };
+  return { op, arity, aliasMap, resultMap, notation, asyncExtensionFunctionCreator, syncExtensionFunctionCreator };
 }
 
 function mapToTerm(map: StringMap): TermMap {
