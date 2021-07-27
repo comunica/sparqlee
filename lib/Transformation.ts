@@ -193,26 +193,26 @@ function transformNamed(expr: Alg.NamedExpression, creatorConfig: FunctionCreato
   : E.NamedExpression | E.AsyncExtensionExpression | E.SyncExtensionExpression  {
   const funcName = expr.name.value;
   const args = expr.args.map((a) => transformAlgebra(a, creatorConfig));
-  if (!C.NamedOperators.contains(funcName as C.NamedOperator)) {
-    if (creatorConfig.type === 'sync') {
-      const func = creatorConfig.creator(expr.name);
-      if (func) {
-        const simpleAppl = wrapSyncFunction(func, expr.name.value);
-        return new E.SyncExtension(expr.name, args, simpleAppl);
-      }
-    } else {
-      const func = creatorConfig.creator(expr.name);
-      if (func) {
-        const asyncAppl = wrapAsyncFunction(func, expr.name.value);
-        return new E.AsyncExtension(expr.name, args, asyncAppl);
-      }
-    }
-    throw new Err.UnknownNamedOperator(expr.name.value);
-  } else {
+  if (C.NamedOperators.contains(funcName as C.NamedOperator)) {
+    // return a basic named expression
     const op = expr.name.value as any as C.NamedOperator;
     const func = namedFunctions.get(op);
     return new E.Named(expr.name, args, func.apply);
+  } else if (creatorConfig.type === 'sync') {
+    // Expression might be extension function, check this for the sync or async case
+    const func = creatorConfig.creator(expr.name);
+    if (func) {
+      const simpleAppl = wrapSyncFunction(func, expr.name.value);
+      return new E.SyncExtension(expr.name, args, simpleAppl);
+    }
+  } else {
+    const func = creatorConfig.creator(expr.name);
+    if (func) {
+      const asyncAppl = wrapAsyncFunction(func, expr.name.value);
+      return new E.AsyncExtension(expr.name, args, asyncAppl);
+    }
   }
+  throw new Err.UnknownNamedOperator(expr.name.value);
 }
 
 function hasCorrectArity(args: E.Expression[], arity: number | number[]): boolean {
