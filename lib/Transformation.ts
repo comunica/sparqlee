@@ -199,13 +199,14 @@ function transformNamed(expr: Alg.NamedExpression, creatorConfig: FunctionCreato
     const func = namedFunctions.get(op);
     return new E.Named(expr.name, args, func.apply);
   } else if (creatorConfig.type === 'sync') {
-    // Expression might be extension function, check this for the sync or async case
+    // Expression might be extension function, check this for the sync
     const func = creatorConfig.creator(expr.name);
     if (func) {
       const simpleAppl = wrapSyncFunction(func, expr.name.value);
       return new E.SyncExtension(expr.name, args, simpleAppl);
     }
   } else {
+    // The expression might be an extension function, check this for the async case
     const func = creatorConfig.creator(expr.name);
     if (func) {
       const asyncAppl = wrapAsyncFunction(func, expr.name.value);

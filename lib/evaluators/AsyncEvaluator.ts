@@ -12,7 +12,7 @@ type Expression = E.Expression;
 type Term = E.TermExpression;
 
 export type AsyncExtensionFunction = (args: RDF.Term[]) => Promise<RDF.Term>;
-export type AsyncExtensionFunctionCreator = (functionNamedNode: RDF.NamedNode) => AsyncExtensionFunction | null;
+export type AsyncExtensionFunctionCreator = (functionNamedNode: RDF.NamedNode) => AsyncExtensionFunction | undefined;
 
 export interface AsyncEvaluatorConfig {
   now?: Date;
@@ -41,7 +41,7 @@ export class AsyncEvaluator {
       aggregate: config.aggregate,
     };
 
-    const extensionFunctionCreator = config.extensionFunctionCreator || (() => null);
+    const extensionFunctionCreator = config.extensionFunctionCreator || (() => undefined);
     this.expr = transformAlgebra(algExpr, { type: 'async', creator: extensionFunctionCreator });
 
     this.evaluator = new AsyncRecursiveEvaluator(context);

@@ -43,7 +43,7 @@ describe('extension function: term-equal', () => {
     aliases: merge(numeric, str, dateTime, bool),
     notation: Notation.Function,
   };
-  describe('async evaluation of async function', () => {
+  describe('async evaluation of async equal function', () => {
     const config = Object.assign(Object.assign({}, configBase), {
       asyncExtensionFunctionCreator: ((functionNamedNode: NamedNode) => {
         if (functionNamedNode.value === 'https://example.org/functions#equal') {

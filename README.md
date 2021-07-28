@@ -120,10 +120,6 @@ config.extensionFunctionCreator = (functionName: RDF.NamedNode) => {
 }
 ```
 
-### Custom functions
-
-**NOTE: Not yet implemented. On the roadmap.**
-
 ### Binary
 
 Sparqlee also provides a binary for evaluating simple expressions from the command line. Example

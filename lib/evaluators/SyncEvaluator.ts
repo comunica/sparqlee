@@ -23,7 +23,7 @@ export interface SyncEvaluatorConfig {
 }
 
 export type SyncExtensionFunction = (args: RDF.Term[]) => RDF.Term;
-export type SyncExtensionFunctionCreator = (functionNamedNode: NamedNode) => SyncExtensionFunction | null;
+export type SyncExtensionFunctionCreator = (functionNamedNode: NamedNode) => SyncExtensionFunction | undefined;
 
 export type SyncEvaluatorContext = SyncEvaluatorConfig & {
   now: Date;
@@ -42,7 +42,7 @@ export class SyncEvaluator {
       aggregate: config.aggregate,
     };
 
-    const extensionFunctionCreator = config.extensionFunctionCreator || (() => null);
+    const extensionFunctionCreator = config.extensionFunctionCreator || (() => undefined);
     this.expr = transformAlgebra(algExpr, { type: 'sync', creator: extensionFunctionCreator });
     this.evaluator = new SyncRecursiveEvaluator(context);
   }
