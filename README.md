@@ -41,7 +41,7 @@ interface AsyncEvaluatorConfig {
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;
   aggregate?: (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
   bnode?: (input?: string) => Promise<RDF.BlankNode>;
-  extensionFunctionCreator?: (functionNamedNode: RDF.NamedNode) => (args: RDF.Term[]) => Promise<RDF.Term> | null;;
+  extensionFunctionCreator?: (functionNamedNode: RDF.NamedNode) => (args: RDF.Term[]) => Promise<RDF.Term> | undefined;
 }
 ```
 
