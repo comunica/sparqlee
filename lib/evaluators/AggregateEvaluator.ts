@@ -93,7 +93,7 @@ abstract class BaseAggregateEvaluator {
   }
 }
 
-// TODO: Support hooks
+// TODO: Support hooks & change name to SyncAggregateEvaluator
 export class AggregateEvaluator extends BaseAggregateEvaluator{
   private evaluator: SyncEvaluator;
 
