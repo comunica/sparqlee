@@ -13,34 +13,48 @@ type BaseTestCaseArgs = { expr: Algebra.AggregateExpression, throwError?: boolea
 type TestCaseArgs = BaseTestCaseArgs & { input: Bindings[] };
 
 async function testCase({ expr, input, throwError, evalTogether }: TestCaseArgs): Promise<RDF.Term> {
-  let syncResult: RDF.Term | undefined;
-  let asyncResult: RDF.Term | undefined;
+  const results: Array<RDF.Term | undefined> = [];
   if (input.length === 0) {
-    syncResult = AggregateEvaluator.emptyValue(expr, throwError || false);
-    asyncResult = AsyncAggregateEvaluator.emptyValue(expr, throwError || false);
+    results.push(AggregateEvaluator.emptyValue(expr, throwError || false));
+    results.push(AsyncAggregateEvaluator.emptyValue(expr, throwError || false));
   } else {
+    // Evaluate both sync and async while awaiting all
     const syncEvaluator = new AggregateEvaluator(expr, undefined, throwError || false);
     const asyncEvaluator = new AsyncAggregateEvaluator(expr, undefined, throwError || false);
     for (const bindings of input) {
       syncEvaluator.put(bindings);
       await asyncEvaluator.put(bindings);
     }
-    syncResult = syncEvaluator.result();
-    asyncResult = asyncEvaluator.result();
-  }
-  // We need to check here because they could be undefined.
-  if (syncResult && asyncResult && ! syncResult.equals(asyncResult)) {
-    throw new Error(`Result of sync and async AggregateEvaluator should be the same. Got ${syncResult.value} and ${asyncResult.value}` );
-  }
-  if (evalTogether) {
-    const togetherEvaluator = new AsyncAggregateEvaluator(expr, undefined, throwError || false);
-    await Promise.all(input.map(bindings => togetherEvaluator.put(bindings)));
-    const togetherResult: RDF.Term | undefined = togetherEvaluator.result();
-    if (asyncResult && togetherResult && !asyncResult.equals(togetherResult)) {
-      throw new Error('Results of togetherEvaluator and async differ.');
+    results.push(syncEvaluator.result());
+    results.push(asyncEvaluator.result());
+    // If we can evaluate the aggregator all at once, we will test this to
+    if (evalTogether) {
+      const togetherEvaluator = new AsyncAggregateEvaluator(expr, undefined, throwError || false);
+      await Promise.all(input.map(bindings => togetherEvaluator.put(bindings)));
+      results.push(togetherEvaluator.result());
     }
+    // We test whether we can also use the both sync and async AggregateEvaluators more freely.
+    const freeSyncAggregateEvaluator = new AggregateEvaluator(expr, undefined, throwError || false);
+    input.forEach(bindings => freeSyncAggregateEvaluator.putTerm(freeSyncAggregateEvaluator.evaluate(bindings)));
+    results.push(freeSyncAggregateEvaluator.result());
+    const freeAsyncAggregateEvaluator = new AsyncAggregateEvaluator(expr, undefined, throwError || false);
+    const terms = await Promise.all(input.map(bindings => freeAsyncAggregateEvaluator.evaluate(bindings)));
+    terms.forEach(term => freeAsyncAggregateEvaluator.putTerm(term));
+    results.push(freeAsyncAggregateEvaluator.result());
   }
-  return syncResult;
+  const equalCheck = results.every(((value, index, array) => {
+    const other = array[(index + 1) % array.length];
+    return (!other && !value) || (value && value.equals(other));
+  }));
+  // We need to check here because they could be undefined.
+  if (! equalCheck) {
+    let message = 'Not all results are equal.';
+    if (evalTogether) {
+      message = message.concat(' This might be because the given aggregator can not reliably be evaluated together.');
+    }
+    throw new Error(message);
+  }
+  return results[0];
 }
 
 function makeAggregate(aggregator: string, distinct = false, separator?: string):

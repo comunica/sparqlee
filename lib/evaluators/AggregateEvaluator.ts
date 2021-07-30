@@ -39,7 +39,7 @@ class BaseAggregateSupporter {
    * However, aggregate error handling says to not bind the result in case of an
    * error. So to simplify logic in the caller, we return undefined by default.
    *
-   * @param throwError wether this function should respect the spec and throw an error if no empty value is defined
+   * @param throwError whether this function should respect the spec and throw an error if no empty value is defined
    */
   static emptyValue(expr: Algebra.AggregateExpression, throwError = false): RDF.Term {
     const val = aggregators[expr.aggregator as SetFunction].emptyValue();
@@ -59,7 +59,7 @@ class BaseAggregateSupporter {
    * If any binding evaluation errors, the corresponding aggregate variable should be unbound.
    * If this happens, calling @see result() will return @constant undefined
    *
-   * @param bindings the bindings to pass to the expression
+   * @param term the term to pass to the expression
    */
   putTerm(term: RDF.Term): void {
     this.init(term);
@@ -70,7 +70,7 @@ class BaseAggregateSupporter {
    * of the evaluators initialised. The .put API function will be replaced with this
    * function, which implements the behaviour we want.
    *
-   * @param bindings the bindings to pass to the expression
+   * @param term the term to pass to the expression
    */
   protected __putTerm(term: RDF.Term): void{
     try {
@@ -115,7 +115,7 @@ class BaseAggregateSupporter {
 
 abstract class BaseAggregateEvaluator extends BaseAggregateSupporter {
 
-  abstract evalualte(bindings: Bindings): RDF.Term | Promise<RDF.Term>;
+  abstract evaluate(bindings: Bindings): RDF.Term | Promise<RDF.Term | undefined>;
 
   /**
    * Put a binding from the result stream in the aggregate state.
@@ -126,6 +126,7 @@ abstract class BaseAggregateEvaluator extends BaseAggregateSupporter {
    * @param bindings the bindings to pass to the expression
    */
   abstract put(bindings: Bindings): void | Promise<void>;
+
   /**
    * The actual put method. When the first binding has been given, and the state
    * of the evaluators initialised. The .put API function will be replaced with this
@@ -134,16 +135,6 @@ abstract class BaseAggregateEvaluator extends BaseAggregateSupporter {
    * @param bindings the bindings to pass to the expression
    */
   protected abstract __put(bindings: Bindings): void | Promise<void>;
-
-  protected safeThrow(err: Error): void {
-    if (this.throwError) {
-      throw err;
-    } else {
-      this.put = () => { return; };
-      this.putTerm = () => { return; };
-      this.result = () => undefined;
-    }
-  }
 }
 
 // TODO: Support hooks & change name to SyncAggregateEvaluator
@@ -159,7 +150,7 @@ export class AggregateEvaluator extends BaseAggregateEvaluator{
     this.initBindings(bindings);
   }
 
-  evalualte(bindings: Bindings): RDF.Term {
+  evaluate(bindings: Bindings): RDF.Term | undefined {
     try {
       return this.evaluator.evaluate(bindings);
     } catch (err) {
@@ -169,16 +160,27 @@ export class AggregateEvaluator extends BaseAggregateEvaluator{
 
   protected __put(bindings: Bindings): void {
     try {
-      const term = this.evalualte(bindings);
+      const term = this.evaluate(bindings);
       this.putTerm(term);
     } catch (err) {
       this.safeThrow(err);
     }
   }
 
-  protected initBindings(start: Bindings): void {
+  protected safeThrow(err: Error): void {
+    if (this.throwError) {
+      throw err;
+    } else {
+      this.put = () => { return; };
+      this.putTerm = () => { return; };
+      this.result = () => undefined;
+    }
+  }
+
+  private initBindings(start: Bindings): void {
     try {
       const startTerm = this.evaluator.evaluate(start);
+      if (! startTerm) return;
       this.init(startTerm);
       if (this.state) {
         this.put = this.__put;
@@ -191,13 +193,15 @@ export class AggregateEvaluator extends BaseAggregateEvaluator{
 
 export class AsyncAggregateEvaluator extends BaseAggregateEvaluator{
   private evaluator: AsyncEvaluator;
+  private errorOccurred: boolean;
 
   constructor(expr: Algebra.AggregateExpression, config?: AsyncEvaluatorConfig, throwError?: boolean) {
     super(expr, throwError);
     this.evaluator = new AsyncEvaluator(expr.expression, config);
+    this.errorOccurred = false;
   }
 
-  evalualte(bindings: Bindings): Promise<RDF.Term> {
+  evaluate(bindings: Bindings): Promise<RDF.Term | undefined> {
     try {
       return this.evaluator.evaluate(bindings);
     } catch (err) {
@@ -211,16 +215,28 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator{
 
   protected async __put(bindings: Bindings): Promise<void> {
     try {
-      const term = await this.evalualte(bindings);
+      const term = await this.evaluate(bindings);
       this.putTerm(term);
     } catch (err) {
       this.safeThrow(err);
     }
   }
 
+  protected safeThrow(err: Error): void {
+    if (this.throwError) {
+      throw err;
+    } else {
+      this.put = async () => { return; };
+      this.putTerm = () => { return; };
+      this.result = () => undefined;
+      this.errorOccurred = true;
+    }
+  }
+
   private async initBindings(start: Bindings): Promise<void> {
     try {
-      const startTerm = await this.evalualte(start);
+      const startTerm = await this.evaluate(start);
+      if (!startTerm || this.errorOccurred) return;
       if (this.state) {
         // Another put already initialized this, we should just handle the termPut and not init anymore
         return this.putTerm(startTerm);
