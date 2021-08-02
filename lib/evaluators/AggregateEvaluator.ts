@@ -21,13 +21,14 @@ import {AsyncEvaluator, AsyncEvaluatorConfig} from './AsyncEvaluator';
 
 const DF = new DataFactory();
 
-class BaseAggregateSupporter {
+abstract class BaseAggregateEvaluator {
+
   protected expression: Algebra.AggregateExpression;
   protected aggregator: BaseAggregator<any>;
   protected throwError = false;
   protected state: any;
 
-  constructor(expr: Algebra.AggregateExpression, throwError?: boolean) {
+  protected constructor(expr: Algebra.AggregateExpression, throwError?: boolean) {
     this.expression = expr;
     this.aggregator = new aggregators[expr.aggregator as SetFunction](expr);
     this.throwError = throwError;
@@ -59,26 +60,9 @@ class BaseAggregateSupporter {
    * If any binding evaluation errors, the corresponding aggregate variable should be unbound.
    * If this happens, calling @see result() will return @constant undefined
    *
-   * @param term the term to pass to the expression
+   * @param bindings the bindings to pass to the expression
    */
-  putTerm(term: RDF.Term): void {
-    this.init(term);
-  }
-
-  /**
-   * The actual put method. When the first binding has been given, and the state
-   * of the evaluators initialised. The .put API function will be replaced with this
-   * function, which implements the behaviour we want.
-   *
-   * @param term the term to pass to the expression
-   */
-  protected __putTerm(term: RDF.Term): void{
-    try {
-      this.state = this.aggregator.put(this.state, term);
-    } catch (err) {
-      this.safeThrow(err);
-    }
-  }
+  abstract put(bindings: Bindings): void | Promise<void>;
 
   /**
    * The actual result method. When the first binding has been given, and the state
@@ -91,42 +75,6 @@ class BaseAggregateSupporter {
     return this.aggregator.result(this.state);
   }
 
-  protected init(startTerm: RDF.Term): void {
-    try {
-      this.state = this.aggregator.init(startTerm);
-      if (this.state) {
-        this.putTerm = this.__putTerm;
-        this.result = this.__result;
-      }
-    } catch (err) {
-      this.safeThrow(err);
-    }
-  }
-
-  protected safeThrow(err: Error): void {
-    if (this.throwError) {
-      throw err;
-    } else {
-      this.putTerm = () => { return; };
-      this.result = () => undefined;
-    }
-  }
-}
-
-abstract class BaseAggregateEvaluator extends BaseAggregateSupporter {
-
-  abstract evaluate(bindings: Bindings): RDF.Term | Promise<RDF.Term | undefined>;
-
-  /**
-   * Put a binding from the result stream in the aggregate state.
-   *
-   * If any binding evaluation errors, the corresponding aggregate variable should be unbound.
-   * If this happens, calling @see result() will return @constant undefined
-   *
-   * @param bindings the bindings to pass to the expression
-   */
-  abstract put(bindings: Bindings): void | Promise<void>;
-
   /**
    * The actual put method. When the first binding has been given, and the state
    * of the evaluators initialised. The .put API function will be replaced with this
@@ -135,6 +83,8 @@ abstract class BaseAggregateEvaluator extends BaseAggregateSupporter {
    * @param bindings the bindings to pass to the expression
    */
   protected abstract __put(bindings: Bindings): void | Promise<void>;
+
+  protected abstract safeThrow(err: Error): void;
 }
 
 // TODO: Support hooks & change name to SyncAggregateEvaluator
@@ -147,21 +97,13 @@ export class AggregateEvaluator extends BaseAggregateEvaluator{
   }
 
   put(bindings: Bindings): void {
-    this.initBindings(bindings);
-  }
-
-  evaluate(bindings: Bindings): RDF.Term | undefined {
-    try {
-      return this.evaluator.evaluate(bindings);
-    } catch (err) {
-      this.safeThrow(err);
-    }
+    this.init(bindings);
   }
 
   protected __put(bindings: Bindings): void {
     try {
-      const term = this.evaluate(bindings);
-      this.putTerm(term);
+      const term = this.evaluator.evaluate(bindings);
+      this.state = this.aggregator.put(this.state, term);
     } catch (err) {
       this.safeThrow(err);
     }
@@ -172,18 +114,17 @@ export class AggregateEvaluator extends BaseAggregateEvaluator{
       throw err;
     } else {
       this.put = () => { return; };
-      this.putTerm = () => { return; };
       this.result = () => undefined;
     }
   }
 
-  private initBindings(start: Bindings): void {
+  private init(start: Bindings): void {
     try {
       const startTerm = this.evaluator.evaluate(start);
-      if (! startTerm) return;
-      this.init(startTerm);
+      this.state = this.aggregator.init(startTerm);
       if (this.state) {
         this.put = this.__put;
+        this.result = this.__result;
       }
     } catch (err) {
       this.safeThrow(err);
@@ -201,22 +142,14 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator{
     this.errorOccurred = false;
   }
 
-  evaluate(bindings: Bindings): Promise<RDF.Term | undefined> {
-    try {
-      return this.evaluator.evaluate(bindings);
-    } catch (err) {
-      this.safeThrow(err);
-    }
-  }
-
   put(bindings: Bindings): Promise<void> {
-    return this.initBindings(bindings);
+    return this.init(bindings);
   }
 
   protected async __put(bindings: Bindings): Promise<void> {
     try {
-      const term = await this.evaluate(bindings);
-      this.putTerm(term);
+      const term = await this.evaluator.evaluate(bindings);
+      this.state = this.aggregator.put(this.state, term);
     } catch (err) {
       this.safeThrow(err);
     }
@@ -227,23 +160,24 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator{
       throw err;
     } else {
       this.put = async () => { return; };
-      this.putTerm = () => { return; };
       this.result = () => undefined;
       this.errorOccurred = true;
     }
   }
 
-  private async initBindings(start: Bindings): Promise<void> {
+  private async init(start: Bindings): Promise<void> {
     try {
-      const startTerm = await this.evaluate(start);
+      const startTerm = await this.evaluator.evaluate(start);
       if (!startTerm || this.errorOccurred) return;
       if (this.state) {
-        // Another put already initialized this, we should just handle the termPut and not init anymore
-        return this.putTerm(startTerm);
+        // Another put already initialized this, we should just handle the put as in __put and not init anymore
+        this.state = this.aggregator.put(this.state, startTerm);
+        return;
       }
-      this.init(startTerm);
+      this.state = this.aggregator.init(startTerm);
       if (this.state) {
         this.put = this.__put;
+        this.result = this.__result;
       }
     } catch (err) {
       this.safeThrow(err);

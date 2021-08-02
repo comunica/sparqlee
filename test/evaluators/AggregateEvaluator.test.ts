@@ -33,14 +33,6 @@ async function testCase({ expr, input, throwError, evalTogether }: TestCaseArgs)
       await Promise.all(input.map(bindings => togetherEvaluator.put(bindings)));
       results.push(togetherEvaluator.result());
     }
-    // We test whether we can also use the both sync and async AggregateEvaluators more freely.
-    const freeSyncAggregateEvaluator = new AggregateEvaluator(expr, undefined, throwError || false);
-    input.forEach(bindings => freeSyncAggregateEvaluator.putTerm(freeSyncAggregateEvaluator.evaluate(bindings)));
-    results.push(freeSyncAggregateEvaluator.result());
-    const freeAsyncAggregateEvaluator = new AsyncAggregateEvaluator(expr, undefined, throwError || false);
-    const terms = await Promise.all(input.map(bindings => freeAsyncAggregateEvaluator.evaluate(bindings)));
-    terms.forEach(term => freeAsyncAggregateEvaluator.putTerm(term));
-    results.push(freeAsyncAggregateEvaluator.result());
   }
   const equalCheck = results.every(((value, index, array) => {
     const other = array[(index + 1) % array.length];
