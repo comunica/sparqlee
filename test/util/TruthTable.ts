@@ -104,7 +104,7 @@ class BinaryTable extends Table<[string, string, string]> {
 
     this.parser.errorTable.forEach((row) => {
       const [left, right, error] = row;
-      const { aliasMap, resultMap, op } = this.def;
+      const { aliasMap, op } = this.def;
       const expr = this.format([op, aliasMap[left], aliasMap[right]]);
       it(`${this.format([op, left, right])} should error`, async() => {
         return expect(generalEvaluate({

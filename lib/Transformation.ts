@@ -14,7 +14,7 @@ import {namedFunctions, regularFunctions, specialFunctions,} from './functions';
 import {AsyncExtensionFunction, AsyncExtensionFunctionCreator} from './evaluators/AsyncEvaluator';
 import {SyncExtensionFunction, SyncExtensionFunctionCreator} from './evaluators/SyncEvaluator';
 
-export type FunctionCreatorConfig = {type: 'sync', creator: SyncExtensionFunctionCreator} |
+type FunctionCreatorConfig = {type: 'sync', creator: SyncExtensionFunctionCreator} |
   {type: 'async', creator: AsyncExtensionFunctionCreator};
 
 export function transformAlgebra(expr: Alg.Expression, creatorConfig: FunctionCreatorConfig): E.Expression {

@@ -8,13 +8,13 @@ import {termToString} from 'rdf-string';
 
 export type GeneralEvaluationConfig = {type: 'sync', config: SyncEvaluatorConfig} |
   {type: 'async', config: AsyncEvaluatorConfig};
-export interface Temp{
+export interface GeneralEvaluationArg {
   bindings?: Bindings;
   expression?: string;
   generalEvaluationConfig?: GeneralEvaluationConfig;
   expectEquality?: boolean;
 }
-export async function generalEvaluate(arg: Temp): Promise<{ asyncResult: RDF.Term, syncResult?: RDF.Term }> {
+export async function generalEvaluate(arg: GeneralEvaluationArg): Promise<{ asyncResult: RDF.Term, syncResult?: RDF.Term }> {
   const bindings: Bindings = arg.bindings ? arg.bindings : Bindings({});
   if (arg.generalEvaluationConfig?.type === 'async') {
     return { asyncResult: await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config) };

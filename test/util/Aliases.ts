@@ -2,9 +2,6 @@ import * as RDF from 'rdf-js';
 import { stringToTerm } from 'rdf-string';
 
 import { EvaluationConfig, Notation } from './TruthTable';
-import {AsyncExtensionFunctionCreator} from '../../lib/evaluators/AsyncEvaluator';
-import {SyncExtensionFunctionCreator} from '../../lib/evaluators/SyncEvaluator';
-import {FunctionCreatorConfig} from '../../lib/Transformation';
 import {GeneralEvaluationConfig} from './generalEvaluation';
 
 export type StringMap = { [key: string]: string };

@@ -3,10 +3,7 @@ import {Notation, testTable} from '../util/TruthTable';
 import * as RDF from 'rdf-js';
 import {NamedNode} from 'rdf-js';
 import {SyncExtensionFunctionCreator} from '../../lib/evaluators/SyncEvaluator';
-import {FunctionCreatorConfig} from '../../lib/Transformation';
 import {DataFactory} from 'rdf-data-factory';
-import { translate } from 'sparqlalgebrajs';
-import {AsyncEvaluator} from '../../lib/evaluators/AsyncEvaluator';
 import {Bindings} from '../../lib/Types';
 import {generalEvaluate, GeneralEvaluationConfig} from '../util/generalEvaluation';
 
@@ -108,13 +105,13 @@ describe('extension functions:', () => {
         return arg;
       };
       const bindings = Bindings({
-        '?o': DF.literal("banaan", stringType)
+        '?o': DF.literal('AppLe', stringType)
       });
       const generalEvaluationConfig: GeneralEvaluationConfig = { type: 'sync', config: { extensionFunctionCreator: creator } };
       const evaluated = await generalEvaluate({
         expression: complexQuery, expectEquality: true, generalEvaluationConfig, bindings
       });
-      expect(evaluated.asyncResult).toEqual(DF.literal("BANAAN", stringType));
+      expect(evaluated.asyncResult).toEqual(DF.literal('APPLE', stringType));
     });
   });
 });
