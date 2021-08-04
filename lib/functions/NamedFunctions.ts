@@ -80,7 +80,7 @@ const toDecimal = {
     })
     .onString1((val: E.Term) => {
       const str = val.str();
-      const result = /^([+-])?(\d+(\.\d+)?)$/.test(str) ? parseXSDDecimal(str) : undefined;
+      const result = /^([+-])?(\d+(\.\d+)?)$/u.test(str) ? parseXSDDecimal(str) : undefined;
       if (result === undefined) {
         throw new Err.CastError(val, TypeURL.XSD_DECIMAL);
       }
@@ -104,7 +104,7 @@ const toInteger = {
     })
     .onString1((val: E.Term) => {
       const str = val.str();
-      const result = /^\d+$/.test(str) ? parseXSDInteger(str) : undefined;
+      const result = /^\d+$/u.test(str) ? parseXSDInteger(str) : undefined;
       if (result === undefined) {
         throw new Err.CastError(val, TypeURL.XSD_INTEGER);
       }

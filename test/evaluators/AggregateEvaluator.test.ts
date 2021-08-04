@@ -42,7 +42,7 @@ async function testCase({ expr, input, throwError, evalTogether }: TestCaseArgs)
   if (!equalCheck) {
     let message = 'Not all results are equal.';
     if (evalTogether) {
-      message = message.concat(' This might be because the given aggregator can not reliably be evaluated together.');
+      message += ' This might be because the given aggregator can not reliably be evaluated together.';
     }
     throw new Error(message);
   }

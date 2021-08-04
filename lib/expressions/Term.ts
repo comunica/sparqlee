@@ -26,7 +26,9 @@ export abstract class Term implements TermExpression {
 // NamedNodes -----------------------------------------------------------------
 export class NamedNode extends Term {
   public termType: TermType = 'namedNode';
-  public constructor(public value: string) { super(); }
+  public constructor(public value: string) {
+    super();
+  }
 
   public toRDF(): RDF.Term {
     return DF.namedNode(this.value);
@@ -83,6 +85,7 @@ export class Literal<T> extends Term {
   }
 
   public str(): string {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return this.strValue || this.typedValue.toString();
   }
 }
@@ -108,7 +111,7 @@ export class NumericLiteral extends Literal<number> {
 
       // Leading + must be removed for integer
       // https://www.w3.org/TR/xmlschema-2/#integer
-      const exponent = jsExponent.replace(/\+/, '');
+      const exponent = jsExponent.replace(/\+/u, '');
 
       // SPARQL test suite prefers trailing zero's
       const mantisse = jsMantisse.includes('.') ?

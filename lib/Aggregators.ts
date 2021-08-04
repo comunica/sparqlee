@@ -76,7 +76,9 @@ class Sum extends BaseAggregator<SumState> {
   }
 }
 
-interface IExtremeState { extremeValue: number; term: RDF.Literal }
+interface IExtremeState {
+  extremeValue: number; term: RDF.Literal;
+}
 
 class Min extends BaseAggregator<IExtremeState> {
   public init(start: RDF.Term): IExtremeState {
@@ -126,7 +128,9 @@ class Max extends BaseAggregator<IExtremeState> {
   }
 }
 
-interface IAverageState { sum: E.NumericLiteral; count: number }
+interface IAverageState {
+  sum: E.NumericLiteral; count: number;
+}
 
 class Average extends BaseAggregator<IAverageState> {
   private readonly summer = regularFunctions.get(C.RegularOperator.ADDITION);

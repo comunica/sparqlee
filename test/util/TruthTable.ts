@@ -84,11 +84,11 @@ class BinaryTable extends Table<[string, string, string]> {
   public test(): void {
     this.parser.table.forEach(row => {
       const [ left, right, result ] = row;
-      const { aliasMap, resultMap, op } = this.def;
+      const { aliasMap, resultMap, op, generalEvaluationConfig } = this.def;
       const expr = this.format([ op, aliasMap[left], aliasMap[right] ]);
       it(`${this.format([ op, left, right ])} should return ${result}`, async() => {
         const evaluated = await generalEvaluate({
-          expression: template(expr), expectEquality: true, generalEvaluationConfig: this.def.generalEvaluationConfig,
+          expression: template(expr), expectEquality: true, generalEvaluationConfig,
         });
         expect(termToString(evaluated.asyncResult)).toEqual(termToString(resultMap[result]));
       });
@@ -96,11 +96,11 @@ class BinaryTable extends Table<[string, string, string]> {
 
     this.parser.errorTable.forEach(row => {
       const [ left, right, error ] = row;
-      const { aliasMap, op } = this.def;
+      const { aliasMap, op, generalEvaluationConfig } = this.def;
       const expr = this.format([ op, aliasMap[left], aliasMap[right] ]);
       it(`${this.format([ op, left, right ])} should error`, async() => {
         await expect(generalEvaluate({
-          expression: template(expr), expectEquality: true, generalEvaluationConfig: this.def.generalEvaluationConfig,
+          expression: template(expr), expectEquality: true, generalEvaluationConfig,
         })).rejects.toThrow(error);
       });
     });
@@ -120,11 +120,11 @@ class UnaryTable extends Table<[string, string]> {
   public test(): void {
     this.parser.table.forEach(row => {
       const [ arg, result ] = row;
-      const { aliasMap, op, resultMap } = this.def;
+      const { aliasMap, op, resultMap, generalEvaluationConfig } = this.def;
       const expr = this.format([ op, aliasMap[arg] ]);
       it(`${this.format([ op, arg ])} should return ${result}`, async() => {
         const evaluated = await generalEvaluate({
-          expression: template(expr), expectEquality: true, generalEvaluationConfig: this.def.generalEvaluationConfig,
+          expression: template(expr), expectEquality: true, generalEvaluationConfig,
         });
         expect(termToString(evaluated.asyncResult)).toEqual(termToString(resultMap[result]));
       });
@@ -132,11 +132,11 @@ class UnaryTable extends Table<[string, string]> {
 
     this.parser.errorTable.forEach(row => {
       const [ arg, error ] = row;
-      const { aliasMap, op } = this.def;
+      const { aliasMap, op, generalEvaluationConfig } = this.def;
       const expr = this.format([ op, aliasMap[arg] ]);
       it(`${this.format([ op, arg ])} should error`, () => {
         return expect(generalEvaluate({
-          expression: template(expr), expectEquality: true, generalEvaluationConfig: this.def.generalEvaluationConfig,
+          expression: template(expr), expectEquality: true, generalEvaluationConfig,
         })).rejects.toThrow(error);
       });
     });
@@ -169,16 +169,16 @@ abstract class TableParser<RowType extends Row> {
 
   private splitTable(table: string): string[] {
     // Trim whitespace, and remove blank lines
-    table = table.trim().replace(/^\s*[\n\r]/gm, '');
+    table = table.trim().replace(/^\s*[\n\r]/ugm, '');
     return table.split('\n');
   }
 }
 
 class BinaryTableParser extends TableParser<[string, string, string]> {
   protected parseRow(row: string): [string, string, string] {
-    row = row.trim().replace(/  +/g, ' ');
-    const [ left, right, _, result ] = row.match(/([^\s']+|'[^']*')+/g)
-      .map(i => i.replace(/'([^']*)'/, '$1'));
+    row = row.trim().replace(/  +/ug, ' ');
+    const [ left, right, _, result ] = row.match(/([^\s']+|'[^']*')+/ug)
+      .map(i => i.replace(/'([^']*)'/u, '$1'));
     return [ left, right, result ];
   }
 }
@@ -186,9 +186,9 @@ class BinaryTableParser extends TableParser<[string, string, string]> {
 class UnaryTableParser extends TableParser<[string, string]> {
   protected parseRow(row: string): [string, string] {
     // Trim whitespace and remove double spaces
-    row = row.trim().replace(/  +/g, ' ');
-    const [ arg, _, result ] = row.match(/([^\s']+|'[^']*')+/g)
-      .map(i => i.replace(/'([^']*)'/, '$1'));
+    row = row.trim().replace(/  +/ug, ' ');
+    const [ arg, _, result ] = row.match(/([^\s']+|'[^']*')+/ug)
+      .map(i => i.replace(/'([^']*)'/u, '$1'));
     return [ arg, result ];
   }
 }

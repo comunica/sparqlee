@@ -76,17 +76,17 @@ export interface ISplittedDate {
  */
 export function parseXSDDateTime(value: string): ISplittedDate {
   const posT = value.indexOf('T');
-  const date = posT >= 0 ? value.substr(0, posT) : value;
+  const date = posT >= 0 ? value.slice(0, Math.max(0, posT)) : value;
   const [ year, month, day ] = date.split('-');
   let hours = '';
   let minutes = '';
   let seconds = '';
   let timezone = '';
   if (posT >= 0) {
-    const timeAndTimeZone = value.substr(posT + 1);
-    const [ time, _timeZoneChopped ] = timeAndTimeZone.split(/[+Z\-]/);
+    const timeAndTimeZone = value.slice(posT + 1);
+    const [ time, _timeZoneChopped ] = timeAndTimeZone.split(/[+Z-]/u);
     [ hours, minutes, seconds ] = time.split(':');
-    const timezoneOrNull = new RegExp(/([+Z\-].*)/).exec(timeAndTimeZone);
+    const timezoneOrNull = /([+Z-].*)/u.exec(timeAndTimeZone);
     timezone = timezoneOrNull ? timezoneOrNull[0] : '';
   } else {
     hours = '00';

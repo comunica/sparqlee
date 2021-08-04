@@ -46,7 +46,7 @@ export function stringToTermPrefix(str: string): RDF.Term {
 
   const url = term.datatype.value;
   try {
-    const prefix = url.match(/.*:/g)[0].slice(0, -1);
+    const prefix = url.match(/.*:/ug)[0].slice(0, -1);
     term.datatype.value = url.replace(`${prefix}:`, prefixes[prefix]);
     return term;
   } catch {
@@ -65,7 +65,7 @@ export const error = {
 };
 
 export const numeric = {
-  'anyNum': '"14"^^xsd:integer',
+  anyNum: '"14"^^xsd:integer',
   '0i': '"0"^^xsd:integer',
   '1i': '"1"^^xsd:integer',
   '2i': '"2"^^xsd:integer',
@@ -90,8 +90,8 @@ export const numeric = {
   '-5f': '"-5"^^xsd:float',
   '-6f': '"-6"^^xsd:float',
   '-12f': '"-12"^^xsd:float',
-  'NaN': '"NaN"^^xsd:float',
-  'INF': '"INF"^^xsd:float',
+  NaN: '"NaN"^^xsd:float',
+  INF: '"INF"^^xsd:float',
   '-INF': '"-INF"^^xsd:float',
 
   '0d': '"0"^^xsd:decimal',
@@ -185,7 +185,7 @@ export const ebvCoercionTemp = {
 };
 
 export const langMatchesTemp = {
-  'range': '"de-*-DE"',
+  range: '"de-*-DE"',
 
   'de-DE': '"de-DE"',
   'de-de': '"de-de"',
@@ -195,7 +195,7 @@ export const langMatchesTemp = {
   'de-Latn-DE-1996': '"de-Latn-DE-1996"',
   'de-Deva-DE': '"de-Deva-DE"',
 
-  'de': '"de"',
+  de: '"de"',
   'de-X-DE': '"de-X-DE"',
   'de-Deva': '"de-Deva"',
 };

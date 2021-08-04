@@ -43,7 +43,11 @@ function syncConfigToAsyncConfig(config: ISyncEvaluatorConfig | undefined): IAsy
   const asyncBnode = bnode ? async(input?: string) => bnode(input) : undefined;
   const asyncExtensionFunctionCreator = syncCallbackWrapper(extensionFunctionCreator);
   return {
-    now, baseIRI, exists: asyncExists, aggregate: asyncAggregate, bnode: asyncBnode,
+    now,
+    baseIRI,
+    exists: asyncExists,
+    aggregate: asyncAggregate,
+    bnode: asyncBnode,
     extensionFunctionCreator: asyncExtensionFunctionCreator,
   };
 }

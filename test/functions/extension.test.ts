@@ -55,9 +55,10 @@ describe('extension functions:', () => {
     };
 
     describe('Can be evaluated', () => {
-      const generalEvaluationConfig: GeneralEvaluationConfig = { type: 'sync', config: {
-        extensionFunctionCreator: extensionTermEqual,
-      }};
+      const generalEvaluationConfig: GeneralEvaluationConfig = { type: 'sync',
+        config: {
+          extensionFunctionCreator: extensionTermEqual,
+        }};
       const config = { ...configBase, generalEvaluationConfig };
       testTable({ ...wrap(config), table });
     });

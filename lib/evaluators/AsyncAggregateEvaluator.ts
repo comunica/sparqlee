@@ -42,8 +42,9 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator {
   private async init(start: Bindings): Promise<void> {
     try {
       const startTerm = await this.evaluator.evaluate(start);
-      if (!startTerm || this.errorOccurred)
-      { return; }
+      if (!startTerm || this.errorOccurred) {
+        return;
+      }
       if (this.state) {
         // Another put already initialized this, we should just handle the put as in __put and not init anymore
         this.state = this.aggregator.put(this.state, startTerm);

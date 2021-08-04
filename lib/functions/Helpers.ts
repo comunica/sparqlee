@@ -261,7 +261,7 @@ export class Builder {
   }
 
   private chain(impls: Impl[]): Builder {
-    this.implementations = this.implementations.concat(impls);
+    this.implementations = [ ...this.implementations, ...impls ];
     return this;
   }
 }
@@ -295,7 +295,9 @@ const implDefaults = {
 };
 
 export class Impl extends Record(implDefaults) {
-  public constructor(params: IImplType) { super(params); }
+  public constructor(params: IImplType) {
+    super(params);
+  }
 
   public get<T extends keyof IImplType>(value: T): IImplType[T] {
     return super.get(value);

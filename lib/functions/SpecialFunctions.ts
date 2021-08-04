@@ -193,7 +193,9 @@ const sameTerm = {
 // IN -------------------------------------------------------------------------
 const inSPARQL = {
   arity: Number.POSITIVE_INFINITY,
-  checkArity(args: E.Expression[]) { return args.length > 0; },
+  checkArity(args: E.Expression[]) {
+    return args.length > 0;
+  },
   async applyAsync({ args, mapping, evaluate, context }: E.EvalContextAsync): PTerm {
     const [ leftExpr, ...remaining ] = args;
     const left = await evaluate(leftExpr, mapping);
@@ -257,7 +259,9 @@ function inRecursiveSync(
 // NOT IN ---------------------------------------------------------------------
 const notInSPARQL = {
   arity: Number.POSITIVE_INFINITY,
-  checkArity(args: E.Expression[]) { return args.length > 0; },
+  checkArity(args: E.Expression[]) {
+    return args.length > 0;
+  },
   async applyAsync(context: E.EvalContextAsync): PTerm {
     const _in = specialFunctions.get(C.SpecialOperator.IN);
     const isIn = await _in.applyAsync(context);
@@ -344,7 +348,9 @@ function IRI_(input: Term, baseIRI: string | undefined, args: E.Expression[]): T
 // id has to be distinct over all id's in dataset
 const BNODE = {
   arity: Number.POSITIVE_INFINITY,
-  checkArity(args: E.Expression[]) { return args.length === 0 || args.length === 1; },
+  checkArity(args: E.Expression[]) {
+    return args.length === 0 || args.length === 1;
+  },
   async applyAsync({ args, evaluate, mapping, context }: E.EvalContextAsync): PTerm {
     const input = args.length === 1 ?
       await evaluate(args[0], mapping) :
@@ -401,21 +407,21 @@ const _specialDefinitions: {[key in C.SpecialOperator]: ISpecialDefinition } = {
   // https://www.w3.org/TR/sparql11-query/#func-forms
   // --------------------------------------------------------------------------
   bound,
-  'if': ifSPARQL,
+  if: ifSPARQL,
   coalesce,
   '&&': logicalAnd,
   '||': logicalOr,
-  'sameterm': sameTerm,
-  'in': inSPARQL,
-  'notin': notInSPARQL,
+  sameterm: sameTerm,
+  in: inSPARQL,
+  notin: notInSPARQL,
 
   // Annoying functions
   concat,
 
   // Context dependent functions
   now,
-  'iri': IRI,
-  'uri': IRI,
+  iri: IRI,
+  uri: IRI,
   BNODE,
 };
 

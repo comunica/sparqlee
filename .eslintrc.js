@@ -13,26 +13,14 @@ module.exports = {
 
         // should stay off
         'mocha/no-exports': 'off',
-
-        // needs investigation
-        'no-implicit-globals': 'off',
-        'require-unicode-regexp': 'off',
-        'object-property-newline': 'off',
-        'unicorn/consistent-destructuring': 'off',
-        'quote-props': 'off',
-        'mocha/max-top-level-suites': 'off',
         'mocha/no-skipped-tests': 'off',
-        'multiline-comment-style': 'off',
-        'unicorn/prefer-spread': 'off',
-        'no-useless-escape': 'off',
-        'unicorn/prefer-string-slice': 'off',
-        '@typescript-eslint/brace-style': 'off',
-        'import/no-extraneous-dependencies': 'off',
-        '@typescript-eslint/unbound-method': 'off',
-        'no-sync': 'off',
-        'no-redeclare': 'off',
+
+        // Ask ruben
         'unicorn/prefer-top-level-await': 'off',
-        'unicorn/filename-case': 'off',
-        '@typescript-eslint/no-base-to-string': 'off',
+        'no-redeclare': 'off',
+        'no-sync': 'off',
+        '@typescript-eslint/unbound-method': 'off',
+        'multiline-comment-style': 'off',
+        'no-implicit-globals': 'off',
     }
 };

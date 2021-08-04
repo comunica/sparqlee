@@ -391,13 +391,13 @@ const STRBEFORE = {
   overloads: declare()
     .onBinaryTyped(
       [ 'string', 'string' ],
-      (arg1: string, arg2: string) => string(arg1.substr(0, arg1.indexOf(arg2))),
+      (arg1: string, arg2: string) => string(arg1.slice(0, Math.max(0, arg1.indexOf(arg2)))),
     )
     .onBinary(
       [ 'langString', 'string' ],
       (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
-        const sub = arg1.typedValue.substr(0, a1.indexOf(a2));
+        const sub = arg1.typedValue.slice(0, Math.max(0, a1.indexOf(a2)));
         return sub || !a2 ? langString(sub, arg1.language) : string(sub);
       },
     )
@@ -408,7 +408,7 @@ const STRBEFORE = {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
         }
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
-        const sub = arg1.typedValue.substr(0, a1.indexOf(a2));
+        const sub = arg1.typedValue.slice(0, Math.max(0, a1.indexOf(a2)));
         return sub || !a2 ? langString(sub, arg1.language) : string(sub);
       },
     )
@@ -420,13 +420,13 @@ const STRAFTER = {
   overloads: declare()
     .onBinaryTyped(
       [ 'string', 'string' ],
-      (arg1: string, arg2: string) => string(arg1.substr(arg1.indexOf(arg2)).substr(arg2.length)),
+      (arg1: string, arg2: string) => string(arg1.slice(arg1.indexOf(arg2)).slice(arg2.length)),
     )
     .onBinary(
       [ 'langString', 'string' ],
       (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
-        const sub = a1.substr(a1.indexOf(a2)).substr(a2.length);
+        const sub = a1.slice(a1.indexOf(a2)).slice(a2.length);
         return sub || !a2 ? langString(sub, arg1.language) : string(sub);
       },
     )
@@ -437,7 +437,7 @@ const STRAFTER = {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
         }
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
-        const sub = a1.substr(a1.indexOf(a2)).substr(a2.length);
+        const sub = a1.slice(a1.indexOf(a2)).slice(a2.length);
         return sub || !a2 ? langString(sub, arg1.language) : string(sub);
       },
     )
@@ -698,8 +698,8 @@ const _definitions: {[key in C.RegularOperator]: IDefinition } = {
   // https://www.w3.org/TR/sparql11-query/#OperatorMapping
   // --------------------------------------------------------------------------
   '!': not,
-  'UPLUS': unaryPlus,
-  'UMINUS': unaryMinus,
+  UPLUS: unaryPlus,
+  UMINUS: unaryMinus,
   '*': multiplication,
   '/': division,
   '+': addition,
@@ -715,39 +715,39 @@ const _definitions: {[key in C.RegularOperator]: IDefinition } = {
   // Functions on RDF Terms
   // https://www.w3.org/TR/sparql11-query/#func-rdfTerms
   // --------------------------------------------------------------------------
-  'isiri': isIRI,
-  'isblank': isBlank,
-  'isliteral': isLiteral,
-  'isnumeric': isNumeric,
-  'str': toString,
+  isiri: isIRI,
+  isblank: isBlank,
+  isliteral: isLiteral,
+  isnumeric: isNumeric,
+  str: toString,
   lang,
   datatype,
   // 'iri': IRI (see special operators),
   // 'uri': IRI (see special operators),
   // 'BNODE': BNODE (see special operators),
-  'strdt': STRDT,
-  'strlang': STRLANG,
-  'uuid': UUID,
-  'struuid': STRUUID,
+  strdt: STRDT,
+  strlang: STRLANG,
+  uuid: UUID,
+  struuid: STRUUID,
 
   // --------------------------------------------------------------------------
   // Functions on strings
   // https://www.w3.org/TR/sparql11-query/#func-forms
   // --------------------------------------------------------------------------
-  'strlen': STRLEN,
-  'substr': SUBSTR,
-  'ucase': UCASE,
-  'lcase': LCASE,
-  'strstarts': STRSTARTS,
-  'strends': STRENDS,
-  'contains': CONTAINS,
-  'strbefore': STRBEFORE,
-  'strafter': STRAFTER,
-  'encode_for_uri': ENCODE_FOR_URI,
+  strlen: STRLEN,
+  substr: SUBSTR,
+  ucase: UCASE,
+  lcase: LCASE,
+  strstarts: STRSTARTS,
+  strends: STRENDS,
+  contains: CONTAINS,
+  strbefore: STRBEFORE,
+  strafter: STRAFTER,
+  encode_for_uri: ENCODE_FOR_URI,
   // 'concat': CONCAT (see special operators)
   langmatches,
-  'regex': REGEX,
-  'replace': REPLACE,
+  regex: REGEX,
+  replace: REPLACE,
 
   // --------------------------------------------------------------------------
   // Functions on numerics
@@ -777,11 +777,11 @@ const _definitions: {[key in C.RegularOperator]: IDefinition } = {
   // Hash functions
   // https://www.w3.org/TR/sparql11-query/#func-hash
   // --------------------------------------------------------------------------
-  'md5': MD5,
-  'sha1': SHA1,
-  'sha256': SHA256,
-  'sha384': SHA384,
-  'sha512': SHA512,
+  md5: MD5,
+  sha1: SHA1,
+  sha256: SHA256,
+  sha384: SHA384,
+  sha512: SHA512,
 };
 
 // ----------------------------------------------------------------------------

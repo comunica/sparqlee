@@ -6,7 +6,7 @@ import { generalEvaluate } from './generalEvaluation';
 export function testAll(exprs: string[], config?: GeneralEvaluationConfig) {
   exprs.forEach(_expr => {
     const expr = _expr.trim();
-    const matched = expr.match(/ = [^=]*$/g);
+    const matched = expr.match(/ = [^=]*$/ug);
     if (!matched) {
       throw new Error(`Could not match '${expr}'`);
     }
@@ -27,7 +27,7 @@ export function testAll(exprs: string[], config?: GeneralEvaluationConfig) {
 export function testAllErrors(exprs: string[], config?: GeneralEvaluationConfig) {
   exprs.forEach(_expr => {
     const expr = _expr.trim();
-    const equals = (/ = error *$/.exec(expr))[0];
+    const equals = (/ = error *$/u.exec(expr))[0];
     const body = expr.replace(equals, '');
     it(`${body} should error`, () => {
       return expect(generalEvaluate({
@@ -81,7 +81,7 @@ export const prefixes: Record<string, string> = {
 };
 
 export function replacePrefix(str: string): string {
-  const prefixLocs = /\^\^.*:/.exec(str);
+  const prefixLocs = /\^\^.*:/u.exec(str);
   if (!prefixLocs) { return str; }
   const prefix = prefixLocs[0].slice(2, -1);
   return str.replace(`${prefix}:`, prefixes[prefix]);

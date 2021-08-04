@@ -27,7 +27,9 @@ export function langMatches(tag: string, range: string): boolean {
   const rangeTags = range.split('-');
 
   if (!_matchLangTag(rangeTags[0], langTags[0]) &&
-    !_isWildCard(langTags[0])) { return false; }
+    !_isWildCard(langTags[0])) {
+    return false;
+  }
 
   let lI = 1;
   let rI = 1;
@@ -57,7 +59,7 @@ function _isWildCard(tag: string): boolean {
 }
 
 function _matchLangTag(left: string, right: string): boolean {
-  const matchInitial = new RegExp(`/${left}/`, 'i');
+  const matchInitial = new RegExp(`/${left}/`, 'iu');
   return matchInitial.test(`/${right}/`);
 }
 

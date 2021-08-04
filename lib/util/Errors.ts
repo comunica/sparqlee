@@ -90,6 +90,7 @@ export class InError extends ExpressionError {
   public constructor(public errors: (Error | false)[]) {
     super(
       `Some argument to IN errorred and none where equal. ${
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         errors.map(err => `(${err.toString()}) `).join('and ')}`,
     );
   }
