@@ -1,4 +1,5 @@
 import { aliases as a, testAll } from '../util/utils';
+import * as Data from './_data';
 
 describe('We should respect the rand01 spec', () => {
   testAll([
