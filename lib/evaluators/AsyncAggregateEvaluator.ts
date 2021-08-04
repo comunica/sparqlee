@@ -52,8 +52,8 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator {
       }
       this.state = this.aggregator.init(startTerm);
       if (this.state) {
-        this.put = this.__put;
-        this.result = this.__result;
+        this.put = this.__put.bind(this);
+        this.result = this.__result.bind(this);
       }
     } catch (error: unknown) {
       this.safeThrow(error);

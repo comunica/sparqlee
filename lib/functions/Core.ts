@@ -124,7 +124,7 @@ export class NamedFunction extends BaseFunction<C.NamedOperator> {
 }
 
 // Special Functions ----------------------------------------------------------
-/*
+/**
  * Special Functions are those that don't really fit in sensible categories and
  * have extremely heterogeneous signatures that make them impossible to abstract
  * over. They are small in number, and their behaviour is often complex and open

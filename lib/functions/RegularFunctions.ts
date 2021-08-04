@@ -689,7 +689,7 @@ const SHA512 = {
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/*
+/**
  * Collect all the definitions from above into an object
  */
 const _definitions: {[key in C.RegularOperator]: IDefinition } = {

@@ -226,7 +226,6 @@ async function inRecursiveAsync(
     }
     return inRecursiveAsync(needle, { args, mapping, evaluate, context }, [ ...results, false ]);
   } catch (error: unknown) {
-    // TODO: look at this code a bit closer
     return inRecursiveAsync(needle, { args, mapping, evaluate, context }, [ ...results, <Error> error ]);
   }
 }

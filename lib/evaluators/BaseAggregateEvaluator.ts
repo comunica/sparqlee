@@ -34,8 +34,7 @@ export abstract class BaseAggregateEvaluator {
     return val;
   }
 
-  // TODO: should this also be '| undefined' ?
-  public result(): RDF.Term {
+  public result(): RDF.Term | undefined {
     return (<IAggregatorClass> this.aggregator.constructor).emptyValue();
   }
 

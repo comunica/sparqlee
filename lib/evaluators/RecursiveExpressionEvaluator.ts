@@ -32,16 +32,16 @@ const sharedEvaluators = {
 export class AsyncRecursiveEvaluator implements IExpressionEvaluator<Expression, Promise<Term>> {
   private readonly subEvaluators: Record<string, (expr: Expression, mapping: Bindings) => Promise<Term> | Term> = {
     // Shared
-    [E.ExpressionType.Term]: sharedEvaluators.term,
-    [E.ExpressionType.Variable]: sharedEvaluators.variable,
+    [E.ExpressionType.Term]: sharedEvaluators.term.bind(this),
+    [E.ExpressionType.Variable]: sharedEvaluators.variable.bind(this),
 
     // Async
-    [E.ExpressionType.Operator]: this.evalOperator,
-    [E.ExpressionType.SpecialOperator]: this.evalSpecialOperator,
-    [E.ExpressionType.Named]: this.evalNamed,
-    [E.ExpressionType.Existence]: this.evalExistence,
-    [E.ExpressionType.Aggregate]: this.evalAggregate,
-    [E.ExpressionType.AsyncExtension]: this.evalAsyncExtension,
+    [E.ExpressionType.Operator]: this.evalOperator.bind(this),
+    [E.ExpressionType.SpecialOperator]: this.evalSpecialOperator.bind(this),
+    [E.ExpressionType.Named]: this.evalNamed.bind(this),
+    [E.ExpressionType.Existence]: this.evalExistence.bind(this),
+    [E.ExpressionType.Aggregate]: this.evalAggregate.bind(this),
+    [E.ExpressionType.AsyncExtension]: this.evalAsyncExtension.bind(this),
   };
 
   public constructor(private readonly context: AsyncEvaluatorContext) { }
@@ -113,16 +113,16 @@ export class AsyncRecursiveEvaluator implements IExpressionEvaluator<Expression,
 export class SyncRecursiveEvaluator implements IExpressionEvaluator<Expression, Term> {
   private readonly subEvaluators: Record<string, (expr: Expression, mapping: Bindings) => Term> = {
     // Shared
-    [E.ExpressionType.Term]: sharedEvaluators.term,
-    [E.ExpressionType.Variable]: sharedEvaluators.variable,
+    [E.ExpressionType.Term]: sharedEvaluators.term.bind(this),
+    [E.ExpressionType.Variable]: sharedEvaluators.variable.bind(this),
 
     // Sync
-    [E.ExpressionType.Operator]: this.evalOperator,
-    [E.ExpressionType.SpecialOperator]: this.evalSpecialOperator,
-    [E.ExpressionType.Named]: this.evalNamed,
-    [E.ExpressionType.Existence]: this.evalExistence,
-    [E.ExpressionType.Aggregate]: this.evalAggregate,
-    [E.ExpressionType.SyncExtension]: this.evalSyncExtension,
+    [E.ExpressionType.Operator]: this.evalOperator.bind(this),
+    [E.ExpressionType.SpecialOperator]: this.evalSpecialOperator.bind(this),
+    [E.ExpressionType.Named]: this.evalNamed.bind(this),
+    [E.ExpressionType.Existence]: this.evalExistence.bind(this),
+    [E.ExpressionType.Aggregate]: this.evalAggregate.bind(this),
+    [E.ExpressionType.SyncExtension]: this.evalSyncExtension.bind(this),
   };
 
   public constructor(private readonly context: SyncEvaluatorContext) { }

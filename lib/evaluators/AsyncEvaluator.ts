@@ -51,22 +51,16 @@ export class AsyncEvaluator {
 
   public async evaluate(mapping: Bindings): Promise<RDF.Term> {
     const result = await this.evaluator.evaluate(this.expr, mapping);
-    return log(result).toRDF();
+    return result.toRDF();
   }
 
   public async evaluateAsEBV(mapping: Bindings): Promise<boolean> {
     const result = await this.evaluator.evaluate(this.expr, mapping);
-    return log(result).coerceEBV();
+    return result.coerceEBV();
   }
 
-  // TODO: what does this function do?
   public async evaluateAsInternal(mapping: Bindings): Promise<Term> {
     const result = await this.evaluator.evaluate(this.expr, mapping);
-    return log(result);
+    return result;
   }
-}
-
-function log<T>(val: T): T {
-  // Console.log(val);
-  return val;
 }

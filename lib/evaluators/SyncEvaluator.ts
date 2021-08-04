@@ -50,21 +50,16 @@ export class SyncEvaluator {
 
   public evaluate(mapping: Bindings): RDF.Term {
     const result = this.evaluator.evaluate(this.expr, mapping);
-    return log(result).toRDF();
+    return result.toRDF();
   }
 
   public evaluateAsEBV(mapping: Bindings): boolean {
     const result = this.evaluator.evaluate(this.expr, mapping);
-    return log(result).coerceEBV();
+    return result.coerceEBV();
   }
 
   public evaluateAsInternal(mapping: Bindings): Term {
     const result = this.evaluator.evaluate(this.expr, mapping);
-    return log(result);
+    return result;
   }
-}
-
-function log<T>(val: T): T {
-  // Console.log(val);
-  return val;
 }

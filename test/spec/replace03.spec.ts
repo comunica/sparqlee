@@ -29,9 +29,9 @@ describe.skip('We should respect the replace03 spec', () => {
   it('dummy', () => {
     // Do nothing
   });
-  /* TestAll([
-    `REPLACE(${s9}, "(ab)|(a)", "[1=$1][2=$2]) = "[1=ab][2=]cd"`,
-  ]);*/
+  // TestAll([
+  // `REPLACE(${s9}, "(ab)|(a)", "[1=$1][2=$2]) = "[1=ab][2=]cd"`,
+  // ]);
 });
 
 /**

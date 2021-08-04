@@ -184,7 +184,7 @@ export class StringLiteral extends Literal<string> {
   }
 }
 
-/*
+/**
  * This class is used when a literal is parsed, and it's value is
  * an invalid lexical form for it's datatype. The spec defines value with
  * invalid lexical form are still valid terms, and as such we can not error
