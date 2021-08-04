@@ -4,11 +4,11 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import { translate } from 'sparqlalgebrajs';
 import type { IAsyncEvaluatorConfig, AsyncExtensionFunctionCreator } from '../../lib/evaluators/AsyncEvaluator';
 import { AsyncEvaluator } from '../../lib/evaluators/AsyncEvaluator';
-import type { SyncEvaluatorConfig, SyncExtensionFunctionCreator } from '../../lib/evaluators/SyncEvaluator';
+import type { ISyncEvaluatorConfig, SyncExtensionFunctionCreator } from '../../lib/evaluators/SyncEvaluator';
 import { SyncEvaluator } from '../../lib/evaluators/SyncEvaluator';
 import { Bindings } from '../../lib/Types';
 
-export type GeneralEvaluationConfig = { type: 'sync'; config: SyncEvaluatorConfig } |
+export type GeneralEvaluationConfig = { type: 'sync'; config: ISyncEvaluatorConfig } |
 { type: 'async'; config: IAsyncEvaluatorConfig };
 export interface IGeneralEvaluationArg {
   bindings?: Bindings;
@@ -16,7 +16,8 @@ export interface IGeneralEvaluationArg {
   generalEvaluationConfig?: GeneralEvaluationConfig;
   expectEquality?: boolean;
 }
-export async function generalEvaluate(arg: IGeneralEvaluationArg): Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
+export async function generalEvaluate(arg: IGeneralEvaluationArg):
+Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
   const bindings: Bindings = arg.bindings ? arg.bindings : Bindings({});
   if (arg.generalEvaluationConfig?.type === 'async') {
     return { asyncResult: await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config) };
@@ -32,7 +33,7 @@ export async function generalEvaluate(arg: IGeneralEvaluationArg): Promise<{ asy
   }
   return { asyncResult };
 }
-function syncConfigToAsyncConfig(config: SyncEvaluatorConfig | undefined): IAsyncEvaluatorConfig | undefined {
+function syncConfigToAsyncConfig(config: ISyncEvaluatorConfig | undefined): IAsyncEvaluatorConfig | undefined {
   if (!config) {
     return undefined;
   }
@@ -64,7 +65,7 @@ function evaluateAsync(expr: string, bindings: Bindings, config?: IAsyncEvaluato
   return evaluator.evaluate(bindings);
 }
 
-function evaluateSync(expr: string, bindings: Bindings, config?: SyncEvaluatorConfig): RDF.Term {
+function evaluateSync(expr: string, bindings: Bindings, config?: ISyncEvaluatorConfig): RDF.Term {
   const evaluator = new SyncEvaluator(parse(expr), config);
   return evaluator.evaluate(bindings);
 }

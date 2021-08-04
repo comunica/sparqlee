@@ -39,14 +39,14 @@ const not = {
 const unaryPlus = {
   arity: 1,
   overloads: declare()
-    .onNumeric1(val => number(val.typedValue, val.typeURL.value as TypeURL))
+    .onNumeric1(val => number(val.typedValue, <TypeURL> val.typeURL.value))
     .collect(),
 };
 
 const unaryMinus = {
   arity: 1,
   overloads: declare()
-    .onNumeric1(val => number(-val.typedValue, val.typeURL.value as TypeURL))
+    .onNumeric1(val => number(-val.typedValue, <TypeURL> val.typeURL.value))
     .collect(),
 };
 
@@ -102,7 +102,7 @@ const equality = {
     .collect(),
 };
 
-function RDFTermEqual(_left: Term, _right: Term) {
+function RDFTermEqual(_left: Term, _right: Term): boolean {
   const left = _left.toRDF();
   const right = _right.toRDF();
   const val = left.equals(right);
@@ -291,7 +291,8 @@ const SUBSTR = {
       },
     )
     .onTernaryTyped([ 'string', 'integer', 'integer' ],
-      (source: string, startingLoc: number, length: number) => string([ ...source ].slice(startingLoc - 1, length).join('')))
+      (source: string, startingLoc: number, length: number) =>
+        string([ ...source ].slice(startingLoc - 1, length).join('')))
     .onTernary([ 'langString', 'integer', 'integer' ],
       (source: E.LangStringLiteral, startingLoc: E.NumericLiteral, length: E.NumericLiteral) => {
         const sub = [ ...source.typedValue ].slice(startingLoc.typedValue - 1, length.typedValue).join('');
@@ -461,8 +462,10 @@ const langmatches = {
     ).collect(),
 };
 
-const regex2 = (text: string, pattern: string) => bool(X.matches(text, pattern));
-const regex3 = (text: string, pattern: string, flags: string) => bool(X.matches(text, pattern, flags));
+const regex2: (text: string, pattern: string) => E.BooleanLiteral =
+  (text: string, pattern: string) => bool(X.matches(text, pattern));
+const regex3: (text: string, pattern: string, flags: string) => E.BooleanLiteral =
+  (text: string, pattern: string, flags: string) => bool(X.matches(text, pattern, flags));
 const REGEX = {
   arity: [ 2, 3 ],
   overloads: declare()
@@ -494,8 +497,8 @@ const REPLACE = {
         string(X.replace(arg, pattern, replacement, flags)),
     )
     .set(
-      [ 'langString', 'string', 'string', 'string' ],
-      ([ arg, pattern, replacement, flags ]: [E.LangStringLiteral, E.StringLiteral, E.StringLiteral, E.StringLiteral]) => {
+      [ 'langString', 'string', 'string', 'string' ], ([ arg, pattern, replacement, flags ]:
+      [E.LangStringLiteral, E.StringLiteral, E.StringLiteral, E.StringLiteral]) => {
         const result = X.replace(arg.typedValue, pattern.typedValue, replacement.typedValue, flags.typedValue);
         return langString(result, arg.language);
       },
@@ -512,7 +515,7 @@ const abs = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.abs(num.typedValue), num.typeURL.value as C.TypeURL),
+      num => number(Math.abs(num.typedValue), <C.TypeURL> num.typeURL.value),
     )
     .collect(),
 };
@@ -521,7 +524,7 @@ const round = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.round(num.typedValue), num.typeURL.value as C.TypeURL),
+      num => number(Math.round(num.typedValue), <C.TypeURL> num.typeURL.value),
     )
     .collect(),
 };
@@ -530,7 +533,7 @@ const ceil = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.ceil(num.typedValue), num.typeURL.value as C.TypeURL),
+      num => number(Math.ceil(num.typedValue), <C.TypeURL> num.typeURL.value),
     )
     .collect(),
 };
@@ -539,7 +542,7 @@ const floor = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.floor(num.typedValue), num.typeURL.value as C.TypeURL),
+      num => number(Math.floor(num.typedValue), <C.TypeURL> num.typeURL.value),
     )
     .collect(),
 };

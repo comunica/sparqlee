@@ -3,9 +3,9 @@ import type { Expression, SimpleApplication, SyncExtensionExpression } from './E
 import { ExpressionType } from './Expressions';
 
 export class SyncExtension implements SyncExtensionExpression {
-  expressionType: ExpressionType.SyncExtension = ExpressionType.SyncExtension;
+  public expressionType: ExpressionType.SyncExtension = ExpressionType.SyncExtension;
 
-  constructor(
+  public constructor(
     public name: RDF.NamedNode,
     public args: Expression[],
     public apply: SimpleApplication,

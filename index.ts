@@ -1,5 +1,5 @@
 export { AsyncEvaluator, IAsyncEvaluatorConfig } from './lib/evaluators/AsyncEvaluator';
-export { SyncEvaluator, SyncEvaluatorConfig } from './lib/evaluators/SyncEvaluator';
+export { SyncEvaluator, ISyncEvaluatorConfig } from './lib/evaluators/SyncEvaluator';
 export { AggregateEvaluator } from './lib/evaluators/AggregateEvaluator';
 
 export { ExpressionError, isExpressionError } from './lib/util/Errors';

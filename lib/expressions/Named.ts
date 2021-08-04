@@ -8,9 +8,9 @@ import {
 } from './Expressions';
 
 export class Named implements NamedExpression {
-  expressionType: ExpressionType.Named = ExpressionType.Named;
+  public expressionType: ExpressionType.Named = ExpressionType.Named;
 
-  constructor(
+  public constructor(
     public name: RDF.NamedNode,
     public args: Expression[],
     public apply: SimpleApplication,

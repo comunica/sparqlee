@@ -16,12 +16,12 @@ export abstract class BaseAggregator<State> {
   protected distinct: boolean;
   protected separator: string;
 
-  constructor(expr: Algebra.AggregateExpression) {
+  public constructor(expr: Algebra.AggregateExpression) {
     this.distinct = expr.distinct;
     this.separator = expr.separator || ' ';
   }
 
-  static emptyValue(): RDF.Term {
+  public static emptyValue(): RDF.Term {
     return undefined;
   }
 
@@ -33,19 +33,19 @@ export abstract class BaseAggregator<State> {
 }
 
 class Count extends BaseAggregator<number> {
-  static emptyValue() {
+  public static emptyValue(): RDF.Term {
     return number(0, TypeURL.XSD_INTEGER).toRDF();
   }
 
-  init(start: RDF.Term): number {
+  public init(start: RDF.Term): number {
     return 1;
   }
 
-  put(state: number, term: RDF.Term): number {
+  public put(state: number, term: RDF.Term): number {
     return state + 1;
   }
 
-  result(state: number): RDF.Term {
+  public result(state: number): RDF.Term {
     return number(state, TypeURL.XSD_INTEGER).toRDF();
   }
 }
@@ -53,40 +53,40 @@ class Count extends BaseAggregator<number> {
 type SumState = E.NumericLiteral;
 
 class Sum extends BaseAggregator<SumState> {
-  summer = regularFunctions.get(C.RegularOperator.ADDITION);
+  private readonly summer = regularFunctions.get(C.RegularOperator.ADDITION);
 
-  static emptyValue() {
+  public static emptyValue(): RDF.Term {
     return number(0, TypeURL.XSD_INTEGER).toRDF();
   }
 
-  init(start: RDF.Term): SumState {
+  public init(start: RDF.Term): SumState {
     const { value, type } = extractNumericValueAndTypeOrError(start);
     return new E.NumericLiteral(value, DF.namedNode(type));
   }
 
-  put(state: SumState, term: RDF.Term): SumState {
+  public put(state: SumState, term: RDF.Term): SumState {
     const { value, type } = extractNumericValueAndTypeOrError(term);
     const internalTerm = new E.NumericLiteral(value, DF.namedNode(type));
-    const sum = this.summer.apply([ state, internalTerm ]) as E.NumericLiteral;
+    const sum = <E.NumericLiteral> this.summer.apply([ state, internalTerm ]);
     return sum;
   }
 
-  result(state: SumState): RDF.Term {
+  public result(state: SumState): RDF.Term {
     return state.toRDF();
   }
 }
 
-interface ExtremeState { extremeValue: number; term: RDF.Literal }
+interface IExtremeState { extremeValue: number; term: RDF.Literal }
 
-class Min extends BaseAggregator<ExtremeState> {
-  init(start: RDF.Term): ExtremeState {
+class Min extends BaseAggregator<IExtremeState> {
+  public init(start: RDF.Term): IExtremeState {
     const { value } = extractValue(null, start);
     if (start.termType === 'Literal') {
       return { extremeValue: value, term: start };
     }
   }
 
-  put(state: ExtremeState, term: RDF.Term): ExtremeState {
+  public put(state: IExtremeState, term: RDF.Term): IExtremeState {
     const extracted = extractValue(state.term, term);
     if (extracted.value < state.extremeValue && term.termType === 'Literal') {
       return {
@@ -97,20 +97,20 @@ class Min extends BaseAggregator<ExtremeState> {
     return state;
   }
 
-  result(state: ExtremeState): RDF.Term {
+  public result(state: IExtremeState): RDF.Term {
     return state.term;
   }
 }
 
-class Max extends BaseAggregator<ExtremeState> {
-  init(start: RDF.Term): ExtremeState {
+class Max extends BaseAggregator<IExtremeState> {
+  public init(start: RDF.Term): IExtremeState {
     const { value } = extractValue(null, start);
     if (start.termType === 'Literal') {
       return { extremeValue: value, term: start };
     }
   }
 
-  put(state: ExtremeState, term: RDF.Term): ExtremeState {
+  public put(state: IExtremeState, term: RDF.Term): IExtremeState {
     const extracted = extractValue(state.term, term);
     if (extracted.value > state.extremeValue && term.termType === 'Literal') {
       return {
@@ -121,38 +121,38 @@ class Max extends BaseAggregator<ExtremeState> {
     return state;
   }
 
-  result(state: ExtremeState): RDF.Term {
+  public result(state: IExtremeState): RDF.Term {
     return state.term;
   }
 }
 
-interface AverageState { sum: E.NumericLiteral; count: number }
+interface IAverageState { sum: E.NumericLiteral; count: number }
 
-class Average extends BaseAggregator<AverageState> {
-  summer = regularFunctions.get(C.RegularOperator.ADDITION);
-  divider = regularFunctions.get(C.RegularOperator.DIVISION);
+class Average extends BaseAggregator<IAverageState> {
+  private readonly summer = regularFunctions.get(C.RegularOperator.ADDITION);
+  private readonly divider = regularFunctions.get(C.RegularOperator.DIVISION);
 
-  static emptyValue() {
+  public static emptyValue(): RDF.Term {
     return number(0, TypeURL.XSD_INTEGER).toRDF();
   }
 
-  init(start: RDF.Term): AverageState {
+  public init(start: RDF.Term): IAverageState {
     const { value, type } = extractNumericValueAndTypeOrError(start);
     const sum = new E.NumericLiteral(value, DF.namedNode(type));
     return { sum, count: 1 };
   }
 
-  put(state: AverageState, term: RDF.Term): AverageState {
+  public put(state: IAverageState, term: RDF.Term): IAverageState {
     const { value, type } = extractNumericValueAndTypeOrError(term);
     const internalTerm = new E.NumericLiteral(value, DF.namedNode(type));
-    const sum = this.summer.apply([ state.sum, internalTerm ]) as E.NumericLiteral;
+    const sum = <E.NumericLiteral> this.summer.apply([ state.sum, internalTerm ]);
     return {
       sum,
       count: state.count + 1,
     };
   }
 
-  result(state: AverageState): RDF.Term {
+  public result(state: IAverageState): RDF.Term {
     const count = new E.NumericLiteral(state.count, DF.namedNode(C.TypeURL.XSD_INTEGER));
     const result = this.divider.apply([ state.sum, count ]);
     return result.toRDF();
@@ -160,33 +160,34 @@ class Average extends BaseAggregator<AverageState> {
 }
 
 class GroupConcat extends BaseAggregator<string> {
-  static emptyValue() {
+  public static emptyValue(): RDF.Term {
     return string('').toRDF();
   }
 
-  init(start: RDF.Term): string {
+  public init(start: RDF.Term): string {
     return start.value;
   }
 
-  put(state: string, term: RDF.Term): string {
+  public put(state: string, term: RDF.Term): string {
     return state + this.separator + term.value;
   }
 
-  result(state: string): RDF.Term {
+  public result(state: string): RDF.Term {
     return string(state).toRDF();
   }
 }
 
 class Sample extends BaseAggregator<RDF.Term> {
-  init(start: RDF.Term): RDF.Term {
+  public init(start: RDF.Term): RDF.Term {
     return start;
   }
 
-  put(state: RDF.Term, term: RDF.Term): RDF.Term {
-    return state; // First value is our sample
+  public put(state: RDF.Term, term: RDF.Term): RDF.Term {
+    // First value is our sample
+    return state;
   }
 
-  result(state: RDF.Term): RDF.Term {
+  public result(state: RDF.Term): RDF.Term {
     return state;
   }
 }
@@ -215,7 +216,7 @@ function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number; typ
     throw new Error(`Term datatype ${term.datatype.value} with value ${term.value} has type ${term.termType} and is not a numeric literal`);
   }
 
-  const type: C.NumericTypeURL = term.datatype.value as unknown as C.NumericTypeURL;
+  const type: C.NumericTypeURL = <C.NumericTypeURL> term.datatype.value;
   const value = parseXSDFloat(term.value);
   return { type, value };
 }

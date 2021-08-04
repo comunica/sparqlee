@@ -3,17 +3,17 @@ import type * as T from '../expressions/Term';
 import { transformLiteral } from '../Transformation';
 
 // Determine the relative numerical order of the two given terms.
-export function orderTypes(litA: RDF.Term | undefined, litB: RDF.Term | undefined, isAscending: boolean) {
+export function orderTypes(litA: RDF.Term | undefined, litB: RDF.Term | undefined, isAscending: boolean): -1 | 0 | 1 {
   if (litA && litA.termType === 'Literal' && litB && litB.termType === 'Literal') {
-    const a = transformLiteral(litA);
-    const b = transformLiteral(litB);
-    return order(a, b, isAscending);
+    const myLitA = transformLiteral(litA);
+    const myLitB = transformLiteral(litB);
+    return order(myLitA, myLitB, isAscending);
   }
   return 0;
 }
 
 // Effective ordering
-export function order(orderA: T.Literal<any>, orderB: T.Literal<any>, isAscending: boolean) {
+export function order(orderA: T.Literal<any>, orderB: T.Literal<any>, isAscending: boolean): -1 | 0 | 1 {
   if (orderA.typedValue === orderB.typedValue) {
     return 0;
   }

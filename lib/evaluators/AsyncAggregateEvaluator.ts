@@ -8,13 +8,13 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator {
   private readonly evaluator: AsyncEvaluator;
   private errorOccurred: boolean;
 
-  constructor(expr: Algebra.AggregateExpression, config?: IAsyncEvaluatorConfig, throwError?: boolean) {
+  public constructor(expr: Algebra.AggregateExpression, config?: IAsyncEvaluatorConfig, throwError?: boolean) {
     super(expr, throwError);
     this.evaluator = new AsyncEvaluator(expr.expression, config);
     this.errorOccurred = false;
   }
 
-  put(bindings: Bindings): Promise<void> {
+  public put(bindings: Bindings): Promise<void> {
     return this.init(bindings);
   }
 
@@ -22,18 +22,18 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator {
     try {
       const term = await this.evaluator.evaluate(bindings);
       this.state = this.aggregator.put(this.state, term);
-    } catch (error) {
+    } catch (error: unknown) {
       this.safeThrow(error);
     }
   }
 
-  protected safeThrow(err: Error): void {
+  protected safeThrow(err: unknown): void {
     if (this.throwError) {
       throw err;
     } else {
-      this.put = async() => {
-
-      };
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      this.put = async() => {};
+      // eslint-disable-next-line unicorn/no-useless-undefined
       this.result = () => undefined;
       this.errorOccurred = true;
     }
@@ -54,7 +54,7 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator {
         this.put = this.__put;
         this.result = this.__result;
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.safeThrow(error);
     }
   }

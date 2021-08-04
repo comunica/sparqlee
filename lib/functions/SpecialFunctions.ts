@@ -17,8 +17,8 @@ type PTerm = Promise<E.TermExpression>;
 // Functional forms
 // ----------------------------------------------------------------------------
 
-function _bound({ args, mapping }: { args: E.Expression[]; mapping: Bindings }) {
-  const variable = args[0] as E.VariableExpression;
+function _bound({ args, mapping }: { args: E.Expression[]; mapping: Bindings }): E.BooleanLiteral {
+  const variable = <E.VariableExpression> args[0];
   if (variable.expressionType !== E.ExpressionType.Variable) {
     throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.BOUND);
   }
@@ -64,8 +64,8 @@ const coalesce = {
     for (const expr of args) {
       try {
         return await evaluate(expr, mapping);
-      } catch (error) {
-        errors.push(error);
+      } catch (error: unknown) {
+        errors.push(<Error> error);
       }
     }
     throw new Err.CoalesceError(errors);
@@ -75,8 +75,8 @@ const coalesce = {
     for (const expr of args) {
       try {
         return evaluate(expr, mapping);
-      } catch (error) {
-        errors.push(error);
+      } catch (error: unknown) {
+        errors.push(<Error> error);
       }
     }
     throw new Err.CoalesceError(errors);
@@ -92,14 +92,18 @@ const logicalOr = {
     try {
       const leftTerm = await evaluate(leftExpr, mapping);
       const left = leftTerm.coerceEBV();
-      if (left) { return bool(true); }
+      if (left) {
+        return bool(true);
+      }
       const rightTerm = await evaluate(rightExpr, mapping);
       const right = rightTerm.coerceEBV();
       return bool(right);
-    } catch (error) {
-      const rightTerm = await evaluate(rightExpr, mapping);
-      const right = rightTerm.coerceEBV();
-      if (!right) { throw error; }
+    } catch (error: unknown) {
+      const rightErrorTerm = await evaluate(rightExpr, mapping);
+      const rightError = rightErrorTerm.coerceEBV();
+      if (!rightError) {
+        throw error;
+      }
       return bool(true);
     }
   },
@@ -108,14 +112,18 @@ const logicalOr = {
     try {
       const leftTerm = evaluate(leftExpr, mapping);
       const left = leftTerm.coerceEBV();
-      if (left) { return bool(true); }
+      if (left) {
+        return bool(true);
+      }
       const rightTerm = evaluate(rightExpr, mapping);
       const right = rightTerm.coerceEBV();
       return bool(right);
-    } catch (error) {
-      const rightTerm = evaluate(rightExpr, mapping);
-      const right = rightTerm.coerceEBV();
-      if (!right) { throw error; }
+    } catch (error: unknown) {
+      const rightErrorTerm = evaluate(rightExpr, mapping);
+      const rightError = rightErrorTerm.coerceEBV();
+      if (!rightError) {
+        throw error;
+      }
       return bool(true);
     }
   },
@@ -130,14 +138,18 @@ const logicalAnd = {
     try {
       const leftTerm = await evaluate(leftExpr, mapping);
       const left = leftTerm.coerceEBV();
-      if (!left) { return bool(false); }
+      if (!left) {
+        return bool(false);
+      }
       const rightTerm = await evaluate(rightExpr, mapping);
       const right = rightTerm.coerceEBV();
       return bool(right);
-    } catch (error) {
-      const rightTerm = await evaluate(rightExpr, mapping);
-      const right = rightTerm.coerceEBV();
-      if (right) { throw error; }
+    } catch (error: unknown) {
+      const rightErrorTerm = await evaluate(rightExpr, mapping);
+      const rightError = rightErrorTerm.coerceEBV();
+      if (rightError) {
+        throw error;
+      }
       return bool(false);
     }
   },
@@ -146,14 +158,18 @@ const logicalAnd = {
     try {
       const leftTerm = evaluate(leftExpr, mapping);
       const left = leftTerm.coerceEBV();
-      if (!left) { return bool(false); }
+      if (!left) {
+        return bool(false);
+      }
       const rightTerm = evaluate(rightExpr, mapping);
       const right = rightTerm.coerceEBV();
       return bool(right);
-    } catch (error) {
-      const rightTerm = evaluate(rightExpr, mapping);
-      const right = rightTerm.coerceEBV();
-      if (right) { throw error; }
+    } catch (error: unknown) {
+      const rightErrorTerm = evaluate(rightExpr, mapping);
+      const rightError = rightErrorTerm.coerceEBV();
+      if (rightError) {
+        throw error;
+      }
       return bool(false);
     }
   },
@@ -163,13 +179,13 @@ const logicalAnd = {
 const sameTerm = {
   arity: 2,
   async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
-    const [ leftExpr, rightExpr ] = args.map(a => evaluate(a, mapping));
+    const [ leftExpr, rightExpr ] = args.map(arg => evaluate(arg, mapping));
     const left = await leftExpr;
     const right = await rightExpr;
     return bool(left.toRDF().equals(right.toRDF()));
   },
   applySync({ args, mapping, evaluate }: E.EvalContextSync): Term {
-    const [ left, right ] = args.map(a => evaluate(a, mapping));
+    const [ left, right ] = args.map(arg => evaluate(arg, mapping));
     return bool(left.toRDF().equals(right.toRDF()));
   },
 };
@@ -196,19 +212,20 @@ async function inRecursiveAsync(
   results: (Error | false)[],
 ): PTerm {
   if (args.length === 0) {
-    const noErrors = results.every(v => !v);
+    const noErrors = results.every(val => !val);
     return noErrors ? bool(false) : Promise.reject(new Err.InError(results));
   }
 
   try {
     const next = await evaluate(args.shift(), mapping);
     const isEqual = regularFunctions.get(C.RegularOperator.EQUAL);
-    if ((isEqual.apply([ needle, next ]) as E.BooleanLiteral).typedValue) {
+    if ((<E.BooleanLiteral> isEqual.apply([ needle, next ])).typedValue) {
       return bool(true);
     }
     return inRecursiveAsync(needle, { args, mapping, evaluate, context }, [ ...results, false ]);
-  } catch (error) {
-    return inRecursiveAsync(needle, { args, mapping, evaluate, context }, [ ...results, error ]);
+  } catch (error: unknown) {
+    // TODO: look at this code a bit closer
+    return inRecursiveAsync(needle, { args, mapping, evaluate, context }, [ ...results, <Error> error ]);
   }
 }
 
@@ -218,7 +235,7 @@ function inRecursiveSync(
   results: (Error | false)[],
 ): Term {
   if (args.length === 0) {
-    const noErrors = results.every(v => !v);
+    const noErrors = results.every(val => !val);
     if (noErrors) {
       return bool(false);
     }
@@ -228,12 +245,12 @@ function inRecursiveSync(
   try {
     const next = evaluate(args.shift(), mapping);
     const isEqual = regularFunctions.get(C.RegularOperator.EQUAL);
-    if ((isEqual.apply([ needle, next ]) as E.BooleanLiteral).typedValue) {
+    if ((<E.BooleanLiteral> isEqual.apply([ needle, next ])).typedValue) {
       return bool(true);
     }
     return inRecursiveSync(needle, { args, mapping, evaluate, context }, [ ...results, false ]);
-  } catch (error) {
-    return inRecursiveSync(needle, { args, mapping, evaluate, context }, [ ...results, error ]);
+  } catch (error: unknown) {
+    return inRecursiveSync(needle, { args, mapping, evaluate, context }, [ ...results, <Error> error ]);
   }
 }
 
@@ -244,12 +261,12 @@ const notInSPARQL = {
   async applyAsync(context: E.EvalContextAsync): PTerm {
     const _in = specialFunctions.get(C.SpecialOperator.IN);
     const isIn = await _in.applyAsync(context);
-    return bool(!(isIn as E.BooleanLiteral).typedValue);
+    return bool(!(<E.BooleanLiteral> isIn).typedValue);
   },
   applySync(context: E.EvalContextSync): Term {
     const _in = specialFunctions.get(C.SpecialOperator.IN);
     const isIn = _in.applySync(context);
-    return bool(!(isIn as E.BooleanLiteral).typedValue);
+    return bool(!(<E.BooleanLiteral> isIn).typedValue);
   },
 };
 
@@ -370,14 +387,15 @@ function BNODE_(input?: string): E.BlankNode {
 // Wrap these declarations into functions
 // ----------------------------------------------------------------------------
 
-export interface SpecialDefinition {
+export interface ISpecialDefinition {
   arity: number;
   applyAsync: E.SpecialApplicationAsync;
-  applySync: E.SpecialApplicationSync; // TODO: Test these implementations
+  // TODO: Test these implementations
+  applySync: E.SpecialApplicationSync;
   checkArity?: (args: E.Expression[]) => boolean;
 }
 
-const _specialDefinitions: {[key in C.SpecialOperator]: SpecialDefinition } = {
+const _specialDefinitions: {[key in C.SpecialOperator]: ISpecialDefinition } = {
   // --------------------------------------------------------------------------
   // Functional Forms
   // https://www.w3.org/TR/sparql11-query/#func-forms
@@ -401,4 +419,4 @@ const _specialDefinitions: {[key in C.SpecialOperator]: SpecialDefinition } = {
   BNODE,
 };
 
-export const specialDefinitions = Map<C.SpecialOperator, SpecialDefinition>(_specialDefinitions);
+export const specialDefinitions = Map<C.SpecialOperator, ISpecialDefinition>(_specialDefinitions);

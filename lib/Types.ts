@@ -13,7 +13,7 @@ export function Bindings(hash: Record<string, RDF.Term>): Bindings {
   return Map(hash);
 }
 
-export interface ExpressionEvaluator<ExpressionType, TermType> {
+export interface IExpressionEvaluator<ExpressionType, TermType> {
   evaluate: (expr: ExpressionType, mapping: Bindings) => TermType;
 }
 

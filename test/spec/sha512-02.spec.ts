@@ -1,3 +1,4 @@
+/* eslint max-len: 0 */
 import { testAll } from '../util/utils';
 import * as Data from './_data';
 

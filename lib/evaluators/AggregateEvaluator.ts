@@ -1,19 +1,19 @@
 import type { Algebra } from 'sparqlalgebrajs';
 import type { Bindings } from '../Types';
 import { BaseAggregateEvaluator } from './BaseAggregateEvaluator';
-import type { SyncEvaluatorConfig } from './SyncEvaluator';
+import type { ISyncEvaluatorConfig } from './SyncEvaluator';
 import { SyncEvaluator } from './SyncEvaluator';
 
 // TODO: Support hooks & change name to SyncAggregateEvaluator
 export class AggregateEvaluator extends BaseAggregateEvaluator {
   private readonly evaluator: SyncEvaluator;
 
-  constructor(expr: Algebra.AggregateExpression, config?: SyncEvaluatorConfig, throwError?: boolean) {
+  public constructor(expr: Algebra.AggregateExpression, config?: ISyncEvaluatorConfig, throwError?: boolean) {
     super(expr, throwError);
     this.evaluator = new SyncEvaluator(expr.expression, config);
   }
 
-  put(bindings: Bindings): void {
+  public put(bindings: Bindings): void {
     this.init(bindings);
   }
 
@@ -21,16 +21,18 @@ export class AggregateEvaluator extends BaseAggregateEvaluator {
     try {
       const term = this.evaluator.evaluate(bindings);
       this.state = this.aggregator.put(this.state, term);
-    } catch (error) {
+    } catch (error: unknown) {
       this.safeThrow(error);
     }
   }
 
-  protected safeThrow(err: Error): void {
+  protected safeThrow(err: unknown): void {
     if (this.throwError) {
       throw err;
     } else {
-      this.put = () => { };
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      this.put = () => {};
+      // eslint-disable-next-line unicorn/no-useless-undefined
       this.result = () => undefined;
     }
   }
@@ -43,7 +45,7 @@ export class AggregateEvaluator extends BaseAggregateEvaluator {
         this.put = this.__put;
         this.result = this.__result;
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.safeThrow(error);
     }
   }

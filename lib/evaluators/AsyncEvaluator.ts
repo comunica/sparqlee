@@ -4,7 +4,7 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import type * as E from '../expressions/Expressions';
 
 import { transformAlgebra } from '../Transformation';
-import type { Bindings, ExpressionEvaluator } from '../Types';
+import type { Bindings, IExpressionEvaluator } from '../Types';
 
 import { AsyncRecursiveEvaluator } from './RecursiveExpressionEvaluator';
 
@@ -30,9 +30,9 @@ export type AsyncEvaluatorContext = IAsyncEvaluatorConfig & {
 
 export class AsyncEvaluator {
   private readonly expr: Expression;
-  private readonly evaluator: ExpressionEvaluator<Expression, Promise<Term>>;
+  private readonly evaluator: IExpressionEvaluator<Expression, Promise<Term>>;
 
-  constructor(public algExpr: Alg.Expression, public config: IAsyncEvaluatorConfig = {}) {
+  public constructor(public algExpr: Alg.Expression, public config: IAsyncEvaluatorConfig = {}) {
     const context = {
       now: config.now || new Date(Date.now()),
       bnode: config.bnode || undefined,
@@ -41,23 +41,26 @@ export class AsyncEvaluator {
       aggregate: config.aggregate,
     };
 
-    const extensionFunctionCreator = config.extensionFunctionCreator || (() => undefined);
+    const extensionFunctionCreator: AsyncExtensionFunctionCreator =
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      config.extensionFunctionCreator || (() => undefined);
     this.expr = transformAlgebra(algExpr, { type: 'async', creator: extensionFunctionCreator });
 
     this.evaluator = new AsyncRecursiveEvaluator(context);
   }
 
-  async evaluate(mapping: Bindings): Promise<RDF.Term> {
+  public async evaluate(mapping: Bindings): Promise<RDF.Term> {
     const result = await this.evaluator.evaluate(this.expr, mapping);
     return log(result).toRDF();
   }
 
-  async evaluateAsEBV(mapping: Bindings): Promise<boolean> {
+  public async evaluateAsEBV(mapping: Bindings): Promise<boolean> {
     const result = await this.evaluator.evaluate(this.expr, mapping);
     return log(result).coerceEBV();
   }
 
-  async evaluateAsInternal(mapping: Bindings): Promise<Term> {
+  // TODO: what does this function do?
+  public async evaluateAsInternal(mapping: Bindings): Promise<Term> {
     const result = await this.evaluator.evaluate(this.expr, mapping);
     return log(result);
   }

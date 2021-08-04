@@ -32,10 +32,21 @@ export function langMatches(tag: string, range: string): boolean {
   let lI = 1;
   let rI = 1;
   while (rI < rangeTags.length) {
-    if (_isWildCard(rangeTags[rI])) { rI++; continue; }
-    if (lI === langTags.length) { return false; }
-    if (_matchLangTag(rangeTags[rI], langTags[lI])) { lI++; rI++; continue; }
-    if (langTags[lI].length === 1) { return false; }
+    if (_isWildCard(rangeTags[rI])) {
+      rI++;
+      continue;
+    }
+    if (lI === langTags.length) {
+      return false;
+    }
+    if (_matchLangTag(rangeTags[rI], langTags[lI])) {
+      lI++;
+      rI++;
+      continue;
+    }
+    if (langTags[lI].length === 1) {
+      return false;
+    }
     lI++;
   }
   return true;
@@ -57,8 +68,10 @@ function _matchLangTag(left: string, right: string): boolean {
  * Used in fn:timezone
  * http://www.datypic.com/sc/xsd/t-xsd_dayTimeDuration.html
  */
-export function formatDayTimeDuration(timezone: string) {
-  if (!timezone) { return; }
+export function formatDayTimeDuration(timezone: string): string | undefined {
+  if (!timezone) {
+    return;
+  }
   if (timezone.startsWith('Z')) {
     return 'PT0S';
   }

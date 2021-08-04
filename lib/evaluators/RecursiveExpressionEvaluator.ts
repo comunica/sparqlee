@@ -1,7 +1,7 @@
 import * as E from '../expressions';
 import type { AsyncExtension, SyncExtension } from '../expressions';
 import { transformRDFTermUnsafe } from '../Transformation';
-import type { Bindings, ExpressionEvaluator } from '../Types';
+import type { Bindings, IExpressionEvaluator } from '../Types';
 import * as Err from '../util/Errors';
 
 import type { AsyncEvaluatorContext } from './AsyncEvaluator';
@@ -29,7 +29,7 @@ const sharedEvaluators = {
   },
 };
 
-export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, Promise<Term>> {
+export class AsyncRecursiveEvaluator implements IExpressionEvaluator<Expression, Promise<Term>> {
   private readonly subEvaluators: Record<string, (expr: Expression, mapping: Bindings) => Promise<Term> | Term> = {
     // Shared
     [E.ExpressionType.Term]: sharedEvaluators.term,
@@ -44,11 +44,13 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
     [E.ExpressionType.AsyncExtension]: this.evalAsyncExtension,
   };
 
-  constructor(private readonly context: AsyncEvaluatorContext) { }
+  public constructor(private readonly context: AsyncEvaluatorContext) { }
 
-  async evaluate(expr: Expression, mapping: Bindings): Promise<Term> {
+  public async evaluate(expr: Expression, mapping: Bindings): Promise<Term> {
     const evaluator = this.subEvaluators[expr.expressionType];
-    if (!evaluator) { throw new Err.InvalidExpressionType(expr); }
+    if (!evaluator) {
+      throw new Err.InvalidExpressionType(expr);
+    }
     return evaluator.bind(this)(expr, mapping);
   }
 
@@ -108,7 +110,7 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
   }
 }
 
-export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, Term> {
+export class SyncRecursiveEvaluator implements IExpressionEvaluator<Expression, Term> {
   private readonly subEvaluators: Record<string, (expr: Expression, mapping: Bindings) => Term> = {
     // Shared
     [E.ExpressionType.Term]: sharedEvaluators.term,
@@ -123,11 +125,13 @@ export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, T
     [E.ExpressionType.SyncExtension]: this.evalSyncExtension,
   };
 
-  constructor(private readonly context: SyncEvaluatorContext) { }
+  public constructor(private readonly context: SyncEvaluatorContext) { }
 
-  evaluate(expr: Expression, mapping: Bindings): Term {
+  public evaluate(expr: Expression, mapping: Bindings): Term {
     const evaluator = this.subEvaluators[expr.expressionType];
-    if (!evaluator) { throw new Err.InvalidExpressionType(expr); }
+    if (!evaluator) {
+      throw new Err.InvalidExpressionType(expr);
+    }
     return evaluator.bind(this)(expr, mapping);
   }
 
@@ -179,11 +183,5 @@ export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, T
     return transformRDFTermUnsafe(this
       .context
       .aggregate(expr.expression));
-  }
-}
-
-export class UnsupportedOperation extends Error {
-  constructor(operation: string) {
-    super(`Operation '${operation}' is unsupported in SimpleEvaluator`);
   }
 }

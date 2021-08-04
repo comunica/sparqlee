@@ -1,6 +1,5 @@
 import { DataFactory } from 'rdf-data-factory';
 import type * as RDF from 'rdf-js';
-import type { NamedNode } from 'rdf-js';
 import type { SyncExtensionFunctionCreator } from '../../lib/evaluators/SyncEvaluator';
 import { Bindings } from '../../lib/Types';
 import { bool, dateTime, merge, numeric, str, stringToTermPrefix, wrap } from '../util/Aliases';
@@ -40,7 +39,7 @@ describe('extension functions:', () => {
   NaN  3f  = false
   3f   NaN = false
   `;
-    const extensionTermEqual: SyncExtensionFunctionCreator = (functionNamedNode: NamedNode) => {
+    const extensionTermEqual: SyncExtensionFunctionCreator = (functionNamedNode: RDF.NamedNode) => {
       if (functionNamedNode.value === 'https://example.org/functions#equal') {
         return (args: RDF.Term[]) => {
           const resMap = mapToTerm(merge(numeric, str, dateTime, bool));
@@ -98,7 +97,7 @@ describe('extension functions:', () => {
         }`;
       const DF = new DataFactory();
       const stringType = DF.namedNode('http://www.w3.org/2001/XMLSchema#string');
-      const creator = (functionNamedNode: NamedNode) => (args: RDF.Term[]) => {
+      const creator = () => (args: RDF.Term[]) => {
         const arg = args[0];
         if (arg.termType === 'Literal' && arg.datatype.equals(DF.literal('', stringType).datatype)) {
           return DF.literal(arg.value.toUpperCase(), stringType);
@@ -108,7 +107,10 @@ describe('extension functions:', () => {
       const bindings = Bindings({
         '?o': DF.literal('AppLe', stringType),
       });
-      const generalEvaluationConfig: GeneralEvaluationConfig = { type: 'sync', config: { extensionFunctionCreator: creator }};
+      const generalEvaluationConfig: GeneralEvaluationConfig = {
+        type: 'sync',
+        config: { extensionFunctionCreator: creator },
+      };
       const evaluated = await generalEvaluate({
         expression: complexQuery, expectEquality: true, generalEvaluationConfig, bindings,
       });

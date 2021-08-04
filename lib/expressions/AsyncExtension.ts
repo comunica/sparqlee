@@ -3,9 +3,9 @@ import type { AsyncExtensionApplication, AsyncExtensionExpression, Expression } 
 import { ExpressionType } from './Expressions';
 
 export class AsyncExtension implements AsyncExtensionExpression {
-  expressionType: ExpressionType.AsyncExtension = ExpressionType.AsyncExtension;
+  public expressionType: ExpressionType.AsyncExtension = ExpressionType.AsyncExtension;
 
-  constructor(
+  public constructor(
     public name: RDF.NamedNode,
     public args: Expression[],
     public apply: AsyncExtensionApplication,

@@ -10,10 +10,16 @@
  */
 export function parseXSDFloat(value: string): number | undefined {
   const numb = Number(value);
-  if (isNaN(numb)) {
-    if (value === 'NaN') { return Number.NaN; }
-    if (value === 'INF') { return Number.POSITIVE_INFINITY; }
-    if (value === '-INF') { return Number.NEGATIVE_INFINITY; }
+  if (Number.isNaN(numb)) {
+    if (value === 'NaN') {
+      return Number.NaN;
+    }
+    if (value === 'INF') {
+      return Number.POSITIVE_INFINITY;
+    }
+    if (value === '-INF') {
+      return Number.NEGATIVE_INFINITY;
+    }
     return undefined;
   }
   return numb;
@@ -29,7 +35,7 @@ export function parseXSDFloat(value: string): number | undefined {
  */
 export function parseXSDDecimal(value: string): number | undefined {
   const numb = Number(value);
-  return isNaN(numb) ? undefined : numb;
+  return Number.isNaN(numb) ? undefined : numb;
 }
 
 /**
@@ -42,7 +48,7 @@ export function parseXSDDecimal(value: string): number | undefined {
  */
 export function parseXSDInteger(value: string): number | undefined {
   const numb: number = Number.parseInt(value, 10);
-  return isNaN(numb) ? undefined : numb;
+  return Number.isNaN(numb) ? undefined : numb;
 }
 
 export interface ISplittedDate {

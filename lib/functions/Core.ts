@@ -18,16 +18,16 @@ export type OverloadMap = Map<List<ArgumentType>, E.SimpleApplication>;
 // If the argument is a literal, the datatype often also matters.
 export type ArgumentType = 'term' | E.TermType | C.Type;
 
-export interface OverloadedDefinition {
+export interface IOverloadedDefinition {
   arity: number | number[];
   overloads: OverloadMap;
 }
 
 export abstract class BaseFunction<Operator> {
-  arity: number | number[];
+  public arity: number | number[];
   private readonly overloads: OverloadMap;
 
-  constructor(public operator: Operator, definition: OverloadedDefinition) {
+  protected constructor(public operator: Operator, definition: IOverloadedDefinition) {
     this.arity = definition.arity;
     this.overloads = definition.overloads;
   }
@@ -37,7 +37,7 @@ export abstract class BaseFunction<Operator> {
    * instance depending on the runtime types. We then just apply this function
    * to the args.
    */
-  apply = (args: Term[]): Term => {
+  public apply = (args: Term[]): Term => {
     const concreteFunction = this.monomorph(args) || this.handleInvalidTypes(args);
     return concreteFunction(args);
   };
@@ -55,7 +55,7 @@ export abstract class BaseFunction<Operator> {
    * for every concrete type when the function is generic over termtypes or
    * terms.
    */
-  private monomorph(args: Term[]) {
+  private monomorph(args: Term[]): E.SimpleApplication {
     return false ||
       // TODO: Maybe use non primitive types first?
       this.overloads.get(Typer.asConcreteTypes(args)) ||
@@ -74,7 +74,7 @@ const Typer = {
   },
 
   asGenericTerms(args: Term[]): List<'term'> {
-    return List(new Array(args.length).fill('term'));
+    return <List<'term'>> List(Array.from({ length: args.length }).fill('term'));
   },
 };
 
@@ -99,26 +99,26 @@ const Typer = {
  * and https://www.w3.org/TR/sparql11-query/#OperatorMapping
  */
 export class RegularFunction extends BaseFunction<C.RegularOperator> {
-  functionClass: 'regular' = 'regular';
+  protected functionClass: 'regular' = 'regular';
 
-  constructor(op: C.RegularOperator, definition: OverloadedDefinition) {
+  public constructor(op: C.RegularOperator, definition: IOverloadedDefinition) {
     super(op, definition);
   }
 
-  handleInvalidTypes(args: Term[]): never {
+  protected handleInvalidTypes(args: Term[]): never {
     throw new Err.InvalidArgumentTypes(args, this.operator);
   }
 }
 
 // Named Functions ------------------------------------------------------------
 export class NamedFunction extends BaseFunction<C.NamedOperator> {
-  functionClass: 'named' = 'named';
+  protected functionClass: 'named' = 'named';
 
-  constructor(op: C.NamedOperator, definition: OverloadedDefinition) {
+  public constructor(op: C.NamedOperator, definition: IOverloadedDefinition) {
     super(op, definition);
   }
 
-  handleInvalidTypes(args: Term[]): never {
+  protected handleInvalidTypes(args: Term[]): never {
     throw new Err.InvalidArgumentTypes(args, this.operator);
   }
 }
@@ -140,13 +140,13 @@ export class NamedFunction extends BaseFunction<C.NamedOperator> {
  * in some contexts.
  */
 export class SpecialFunction {
-  functionClass: 'special' = 'special';
-  arity: number;
-  applySync: E.SpecialApplicationSync;
-  applyAsync: E.SpecialApplicationAsync;
-  checkArity: (args: E.Expression[]) => boolean;
+  public functionClass: 'special' = 'special';
+  public arity: number;
+  public applySync: E.SpecialApplicationSync;
+  public applyAsync: E.SpecialApplicationAsync;
+  public checkArity: (args: E.Expression[]) => boolean;
 
-  constructor(public operator: C.SpecialOperator, definition: SpecialDefinition) {
+  public constructor(public operator: C.SpecialOperator, definition: ISpecialDefinition) {
     this.arity = definition.arity;
     this.applySync = definition.applySync;
     this.applyAsync = definition.applyAsync;
@@ -157,7 +157,9 @@ export class SpecialFunction {
 function defaultArityCheck(arity: number): (args: E.Expression[]) => boolean {
   return (args: E.Expression[]): boolean => {
     // Infinity is used to represent var-args, so it's always correct.
-    if (arity === Number.POSITIVE_INFINITY) { return true; }
+    if (arity === Number.POSITIVE_INFINITY) {
+      return true;
+    }
 
     // If the function has overloaded arity, the actual arity needs to be present.
     if (Array.isArray(arity)) {
@@ -168,7 +170,7 @@ function defaultArityCheck(arity: number): (args: E.Expression[]) => boolean {
   };
 }
 
-export interface SpecialDefinition {
+export interface ISpecialDefinition {
   arity: number;
   applyAsync: E.SpecialApplicationAsync;
   applySync: E.SpecialApplicationSync;

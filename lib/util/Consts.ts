@@ -269,8 +269,8 @@ export enum SpecialOperator {
   IN = 'in',
   NOT_IN = 'notin',
 
-  // Annoying functions
-  CONCAT = 'concat', // Has variable arity
+  // Annoying functions - Has variable arity
+  CONCAT = 'concat',
 
   // Context dependant functions
   NOW = 'now',

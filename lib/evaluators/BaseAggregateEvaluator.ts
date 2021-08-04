@@ -14,7 +14,7 @@ export abstract class BaseAggregateEvaluator {
 
   protected constructor(expr: Algebra.AggregateExpression, throwError?: boolean) {
     this.expression = expr;
-    this.aggregator = new aggregators[expr.aggregator as SetFunction](expr);
+    this.aggregator = new aggregators[<SetFunction> expr.aggregator](expr);
     this.throwError = throwError;
   }
 
@@ -26,16 +26,17 @@ export abstract class BaseAggregateEvaluator {
    *
    * @param throwError whether this function should respect the spec and throw an error if no empty value is defined
    */
-  static emptyValue(expr: Algebra.AggregateExpression, throwError = false): RDF.Term {
-    const val = aggregators[expr.aggregator as SetFunction].emptyValue();
+  public static emptyValue(expr: Algebra.AggregateExpression, throwError = false): RDF.Term {
+    const val = aggregators[<SetFunction> expr.aggregator].emptyValue();
     if (val === undefined && throwError) {
       throw new Err.EmptyAggregateError();
     }
     return val;
   }
 
-  result(): RDF.Term { //TODO: should this also be '| undefined' ?
-    return (this.aggregator.constructor as IAggregatorClass).emptyValue();
+  // TODO: should this also be '| undefined' ?
+  public result(): RDF.Term {
+    return (<IAggregatorClass> this.aggregator.constructor).emptyValue();
   }
 
   /**
@@ -68,5 +69,5 @@ export abstract class BaseAggregateEvaluator {
    */
   protected abstract __put(bindings: Bindings): void | Promise<void>;
 
-  protected abstract safeThrow(err: Error): void;
+  protected abstract safeThrow(err: unknown): void;
 }

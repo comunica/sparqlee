@@ -33,5 +33,6 @@ module.exports = {
         'no-redeclare': 'off',
         'unicorn/prefer-top-level-await': 'off',
         'unicorn/filename-case': 'off',
+        '@typescript-eslint/no-base-to-string': 'off',
     }
 };
