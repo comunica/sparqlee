@@ -1,10 +1,10 @@
-import {DataFactory} from 'rdf-data-factory';
-import * as RDF from 'rdf-js';
-
-import { ExpressionType, TermExpression, TermType } from './Expressions';
+import { DataFactory } from 'rdf-data-factory';
+import type * as RDF from 'rdf-js';
 
 import * as C from '../util/Consts';
 import * as Err from '../util/Errors';
+import type { TermExpression, TermType } from './Expressions';
+import { ExpressionType } from './Expressions';
 
 const DF = new DataFactory();
 
@@ -15,13 +15,12 @@ export abstract class Term implements TermExpression {
   abstract toRDF(): RDF.Term;
 
   str(): string {
-    throw new Err.InvalidArgumentTypes([this], C.RegularOperator.STR);
+    throw new Err.InvalidArgumentTypes([ this ], C.RegularOperator.STR);
   }
 
   coerceEBV(): boolean {
     throw new Err.EBVCoercionError(this);
   }
-
 }
 
 // NamedNodes -----------------------------------------------------------------
@@ -46,7 +45,7 @@ export class BlankNode extends Term {
   value: RDF.BlankNode;
   termType: TermType = 'blankNode';
 
-  constructor(value: RDF.BlankNode|string) {
+  constructor(value: RDF.BlankNode | string) {
     super();
     this.value = typeof value === 'string' ? DF.blankNode(value) : value;
   }
@@ -70,7 +69,8 @@ export class Literal<T> extends Term {
     public typedValue: T,
     public typeURL: RDF.NamedNode,
     public strValue?: string,
-    public language?: string) {
+    public language?: string,
+  ) {
     super();
     this.type = C.type(typeURL.value);
   }
@@ -78,7 +78,8 @@ export class Literal<T> extends Term {
   toRDF(): RDF.Term {
     return DF.literal(
       this.strValue || this.str(),
-      this.language || this.typeURL);
+      this.language || this.typeURL,
+    );
   }
 
   str(): string {
@@ -87,10 +88,10 @@ export class Literal<T> extends Term {
 }
 
 export class NumericLiteral extends Literal<number> {
-  private static specificFormatters: { [key in C.PrimitiveNumericType]: (val: number) => string } = {
-    integer: (value) => value.toFixed(), // Avoid emitting non lexical integers
-    float: (value) => value.toString(),
-    decimal: (value) => value.toString(),
+  private static readonly specificFormatters: {[key in C.PrimitiveNumericType]: (val: number) => string } = {
+    integer: value => value.toFixed(0), // Avoid emitting non lexical integers
+    float: value => value.toString(),
+    decimal: value => value.toString(),
     // // Be consistent with float
     // decimal: (value) => {
     //   const jsDecimal = value.toString();
@@ -100,18 +101,18 @@ export class NumericLiteral extends Literal<number> {
     // },
 
     // https://www.w3.org/TR/xmlschema-2/#double
-    double: (value) => {
+    double(value) {
       const jsExponential = value.toExponential();
-      const [jsMantisse, jsExponent] = jsExponential.split('e');
+      const [ jsMantisse, jsExponent ] = jsExponential.split('e');
 
-      // leading + must be removed for integer
+      // Leading + must be removed for integer
       // https://www.w3.org/TR/xmlschema-2/#integer
       const exponent = jsExponent.replace(/\+/, '');
 
       // SPARQL test suite prefers trailing zero's
-      const mantisse = jsMantisse.match(/\./)
-        ? jsMantisse
-        : jsMantisse + '.0';
+      const mantisse = jsMantisse.includes('.') ?
+        jsMantisse :
+        `${jsMantisse}.0`;
 
       return `${mantisse}E${exponent}`;
     },
@@ -132,8 +133,8 @@ export class NumericLiteral extends Literal<number> {
   }
 
   str(): string {
-    return this.strValue
-      || NumericLiteral.specificFormatters[this.type](this.typedValue);
+    return this.strValue ||
+      NumericLiteral.specificFormatters[this.type](this.typedValue);
   }
 }
 
@@ -141,13 +142,14 @@ export class BooleanLiteral extends Literal<boolean> {
   constructor(public typedValue: boolean, public strValue?: string) {
     super(typedValue, C.make(C.TypeURL.XSD_BOOLEAN), strValue);
   }
+
   coerceEBV(): boolean {
     return !!this.typedValue;
   }
 }
 
 export class DateTimeLiteral extends Literal<Date> {
-  // strValue is mandatory here because toISOString will always add
+  // StrValue is mandatory here because toISOString will always add
   // milliseconds, even if they were not present.
   constructor(public typedValue: Date, public strValue: string) {
     super(typedValue, C.make(C.TypeURL.XSD_DATE_TIME), strValue);
@@ -160,7 +162,7 @@ export class LangStringLiteral extends Literal<string> {
   }
 
   coerceEBV(): boolean {
-    return this.strValue.length !== 0;
+    return this.strValue.length > 0;
   }
 }
 
@@ -174,7 +176,7 @@ export class StringLiteral extends Literal<string> {
   }
 
   coerceEBV(): boolean {
-    return this.strValue.length !== 0;
+    return this.strValue.length > 0;
   }
 }
 
@@ -196,12 +198,13 @@ export class StringLiteral extends Literal<string> {
  *  - ... some other more precise thing i can't find...
  */
 export class NonLexicalLiteral extends Literal<undefined> {
-  private shouldBeCategory: C.Type;
+  private readonly shouldBeCategory: C.Type;
   constructor(
     typedValue: undefined,
     typeURL: RDF.NamedNode,
     strValue?: string,
-    language?: string) {
+    language?: string,
+  ) {
     super(typedValue, typeURL, strValue, language);
     this.typedValue = undefined;
     this.type = 'nonlexical';
@@ -210,8 +213,8 @@ export class NonLexicalLiteral extends Literal<undefined> {
 
   coerceEBV(): boolean {
     const isNumericOrBool =
-      C.PrimitiveNumericTypes.contains(this.shouldBeCategory)
-      || this.shouldBeCategory === 'boolean';
+      C.PrimitiveNumericTypes.contains(this.shouldBeCategory) ||
+      this.shouldBeCategory === 'boolean';
 
     if (isNumericOrBool) { return false; }
     throw new Err.EBVCoercionError(this);

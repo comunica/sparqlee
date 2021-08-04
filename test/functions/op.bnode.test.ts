@@ -1,6 +1,6 @@
-import {testAll} from '../util/utils';
-import {DataFactory} from 'rdf-data-factory';
-import {SyncEvaluatorConfig} from '../../lib/evaluators/SyncEvaluator';
+import { DataFactory } from 'rdf-data-factory';
+import type { SyncEvaluatorConfig } from '../../lib/evaluators/SyncEvaluator';
+import { testAll } from '../util/utils';
 
 const DF = new DataFactory();
 

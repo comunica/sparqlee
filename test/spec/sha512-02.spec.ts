@@ -1,7 +1,5 @@
-// tslint:disable:max-line-length
+import { testAll } from '../util/utils';
 import * as Data from './_data';
-
-import { aliases as a, testAll } from '../util/utils';
 
 /**
  * REQUEST: sha512-02.rq

@@ -1,4 +1,5 @@
-import { ExpressionType, VariableExpression } from './Expressions';
+import type { VariableExpression } from './Expressions';
+import { ExpressionType } from './Expressions';
 
 export class Variable implements VariableExpression {
   expressionType: ExpressionType.Variable = ExpressionType.Variable;

@@ -1,11 +1,12 @@
-import {Algebra} from 'sparqlalgebrajs';
-import {Bindings} from '../Types';
-import {SyncEvaluator, SyncEvaluatorConfig} from './SyncEvaluator';
-import {BaseAggregateEvaluator} from './BaseAggregateEvaluator';
+import type { Algebra } from 'sparqlalgebrajs';
+import type { Bindings } from '../Types';
+import { BaseAggregateEvaluator } from './BaseAggregateEvaluator';
+import type { SyncEvaluatorConfig } from './SyncEvaluator';
+import { SyncEvaluator } from './SyncEvaluator';
 
 // TODO: Support hooks & change name to SyncAggregateEvaluator
-export class AggregateEvaluator extends BaseAggregateEvaluator{
-  private evaluator: SyncEvaluator;
+export class AggregateEvaluator extends BaseAggregateEvaluator {
+  private readonly evaluator: SyncEvaluator;
 
   constructor(expr: Algebra.AggregateExpression, config?: SyncEvaluatorConfig, throwError?: boolean) {
     super(expr, throwError);
@@ -20,8 +21,8 @@ export class AggregateEvaluator extends BaseAggregateEvaluator{
     try {
       const term = this.evaluator.evaluate(bindings);
       this.state = this.aggregator.put(this.state, term);
-    } catch (err) {
-      this.safeThrow(err);
+    } catch (error) {
+      this.safeThrow(error);
     }
   }
 
@@ -29,7 +30,7 @@ export class AggregateEvaluator extends BaseAggregateEvaluator{
     if (this.throwError) {
       throw err;
     } else {
-      this.put = () => { return; };
+      this.put = () => { };
       this.result = () => undefined;
     }
   }
@@ -42,8 +43,8 @@ export class AggregateEvaluator extends BaseAggregateEvaluator{
         this.put = this.__put;
         this.result = this.__result;
       }
-    } catch (err) {
-      this.safeThrow(err);
+    } catch (error) {
+      this.safeThrow(error);
     }
   }
 }

@@ -1,7 +1,8 @@
-import { List, Map } from 'immutable';
+import type { Map } from 'immutable';
+import { List } from 'immutable';
 
-import * as E from '../expressions';
-import * as C from '../util/Consts';
+import type * as E from '../expressions';
+import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
 
 type Term = E.TermExpression;
@@ -17,15 +18,14 @@ export type OverloadMap = Map<List<ArgumentType>, E.SimpleApplication>;
 // If the argument is a literal, the datatype often also matters.
 export type ArgumentType = 'term' | E.TermType | C.Type;
 
-export type OverloadedDefinition = {
-  arity: number | number[]
-  overloads: OverloadMap,
-};
+export interface OverloadedDefinition {
+  arity: number | number[];
+  overloads: OverloadMap;
+}
 
 export abstract class BaseFunction<Operator> {
-
   arity: number | number[];
-  private overloads: OverloadMap;
+  private readonly overloads: OverloadMap;
 
   constructor(public operator: Operator, definition: OverloadedDefinition) {
     this.arity = definition.arity;
@@ -40,7 +40,7 @@ export abstract class BaseFunction<Operator> {
   apply = (args: Term[]): Term => {
     const concreteFunction = this.monomorph(args) || this.handleInvalidTypes(args);
     return concreteFunction(args);
-  }
+  };
 
   protected abstract handleInvalidTypes(args: Term[]): never;
 
@@ -56,29 +56,27 @@ export abstract class BaseFunction<Operator> {
    * terms.
    */
   private monomorph(args: Term[]) {
-    return (false
+    return false ||
       // TODO: Maybe use non primitive types first?
-      || this.overloads.get(Typer.asConcreteTypes(args))
-      || this.overloads.get(Typer.asTermTypes(args))
-      || this.overloads.get(Typer.asGenericTerms(args))
-    );
+      this.overloads.get(Typer.asConcreteTypes(args)) ||
+      this.overloads.get(Typer.asTermTypes(args)) ||
+      this.overloads.get(Typer.asGenericTerms(args));
   }
 }
 
-class Typer {
-  static asConcreteTypes(args: Term[]): List<ArgumentType> {
-    // tslint:disable-next-line:no-any
-    return List(args.map((a: any) => a.type || a.termType));
-  }
+const Typer = {
+  asConcreteTypes(args: Term[]): List<ArgumentType> {
+    return List(args.map((term: any) => term.type || term.termType));
+  },
 
-  static asTermTypes(args: Term[]): List<E.TermType> {
-    return List(args.map((a: E.TermExpression) => a.termType));
-  }
+  asTermTypes(args: Term[]): List<E.TermType> {
+    return List(args.map((term: E.TermExpression) => term.termType));
+  },
 
-  static asGenericTerms(args: Term[]): List<'term'> {
-    return List(Array(args.length).fill('term'));
-  }
-}
+  asGenericTerms(args: Term[]): List<'term'> {
+    return List(new Array(args.length).fill('term'));
+  },
+};
 
 // Regular Functions ----------------------------------------------------------
 
@@ -159,27 +157,27 @@ export class SpecialFunction {
 function defaultArityCheck(arity: number): (args: E.Expression[]) => boolean {
   return (args: E.Expression[]): boolean => {
     // Infinity is used to represent var-args, so it's always correct.
-    if (arity === Infinity) { return true; }
+    if (arity === Number.POSITIVE_INFINITY) { return true; }
 
     // If the function has overloaded arity, the actual arity needs to be present.
     if (Array.isArray(arity)) {
-      return arity.indexOf(args.length) >= 0;
+      return arity.includes(args.length);
     }
 
     return args.length === arity;
   };
 }
 
-export type SpecialDefinition = {
+export interface SpecialDefinition {
   arity: number;
   applyAsync: E.SpecialApplicationAsync;
   applySync: E.SpecialApplicationSync;
   checkArity?: (args: E.Expression[]) => boolean;
-};
+}
 
 // Type Promotion -------------------------------------------------------------
 
-const _promote: { [t in C.PrimitiveNumericType]: { [tt in C.PrimitiveNumericType]: C.PrimitiveNumericType } } = {
+const _promote: {[t in C.PrimitiveNumericType]: {[tt in C.PrimitiveNumericType]: C.PrimitiveNumericType }} = {
   integer: {
     integer: 'integer',
     decimal: 'decimal',

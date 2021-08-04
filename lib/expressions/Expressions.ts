@@ -1,7 +1,7 @@
-import * as RDF from 'rdf-js';
-import { Algebra } from 'sparqlalgebrajs';
+import type * as RDF from 'rdf-js';
+import type { Algebra } from 'sparqlalgebrajs';
 
-import { Bindings } from '../Types';
+import type { Bindings } from '../Types';
 
 export enum ExpressionType {
   Aggregate = 'aggregate',
@@ -62,7 +62,7 @@ export type SyncExtensionExpression = ExpressionProps & {
   args: Expression[];
 };
 
-// export type Application = SimpleApplication | SpecialApplication;
+// Export type Application = SimpleApplication | SpecialApplication;
 export type SimpleApplication = (args: TermExpression[]) => TermExpression;
 export type AsyncExtensionApplication = (args: TermExpression[]) => Promise<TermExpression>;
 
@@ -80,22 +80,22 @@ export type EvalContextAsync = EvalContext<Promise<TermExpression>, Promise<RDF.
 export type SpecialApplicationSync = SpecialApplication<TermExpression, RDF.BlankNode>;
 export type EvalContextSync = EvalContext<TermExpression, RDF.BlankNode>;
 
-export type EvalContext<Term, BNode> = {
-  args: Expression[],
-  mapping: Bindings,
+export interface EvalContext<Term, BNode> {
+  args: Expression[];
+  mapping: Bindings;
   context: {
-    now: Date,
-    baseIRI?: string,
-    bnode(input?: string): BNode,
-  },
-  evaluate(expr: Expression, mapping: Bindings): Term,
-};
+    now: Date;
+    baseIRI?: string;
+    bnode: (input?: string) => BNode;
+  };
+  evaluate: (expr: Expression, mapping: Bindings) => Term;
+}
 
 export type SpecialOperatorExpression = ExpressionProps & {
-  expressionType: ExpressionType.SpecialOperator,
-  args: Expression[],
-  applyAsync: SpecialApplicationAsync,
-  applySync: SpecialApplicationSync,
+  expressionType: ExpressionType.SpecialOperator;
+  args: Expression[];
+  applyAsync: SpecialApplicationAsync;
+  applySync: SpecialApplicationSync;
 };
 
 // TODO: Create alias Term = TermExpression
@@ -103,9 +103,9 @@ export type TermType = 'namedNode' | 'literal' | 'blankNode';
 export type TermExpression = ExpressionProps & {
   expressionType: ExpressionType.Term;
   termType: TermType;
-  str(): string;
-  coerceEBV(): boolean;
-  toRDF(): RDF.Term;
+  str: () => string;
+  coerceEBV: () => boolean;
+  toRDF: () => RDF.Term;
 };
 
 export type VariableExpression = ExpressionProps & {

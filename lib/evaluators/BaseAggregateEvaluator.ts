@@ -1,12 +1,12 @@
-import {Algebra} from 'sparqlalgebrajs';
-import {AggregatorClass, aggregators, BaseAggregator} from '../Aggregators';
-import {SetFunction} from '../util/Consts';
-import * as RDF from 'rdf-js';
+import type * as RDF from 'rdf-js';
+import type { Algebra } from 'sparqlalgebrajs';
+import type { IAggregatorClass, BaseAggregator } from '../Aggregators';
+import { aggregators } from '../Aggregators';
+import type { Bindings } from '../Types';
+import type { SetFunction } from '../util/Consts';
 import * as Err from '../util/Errors';
-import {Bindings} from '../Types';
 
 export abstract class BaseAggregateEvaluator {
-
   protected expression: Algebra.AggregateExpression;
   protected aggregator: BaseAggregator<any>;
   protected throwError = false;
@@ -34,8 +34,8 @@ export abstract class BaseAggregateEvaluator {
     return val;
   }
 
-  result(): RDF.Term {
-    return (this.aggregator.constructor as AggregatorClass).emptyValue();
+  result(): RDF.Term { //TODO: should this also be '| undefined' ?
+    return (this.aggregator.constructor as IAggregatorClass).emptyValue();
   }
 
   /**

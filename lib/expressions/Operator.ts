@@ -1,8 +1,8 @@
-import {
-  Expression,
-  ExpressionType,
+import type { Expression,
   OperatorExpression,
-  SimpleApplication,
+  SimpleApplication } from './Expressions';
+import {
+  ExpressionType,
 } from './Expressions';
 
 export class Operator implements OperatorExpression {

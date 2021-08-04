@@ -1,10 +1,9 @@
-import * as RDF from 'rdf-js';
-import { Algebra } from 'sparqlalgebrajs';
+import type * as RDF from 'rdf-js';
+import type { Algebra } from 'sparqlalgebrajs';
 
-import * as E from '../expressions';
-import * as C from './Consts';
-
-import { Bindings } from '../Types';
+import type * as E from '../expressions';
+import type { Bindings } from '../Types';
+import type * as C from './Consts';
 
 /**
  * This class of error will be thrown when an expression errors.
@@ -88,10 +87,11 @@ export class CoalesceError extends ExpressionError {
  * No arguments to an IN call where equal, and at least one threw an error.
  */
 export class InError extends ExpressionError {
-  constructor(public errors: Array<Error | false>) {
+  constructor(public errors: (Error | false)[]) {
     super(
-      'Some argument to IN errorred and none where equal. ' +
-      errors.map((err) => `(${err.toString()}) `).join('and '));
+      `Some argument to IN errorred and none where equal. ${
+        errors.map(err => `(${err.toString()}) `).join('and ')}`,
+    );
   }
 }
 
@@ -207,6 +207,6 @@ export class NoExistenceHook extends Error {
   }
 }
 
-function pp<T>(o: T) {
-  return JSON.stringify(o);
+function pp<T>(object: T) {
+  return JSON.stringify(object);
 }

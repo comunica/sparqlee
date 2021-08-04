@@ -1,10 +1,10 @@
-import * as RDF from 'rdf-js';
+import type * as RDF from 'rdf-js';
 
-import {
-  Expression,
-  ExpressionType,
+import type { Expression,
   NamedExpression,
-  SimpleApplication,
+  SimpleApplication } from './Expressions';
+import {
+  ExpressionType,
 } from './Expressions';
 
 export class Named implements NamedExpression {
@@ -13,5 +13,6 @@ export class Named implements NamedExpression {
   constructor(
     public name: RDF.NamedNode,
     public args: Expression[],
-    public apply: SimpleApplication) { }
+    public apply: SimpleApplication,
+  ) { }
 }

@@ -1,9 +1,9 @@
-import {
-  Expression,
-  ExpressionType,
+import type { Expression,
   SpecialApplicationAsync,
   SpecialApplicationSync,
-  SpecialOperatorExpression,
+  SpecialOperatorExpression } from './Expressions';
+import {
+  ExpressionType,
 } from './Expressions';
 
 export class SpecialOperator implements SpecialOperatorExpression {

@@ -1,13 +1,13 @@
-import * as RDF from 'rdf-js';
-import { Algebra as Alg } from 'sparqlalgebrajs';
+import type * as RDF from 'rdf-js';
+import type { NamedNode } from 'rdf-js';
+import type { Algebra as Alg } from 'sparqlalgebrajs';
 
-import * as E from '../expressions/Expressions';
+import type * as E from '../expressions/Expressions';
 
 import { transformAlgebra } from '../Transformation';
-import { Bindings, ExpressionEvaluator } from '../Types';
+import type { Bindings, ExpressionEvaluator } from '../Types';
 
 import { SyncRecursiveEvaluator } from './RecursiveExpressionEvaluator';
-import {NamedNode} from 'rdf-js';
 
 type Expression = E.Expression;
 type Term = E.TermExpression;
@@ -30,8 +30,8 @@ export type SyncEvaluatorContext = SyncEvaluatorConfig & {
 };
 
 export class SyncEvaluator {
-  private expr: Expression;
-  private evaluator: ExpressionEvaluator<Expression, Term>;
+  private readonly expr: Expression;
+  private readonly evaluator: ExpressionEvaluator<Expression, Term>;
 
   constructor(public algExpr: Alg.Expression, public config: SyncEvaluatorConfig = {}) {
     const context: SyncEvaluatorContext = {
@@ -64,6 +64,6 @@ export class SyncEvaluator {
 }
 
 function log<T>(val: T): T {
-  // console.log(val);
+  // Console.log(val);
   return val;
 }

@@ -1,12 +1,11 @@
 import * as E from '../expressions';
+import type { AsyncExtension, SyncExtension } from '../expressions';
+import { transformRDFTermUnsafe } from '../Transformation';
+import type { Bindings, ExpressionEvaluator } from '../Types';
 import * as Err from '../util/Errors';
 
-import { transformRDFTermUnsafe } from '../Transformation';
-import { Bindings, ExpressionEvaluator } from '../Types';
-
-import { AsyncEvaluatorContext } from './AsyncEvaluator';
-import { SyncEvaluatorContext } from './SyncEvaluator';
-import {AsyncExtension, SyncExtension} from '../expressions';
+import type { AsyncEvaluatorContext } from './AsyncEvaluator';
+import type { SyncEvaluatorContext } from './SyncEvaluator';
 
 type Expression = E.Expression;
 type Term = E.TermExpression;
@@ -31,24 +30,21 @@ const sharedEvaluators = {
 };
 
 export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, Promise<Term>> {
+  private readonly subEvaluators: Record<string, (expr: Expression, mapping: Bindings) => Promise<Term> | Term> = {
+    // Shared
+    [E.ExpressionType.Term]: sharedEvaluators.term,
+    [E.ExpressionType.Variable]: sharedEvaluators.variable,
 
-  private readonly subEvaluators: {
-    [key: string]: (expr: Expression, mapping: Bindings) => Promise<Term> | Term;
-  } = {
-      // Shared
-      [E.ExpressionType.Term]: sharedEvaluators.term,
-      [E.ExpressionType.Variable]: sharedEvaluators.variable,
+    // Async
+    [E.ExpressionType.Operator]: this.evalOperator,
+    [E.ExpressionType.SpecialOperator]: this.evalSpecialOperator,
+    [E.ExpressionType.Named]: this.evalNamed,
+    [E.ExpressionType.Existence]: this.evalExistence,
+    [E.ExpressionType.Aggregate]: this.evalAggregate,
+    [E.ExpressionType.AsyncExtension]: this.evalAsyncExtension,
+  };
 
-      // Async
-      [E.ExpressionType.Operator]: this.evalOperator,
-      [E.ExpressionType.SpecialOperator]: this.evalSpecialOperator,
-      [E.ExpressionType.Named]: this.evalNamed,
-      [E.ExpressionType.Existence]: this.evalExistence,
-      [E.ExpressionType.Aggregate]: this.evalAggregate,
-      [E.ExpressionType.AsyncExtension]: this.evalAsyncExtension,
-    };
-
-  constructor(private context: AsyncEvaluatorContext) { }
+  constructor(private readonly context: AsyncEvaluatorContext) { }
 
   async evaluate(expr: Expression, mapping: Bindings): Promise<Term> {
     const evaluator = this.subEvaluators[expr.expressionType];
@@ -57,7 +53,7 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
   }
 
   private async evalOperator(expr: Operator, mapping: Bindings): Promise<Term> {
-    const argPromises = expr.args.map((arg) => this.evaluate(arg, mapping));
+    const argPromises = expr.args.map(arg => this.evaluate(arg, mapping));
     const argResults = await Promise.all(argPromises);
     return expr.apply(argResults);
   }
@@ -78,7 +74,7 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
   }
 
   private async _evalAsyncArgs(args: Expression[], mapping: Bindings): Promise<E.TermExpression[]> {
-    const argPromises = args.map((arg) => this.evaluate(arg, mapping));
+    const argPromises = args.map(arg => this.evaluate(arg, mapping));
     return await Promise.all(argPromises);
   }
 
@@ -88,7 +84,6 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
 
   private async evalAsyncExtension(expr: AsyncExtension, mapping: Bindings): Promise<Term> {
     return await expr.apply(await this._evalAsyncArgs(expr.args, mapping));
-
   }
 
   private async evalExistence(expr: Existence, mapping: Bindings): Promise<Term> {
@@ -114,24 +109,21 @@ export class AsyncRecursiveEvaluator implements ExpressionEvaluator<Expression, 
 }
 
 export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, Term> {
+  private readonly subEvaluators: Record<string, (expr: Expression, mapping: Bindings) => Term> = {
+    // Shared
+    [E.ExpressionType.Term]: sharedEvaluators.term,
+    [E.ExpressionType.Variable]: sharedEvaluators.variable,
 
-  private readonly subEvaluators: {
-    [key: string]: (expr: Expression, mapping: Bindings) => Term;
-  } = {
-      // Shared
-      [E.ExpressionType.Term]: sharedEvaluators.term,
-      [E.ExpressionType.Variable]: sharedEvaluators.variable,
+    // Sync
+    [E.ExpressionType.Operator]: this.evalOperator,
+    [E.ExpressionType.SpecialOperator]: this.evalSpecialOperator,
+    [E.ExpressionType.Named]: this.evalNamed,
+    [E.ExpressionType.Existence]: this.evalExistence,
+    [E.ExpressionType.Aggregate]: this.evalAggregate,
+    [E.ExpressionType.SyncExtension]: this.evalSyncExtension,
+  };
 
-      // Sync
-      [E.ExpressionType.Operator]: this.evalOperator,
-      [E.ExpressionType.SpecialOperator]: this.evalSpecialOperator,
-      [E.ExpressionType.Named]: this.evalNamed,
-      [E.ExpressionType.Existence]: this.evalExistence,
-      [E.ExpressionType.Aggregate]: this.evalAggregate,
-      [E.ExpressionType.SyncExtension]: this.evalSyncExtension,
-    };
-
-  constructor(private context: SyncEvaluatorContext) { }
+  constructor(private readonly context: SyncEvaluatorContext) { }
 
   evaluate(expr: Expression, mapping: Bindings): Term {
     const evaluator = this.subEvaluators[expr.expressionType];
@@ -140,7 +132,7 @@ export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, T
   }
 
   private evalOperator(expr: Operator, mapping: Bindings): Term {
-    const args = expr.args.map((arg) => this.evaluate(arg, mapping));
+    const args = expr.args.map(arg => this.evaluate(arg, mapping));
     return expr.apply(args);
   }
 
@@ -160,12 +152,12 @@ export class SyncRecursiveEvaluator implements ExpressionEvaluator<Expression, T
   }
 
   private evalNamed(expr: Named, mapping: Bindings): Term {
-    const args = expr.args.map((arg) => this.evaluate(arg, mapping));
+    const args = expr.args.map(arg => this.evaluate(arg, mapping));
     return expr.apply(args);
   }
 
   private evalSyncExtension(expr: SyncExtension, mapping: Bindings): Term {
-    const args = expr.args.map((arg) => this.evaluate(arg, mapping));
+    const args = expr.args.map(arg => this.evaluate(arg, mapping));
     return expr.apply(args);
   }
 

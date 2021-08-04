@@ -1,7 +1,7 @@
-import { Algebra as Alg } from 'sparqlalgebrajs';
+import type { Algebra as Alg } from 'sparqlalgebrajs';
 
+import type { AggregateExpression } from './Expressions';
 import {
-  AggregateExpression,
   ExpressionType,
 } from './Expressions';
 
