@@ -1,159 +1,187 @@
-import type * as RDF from 'rdf-js';
-
-import { termToString } from 'rdf-string';
 import { stringToTermPrefix } from './Aliases';
-import type { GeneralEvaluationConfig } from './generalEvaluation';
 import { generalEvaluate } from './generalEvaluation';
+import type { TestArgument } from './utils';
 import { template } from './utils';
-
-// Maps short strings to longer RDF term-literals for easy use in making
-// evaluation tables.
-// Ex: { 'true': '"true"^^xsd:boolean' }
-export type AliasMap = Record<string, string>;
-
-// Maps short strings to longer RDF term-objects for easy use in making
-// evaluation tables.
-// Ex: { 'true': RDFDM.literal("true", RDF.namedNode(DT.XSD_BOOLEAN))}
-export type ResultMap = Record<string, RDF.Term>;
-
-// A series of tests in string format.
-// A difference is made between erroring and non-erroring tests-cases because
-// the testing framework requires it, and it allows for some reduction in
-// boilerplate when errorhandling is similar between operators.
-// Some mappings are passed to translate between shorthand aliases and their
-// full SPARQL representations.
-//
-// It's format is
-//  - line separation between rows (= test cases)
-//  - space separation between args
-//  - '=' separation between the args and the result
-//
-// Ex: `
-// true true = false
-// false false = false
-// `
-export interface IEvaluationConfig {
-  op: string;
-  arity: number;
-  aliasMap: AliasMap;
-  resultMap: ResultMap;
-  notation: Notation;
-  generalEvaluationConfig?: GeneralEvaluationConfig;
-}
-export type EvaluationTable = IEvaluationConfig & {
-  table?: string;
-  errorTable?: string;
-};
 
 export enum Notation {
   Infix,
   Prefix,
+  Suffix,
   Function,
 }
 
-// Given the definition for an evaluation table, test all it's test cases.
-export function testTable(definition: EvaluationTable): void {
-  const tTable = (definition.arity === 2) ?
-    new BinaryTable(definition, BinaryTableParser) :
-    new UnaryTable(definition, UnaryTableParser);
+type Row = [string, string, string] | [string, string] | string[];
 
-  tTable.test();
-}
-
-// -----------------------------------------------------------------------------
-// Internals
-// -----------------------------------------------------------------------------
-
-type Row = [string, string, string] | [string, string];
-
+/**
+ * A series of tests in string format.
+ * A difference is made between erroring and non-erroring tests-cases because
+ * the testing framework requires it, and it allows for some reduction in
+ * boilerplate when errorhandling is similar between operators.
+ * Some mappings are passed to translate between shorthand aliases and their
+ * full SPARQL representations.
+ *
+ * It's format is
+ *  - line separation between rows (= test cases)
+ *  - space separation between args
+ *  - '=' separation between the args and the result
+ *
+ * Ex: `
+ * true true = false
+ * false false = false
+ * `
+*/
 abstract class Table<RowType extends Row> {
-  protected parser: TableParser<RowType>;
-  protected def: EvaluationTable;
-
-  public constructor(def: EvaluationTable, parser: ParserConstructor<RowType>) {
-    this.def = def;
-    this.parser = new parser(def.table, def.errorTable);
-  }
+  protected abstract readonly parser: TableParser<RowType>;
+  protected abstract readonly def: TestArgument;
 
   abstract test(): void;
 
-  protected abstract format(args: string[]): string;
+  protected async testExpression(expr: string, result: string) {
+    const { config, additionalPrefixes } = this.def;
+    const aliases = this.def.aliases || {};
+    result = aliases[result] || result;
+    const evaluated = await generalEvaluate({
+      expression: template(expr, additionalPrefixes), expectEquality: true, generalEvaluationConfig: config,
+    });
+    expect(evaluated.asyncResult).toEqual(stringToTermPrefix(result, additionalPrefixes));
+  }
+
+  protected async testErrorExpression(expr: string, error: string) {
+    const { config, additionalPrefixes } = this.def;
+    await expect(generalEvaluate({
+      expression: template(expr, additionalPrefixes), expectEquality: true, generalEvaluationConfig: config,
+    })).rejects.toThrow(error);
+  }
+
+  protected abstract format(operation: string, row: RowType): string;
 }
 
-// TODO: Let tables only test function evaluation from the definitions, not the whole evaluator.
-class BinaryTable extends Table<[string, string, string]> {
+export class VariableTable extends Table<string[]> {
+  protected readonly parser: TableParser<string[]>;
+  protected readonly def: TestArgument;
+  public constructor(def: TestArgument) {
+    super();
+    this.def = def;
+    this.parser = new VariableTableParser(def.testTable, def.errorTable);
+  }
+
   public test(): void {
     this.parser.table.forEach(row => {
-      const [ left, right, result ] = row;
-      const { aliasMap, resultMap, op, generalEvaluationConfig } = this.def;
-      const expr = this.format([ op, aliasMap[left], aliasMap[right] ]);
-      it(`${this.format([ op, left, right ])} should return ${result}`, async() => {
-        const evaluated = await generalEvaluate({
-          expression: template(expr), expectEquality: true, generalEvaluationConfig,
-        });
-        expect(evaluated.asyncResult).toEqual(stringToTermPrefix(aliasMap[result]));
+      const result = row[row.length - 1];
+      const { operation } = this.def;
+      const aliases = this.def.aliases || {};
+      it(`${this.format(operation, row)} should return ${result}`, async() => {
+        const expr = this.format(operation, row.map(el => aliases[el] || el));
+        await this.testExpression(expr, result);
       });
     });
 
     this.parser.errorTable.forEach(row => {
-      const [ left, right, error ] = row;
-      const { aliasMap, op, generalEvaluationConfig } = this.def;
-      const expr = this.format([ op, aliasMap[left], aliasMap[right] ]);
-      it(`${this.format([ op, left, right ])} should error`, async() => {
-        await expect(generalEvaluate({
-          expression: template(expr), expectEquality: true, generalEvaluationConfig,
-        })).rejects.toThrow(error);
+      const error = row[row.length - 1];
+      const { operation } = this.def;
+      const aliases = this.def.aliases || {};
+      it(`${this.format(operation, row)} should error`, async() => {
+        const expr = this.format(operation, row.map(el => aliases[el] || el));
+        await this.testErrorExpression(expr, error);
       });
     });
   }
 
-  protected format([ op, fst, snd ]: string[]): string {
-    switch (this.def.notation) {
-      case Notation.Function: return `${op}(${fst}, ${snd})`;
-      case Notation.Prefix: return `${op} ${fst} ${snd}`;
-      case Notation.Infix: return `${fst} ${op} ${snd}`;
-      default: throw new Error('Unreachable');
+  protected format(operation: string, row: string[]): string {
+    if (this.def.notation === Notation.Function) {
+      return `${operation}(${row.slice(0, -1).join(', ')})`;
     }
+    throw new Error('Variable argument count only supported with function notation.');
   }
 }
 
-class UnaryTable extends Table<[string, string]> {
+export class UnaryTable extends Table<[string, string]> {
+  protected readonly parser: TableParser<[string, string]>;
+  protected readonly def: TestArgument;
+  public constructor(def: TestArgument) {
+    super();
+    this.def = def;
+    this.parser = new UnaryTableParser(def.testTable, def.errorTable);
+  }
+
   public test(): void {
     this.parser.table.forEach(row => {
       const [ arg, result ] = row;
-      const { aliasMap, op, resultMap, generalEvaluationConfig } = this.def;
-      const expr = this.format([ op, aliasMap[arg] ]);
-      it(`${this.format([ op, arg ])} should return ${result}`, async() => {
-        const evaluated = await generalEvaluate({
-          expression: template(expr), expectEquality: true, generalEvaluationConfig,
-        });
-        expect(termToString(evaluated.asyncResult)).toEqual(termToString(resultMap[result]));
+      const { operation } = this.def;
+      const aliases = this.def.aliases || {};
+      it(`${this.format(operation, row)} should return ${result}`, async() => {
+        const rdfArg = aliases[arg] || arg;
+        const expr = this.format(operation, <[string, string]> row.map(el => aliases[el] || el));
+        await this.testExpression(expr, result);
       });
     });
 
     this.parser.errorTable.forEach(row => {
-      const [ arg, error ] = row;
-      const { aliasMap, op, generalEvaluationConfig } = this.def;
-      const expr = this.format([ op, aliasMap[arg] ]);
-      it(`${this.format([ op, arg ])} should error`, () => {
-        return expect(generalEvaluate({
-          expression: template(expr), expectEquality: true, generalEvaluationConfig,
-        })).rejects.toThrow(error);
+      const [ _, error ] = row;
+      const { operation } = this.def;
+      const aliases = this.def.aliases || {};
+      it(`${this.format(operation, row)} should error`, async() => {
+        const expr = this.format(operation, <[string, string]> row.map(el => aliases[el] || el));
+        await this.testErrorExpression(expr, error);
       });
     });
   }
 
-  protected format([ op, arg ]: string[]): string {
+  protected format(operation: string, row: [string, string]): string {
+    const [ arg, _ ] = row;
     switch (this.def.notation) {
-      case Notation.Function: return `${op}(${arg})`;
-      case Notation.Prefix: return `${op}${arg}`;
+      case Notation.Function: return `${operation}(${arg})`;
+      case Notation.Prefix: return `${operation}${arg}`;
+      case Notation.Suffix: return `${arg} ${operation}`;
       case Notation.Infix: throw new Error('Cant format a unary operator as infix.');
       default: throw new Error('Unreachable');
     }
   }
 }
 
-type ParserConstructor<RowType extends Row> = new(table: string, errorTable: string) => TableParser<RowType>;
+// TODO: Let tables only test function evaluation from the definitions, not the whole evaluator.
+export class BinaryTable extends Table<[string, string, string]> {
+  protected readonly parser: TableParser<[string, string, string]>;
+  protected readonly def: TestArgument;
+  public constructor(def: TestArgument) {
+    super();
+    this.def = def;
+    this.parser = new BinaryTableParser(def.testTable, def.errorTable);
+  }
+
+  public test(): void {
+    this.parser.table.forEach(row => {
+      const result = row[2];
+      const { operation } = this.def;
+      const aliases = this.def.aliases || {};
+      it(`${this.format(operation, row)} should return ${result}`, async() => {
+        const expr = this.format(operation, <[string, string, string]> row.map(el => aliases[el] || el));
+        await this.testExpression(expr, result);
+      });
+    });
+
+    this.parser.errorTable.forEach(row => {
+      const error = row[2];
+      const { operation } = this.def;
+      const aliases = this.def.aliases || {};
+      it(`${this.format(operation, row)} should error`, async() => {
+        const expr = this.format(operation, <[string, string, string]> row.map(el => aliases[el] || el));
+        await this.testErrorExpression(expr, error);
+      });
+    });
+  }
+
+  protected format(operation: string, row: [string, string, string]): string {
+    const [ fst, snd, _ ] = row;
+    switch (this.def.notation) {
+      case Notation.Function: return `${operation}(${fst}, ${snd})`;
+      case Notation.Prefix: return `${operation} ${fst} ${snd}`;
+      case Notation.Suffix: return `${fst} ${snd} ${operation}`;
+      case Notation.Infix: return `${fst} ${operation} ${snd}`;
+      default: throw new Error('Unreachable');
+    }
+  }
+}
 
 abstract class TableParser<RowType extends Row> {
   public readonly table: RowType[];
@@ -175,9 +203,17 @@ abstract class TableParser<RowType extends Row> {
   }
 }
 
+class VariableTableParser extends TableParser<string[]> {
+  protected parseRow(row: string): string[] {
+    row = row.trim().replace(/ +/ug, ' ');
+    return row.match(/([^\s']+|'[^']*')+/ug).filter(str => str !== '=')
+      .map(i => i.replace(/'([^']*)'/u, '$1'));
+  }
+}
+
 class BinaryTableParser extends TableParser<[string, string, string]> {
   protected parseRow(row: string): [string, string, string] {
-    row = row.trim().replace(/  +/ug, ' ');
+    row = row.trim().replace(/ +/ug, ' ');
     const [ left, right, _, result ] = row.match(/([^\s']+|'[^']*')+/ug)
       .map(i => i.replace(/'([^']*)'/u, '$1'));
     return [ left, right, result ];
@@ -187,7 +223,7 @@ class BinaryTableParser extends TableParser<[string, string, string]> {
 class UnaryTableParser extends TableParser<[string, string]> {
   protected parseRow(row: string): [string, string] {
     // Trim whitespace and remove double spaces
-    row = row.trim().replace(/  +/ug, ' ');
+    row = row.trim().replace(/ +/ug, ' ');
     const [ arg, _, result ] = row.match(/([^\s']+|'[^']*')+/ug)
       .map(i => i.replace(/'([^']*)'/u, '$1'));
     return [ arg, result ];

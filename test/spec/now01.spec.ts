@@ -1,9 +1,15 @@
-import { testAll } from '../util/utils';
+import { Notation } from '../util/TruthTable';
+import { runTestTable } from '../util/utils';
 
 describe('We should respect the now01 spec', () => {
-  testAll([
-    'DATATYPE(NOW()) = http://www.w3.org/2001/XMLSchema#dateTime',
-  ]);
+  runTestTable({
+    arity: 1,
+    operation: 'DATATYPE',
+    notation: Notation.Function,
+    testTable: `
+      'NOW()' = http://www.w3.org/2001/XMLSchema#dateTime
+    `,
+  });
 });
 
 /**
