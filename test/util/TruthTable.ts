@@ -24,7 +24,7 @@ type Row = [string, string, string] | [string, string] | string[];
  *  - line separation between rows (= test cases)
  *  - space separation between args
  *  - '=' separation between the args and the result
- *
+ *  - the escape characters '' can be used to provide an empty argument/ result or to escape spaces.
  * Ex: `
  * true true = false
  * false false = false

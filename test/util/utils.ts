@@ -4,17 +4,36 @@ import type { Notation } from './TruthTable';
 import { UnaryTable, BinaryTable, VariableTable } from './TruthTable';
 
 export interface ITestArgumentBase {
+  /**
+   * Operation / function that needs to be called on the arguments provided in the truthTable.
+   */
   operation: string;
+  /**
+   * How many arguments does the operation take. The vary option means you don't know. This can only be provided
+   * when the notation is Notation.function.
+   */
   arity: 1 | 2 | 'vary';
   notation: Notation;
+  /**
+   * Configuration that'll we provided to the Evaluator.
+   * If the type is sync, the test will be preformed both sync and async.
+   */
   config?: GeneralEvaluationConfig;
-  // Aliases map simple strings like 'true' to their RDF counterparts. The counterparts can use prefixes if
-  // those are registered by default or by providing them with additionalPrefixes.
   aliases?: AliasMap;
+  /**
+   * Additional prefixes can be provided if the defaultPrefixes in ./Aliases.ts are not enough.
+   */
   additionalPrefixes?: Record<string, string>;
 }
 export type TestArgument = ITestArgumentBase & {
+  /**
+   * Truth table that will check equality;
+   */
   testTable?: string;
+  /**
+   * Truth table that will check if a given error is thrown.
+   * Result can be '' if the message doesn't need to be checked.
+   */
   errorTable?: string;
 };
 
