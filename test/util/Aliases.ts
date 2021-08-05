@@ -39,7 +39,7 @@ export const prefixes: Record<string, string> = {
   rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString',
 };
 
-export function stringToTermPrefix(str: string): RDF.Term {
+export function stringToTermPrefix(str: string, additionalPrefixes?: Record<string, string>): RDF.Term {
   const term = <RDF.Literal> stringToTerm(str);
   if (term.termType !== 'Literal') { return term; }
   if (!term.datatype) { return term; }
@@ -47,7 +47,8 @@ export function stringToTermPrefix(str: string): RDF.Term {
   const url = term.datatype.value;
   try {
     const prefix = url.match(/.*:/ug)[0].slice(0, -1);
-    term.datatype.value = url.replace(`${prefix}:`, prefixes[prefix]);
+    const allPrefixes: Record<string, string> = additionalPrefixes ? { ...prefixes, ...additionalPrefixes } : prefixes;
+    term.datatype.value = url.replace(`${prefix}:`, allPrefixes[prefix]);
     return term;
   } catch {
     return term;

@@ -1,6 +1,7 @@
 import type * as RDF from 'rdf-js';
 
 import { termToString } from 'rdf-string';
+import { stringToTermPrefix } from './Aliases';
 import type { GeneralEvaluationConfig } from './generalEvaluation';
 import { generalEvaluate } from './generalEvaluation';
 import { template } from './utils';
@@ -90,7 +91,7 @@ class BinaryTable extends Table<[string, string, string]> {
         const evaluated = await generalEvaluate({
           expression: template(expr), expectEquality: true, generalEvaluationConfig,
         });
-        expect(termToString(evaluated.asyncResult)).toEqual(termToString(resultMap[result]));
+        expect(evaluated.asyncResult).toEqual(stringToTermPrefix(aliasMap[result]));
       });
     });
 
