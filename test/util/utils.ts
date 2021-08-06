@@ -10,7 +10,7 @@ export interface ITestTableConfigBase {
   operation: string;
   /**
    * How many arguments does the operation take. The vary option means you don't know. This can only be provided
-   * when the notation is Notation.function.
+   * when the notation is Notation.Function.
    */
   arity: 1 | 2 | 'vary';
   notation: Notation;

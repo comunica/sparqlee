@@ -8,7 +8,7 @@ export enum Notation {
   Function,
 }
 
-type Row = [string, string, string] | [string, string] | string[];
+type Row = string[];
 
 /**
  * A series of tests in string format.
@@ -18,7 +18,7 @@ type Row = [string, string, string] | [string, string] | string[];
  * Some mappings are passed to translate between shorthand aliases and their
  * full SPARQL representations.
  *
- * It's format is
+ * Its format is
  *  - line separation between rows (= test cases)
  *  - space separation between args
  *  - '=' separation between the args and the result
