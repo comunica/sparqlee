@@ -1,12 +1,10 @@
-import { stringToTermPrefix } from './Aliases';
+import { stringToTermPrefix, template } from './Aliases';
 import { generalEvaluate } from './generalEvaluation';
-import type { TestArgument } from './utils';
-import { template } from './utils';
+import type { TestTableConfig } from './utils';
 
 export enum Notation {
   Infix,
   Prefix,
-  Suffix,
   Function,
 }
 
@@ -32,7 +30,7 @@ type Row = [string, string, string] | [string, string] | string[];
 */
 abstract class Table<RowType extends Row> {
   protected abstract readonly parser: TableParser<RowType>;
-  protected abstract readonly def: TestArgument;
+  protected abstract readonly def: TestTableConfig;
 
   abstract test(): void;
 
@@ -58,8 +56,8 @@ abstract class Table<RowType extends Row> {
 
 export class VariableTable extends Table<string[]> {
   protected readonly parser: TableParser<string[]>;
-  protected readonly def: TestArgument;
-  public constructor(def: TestArgument) {
+  protected readonly def: TestTableConfig;
+  public constructor(def: TestTableConfig) {
     super();
     this.def = def;
     this.parser = new VariableTableParser(def.testTable, def.errorTable);
@@ -97,8 +95,8 @@ export class VariableTable extends Table<string[]> {
 
 export class UnaryTable extends Table<[string, string]> {
   protected readonly parser: TableParser<[string, string]>;
-  protected readonly def: TestArgument;
-  public constructor(def: TestArgument) {
+  protected readonly def: TestTableConfig;
+  public constructor(def: TestTableConfig) {
     super();
     this.def = def;
     this.parser = new UnaryTableParser(def.testTable, def.errorTable);
@@ -132,7 +130,6 @@ export class UnaryTable extends Table<[string, string]> {
     switch (this.def.notation) {
       case Notation.Function: return `${operation}(${arg})`;
       case Notation.Prefix: return `${operation}${arg}`;
-      case Notation.Suffix: return `${arg} ${operation}`;
       case Notation.Infix: throw new Error('Cant format a unary operator as infix.');
       default: throw new Error('Unreachable');
     }
@@ -142,8 +139,8 @@ export class UnaryTable extends Table<[string, string]> {
 // TODO: Let tables only test function evaluation from the definitions, not the whole evaluator.
 export class BinaryTable extends Table<[string, string, string]> {
   protected readonly parser: TableParser<[string, string, string]>;
-  protected readonly def: TestArgument;
-  public constructor(def: TestArgument) {
+  protected readonly def: TestTableConfig;
+  public constructor(def: TestTableConfig) {
     super();
     this.def = def;
     this.parser = new BinaryTableParser(def.testTable, def.errorTable);
@@ -176,7 +173,6 @@ export class BinaryTable extends Table<[string, string, string]> {
     switch (this.def.notation) {
       case Notation.Function: return `${operation}(${fst}, ${snd})`;
       case Notation.Prefix: return `${operation} ${fst} ${snd}`;
-      case Notation.Suffix: return `${fst} ${snd} ${operation}`;
       case Notation.Infix: return `${fst} ${operation} ${snd}`;
       default: throw new Error('Unreachable');
     }

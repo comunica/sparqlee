@@ -1,5 +1,5 @@
 import { decimal, int } from '../util/Aliases';
-import { Notation } from '../util/TruthTable';
+import { Notation } from '../util/TestTable';
 import { runTestTable } from '../util/utils';
 import * as Data from './_data';
 

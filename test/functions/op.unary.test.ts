@@ -1,11 +1,11 @@
 import { bool } from '../util/Aliases';
-import { Notation } from '../util/TruthTable';
-import type { ITestArgumentBase } from '../util/utils';
+import { Notation } from '../util/TestTable';
+import type { ITestTableConfigBase } from '../util/utils';
 import { runTestTable } from '../util/utils';
 
 describe('unary functions', () => {
   describe('evaluation of \'! (unary)\' like', () => {
-    const config: ITestArgumentBase = {
+    const config: ITestTableConfigBase = {
       arity: 1,
       operation: '!',
       notation: Notation.Prefix,

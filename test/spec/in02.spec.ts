@@ -1,5 +1,5 @@
 import { bool } from '../util/Aliases';
-import { Notation } from '../util/TruthTable';
+import { Notation } from '../util/TestTable';
 import { runTestTable } from '../util/utils';
 
 /**
@@ -27,11 +27,11 @@ import { runTestTable } from '../util/utils';
 describe('We should respect the in02 spec', () => {
   runTestTable({
     aliases: bool,
-    notation: Notation.Suffix,
-    operation: 'IN(1, 3)',
-    arity: 1,
+    notation: Notation.Infix,
+    operation: 'IN',
+    arity: 2,
     testTable: `
-      2 = false
+      2 '(1, 3)' = false
     `,
   });
 });

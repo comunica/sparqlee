@@ -1,10 +1,10 @@
 import { bool, error, merge } from '../util/Aliases';
 
-import { Notation } from '../util/TruthTable';
-import type { ITestArgumentBase } from '../util/utils';
+import { Notation } from '../util/TestTable';
+import type { ITestTableConfigBase } from '../util/utils';
 import { runTestTable } from '../util/utils';
 
-const config: ITestArgumentBase = {
+const config: ITestTableConfigBase = {
   operation: '||',
   arity: 2,
   aliases: merge(bool, error),

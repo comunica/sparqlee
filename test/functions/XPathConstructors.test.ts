@@ -1,4 +1,4 @@
-import { Notation } from '../util/TruthTable';
+import { Notation } from '../util/TestTable';
 import { runTestTable } from '../util/utils';
 
 describe('evaluation of XPath constructors', () => {

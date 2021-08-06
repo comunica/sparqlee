@@ -1,5 +1,5 @@
 import { bool } from '../util/Aliases';
-import { Notation } from '../util/TruthTable';
+import { Notation } from '../util/TestTable';
 import { runTestTable } from '../util/utils';
 // https://www.w3.org/TR/sparql11-query/#ebv
 // Using && as utility to force EBV

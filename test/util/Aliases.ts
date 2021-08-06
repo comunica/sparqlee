@@ -2,7 +2,7 @@ import type * as RDF from 'rdf-js';
 import { stringToTerm } from 'rdf-string';
 
 /**
- * Maps short strings to longer RDF term-literals for easy use in making evaluation tables.
+ * Maps short strings to longer RDF term-literals for easy use in making test tables.
  * Ex: { 'true': '"true"^^xsd:boolean' }
   */
 export type AliasMap = Record<string, string>;
@@ -11,11 +11,22 @@ export function merge(...maps: AliasMap[]): AliasMap {
   return Object.assign({}, ...maps);
 }
 
+/**
+ * A list of default prefixes that are used by stringToTermPrefix and template
+ */
 export const defaultPrefixes: Record<string, string> = {
   xsd: 'http://www.w3.org/2001/XMLSchema#',
   rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString',
+  fn: 'https://www.w3.org/TR/xpath-functions#',
+  er: 'http://www.w3.org/2005/xqt-errors#',
 };
 
+/**
+ * Converts a string to a rdf term. The string can contain a prefix that'll be
+ * resolved with defaultPrefixes of the provided prefixes.
+ * @param str
+ * @param additionalPrefixes
+ */
 export function stringToTermPrefix(str: string, additionalPrefixes?: Record<string, string>): RDF.Term {
   const term = <RDF.Literal> stringToTerm(str);
   if (term.termType !== 'Literal') { return term; }
@@ -36,18 +47,46 @@ export function stringToTermPrefix(str: string, additionalPrefixes?: Record<stri
   }
 }
 
+export function template(expr: string, additionalPrefixes?: Record<string, string>) {
+  const prefixRecord = additionalPrefixes ? { ...defaultPrefixes, ...additionalPrefixes } : defaultPrefixes;
+  const prefix = Object.entries(prefixRecord).map(([ pref, full ]) =>
+    `PREFIX ${pref.endsWith(':') ? pref : `${pref}:`} <${full}>`).join('\n');
+  return `
+${prefix}
+
+SELECT * WHERE { ?s ?p ?o FILTER (${expr})}
+`;
+}
+
+/**
+ * Transform an int to rdf int:
+ * '2' => "2"^^xsd:integer
+ * @param value string (representing an int)
+ */
 export function int(value: string): string {
   return compactTermString(value, 'xsd:integer');
 }
 
+/**
+ * '2.0' => "2.0"^^${dataType}
+ * @param value string (representing a decimal)
+ */
 export function decimal(value: string): string {
   return compactTermString(value, 'xsd:decimal');
 }
 
+/**
+ * '123.456' => "123.456"^^xsd:double
+ * @param value string (representing a decimal)
+ */
 export function double(value: string): string {
   return compactTermString(value, 'xsd:double');
 }
 
+/**
+ * '2001-10-26T21:32:52' => "2001-10-26T21:32:52"^^xsd:dateTime
+ * @param value string (representing a date)
+ */
 export function date(value: string): string {
   return compactTermString(value, 'xsd:dateTime');
 }

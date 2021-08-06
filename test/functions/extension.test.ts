@@ -5,7 +5,7 @@ import { Bindings } from '../../lib/Types';
 import { bool, merge, numeric } from '../util/Aliases';
 import type { GeneralEvaluationConfig } from '../util/generalEvaluation';
 import { generalEvaluate } from '../util/generalEvaluation';
-import { Notation } from '../util/TruthTable';
+import { Notation } from '../util/TestTable';
 import { runTestTable } from '../util/utils';
 
 describe('extension functions:', () => {

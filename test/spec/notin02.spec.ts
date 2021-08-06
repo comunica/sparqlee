@@ -1,5 +1,5 @@
 import { bool } from '../util/Aliases';
-import { Notation } from '../util/TruthTable';
+import { Notation } from '../util/TestTable';
 import { runTestTable } from '../util/utils';
 
 /**
@@ -27,12 +27,12 @@ import { runTestTable } from '../util/utils';
 
 describe('We should respect the notin02 spec', () => {
   runTestTable({
-    arity: 1,
-    notation: Notation.Suffix,
-    operation: 'NOT IN (1/0, 2)',
+    arity: 2,
+    notation: Notation.Infix,
+    operation: 'NOT IN',
     aliases: bool,
     testTable: `
-      2 = false
+      2 '(1/0, 2)' = false
     `,
   });
 });

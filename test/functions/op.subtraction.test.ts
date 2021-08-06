@@ -1,9 +1,9 @@
 import { error, merge, numeric } from '../util/Aliases';
-import { Notation } from '../util/TruthTable';
-import type { ITestArgumentBase } from '../util/utils';
+import { Notation } from '../util/TestTable';
+import type { ITestTableConfigBase } from '../util/utils';
 import { runTestTable } from '../util/utils';
 
-const config: ITestArgumentBase = {
+const config: ITestTableConfigBase = {
   arity: 2,
   operation: '-',
   aliases: merge(numeric, error),

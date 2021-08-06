@@ -1,6 +1,6 @@
 import { DataFactory } from 'rdf-data-factory';
 import type { ISyncEvaluatorConfig } from '../../lib/evaluators/SyncEvaluator';
-import { Notation } from '../util/TruthTable';
+import { Notation } from '../util/TestTable';
 import { runTestTable } from '../util/utils';
 
 const DF = new DataFactory();

@@ -1,11 +1,11 @@
 import type { AliasMap } from './Aliases';
 import type { GeneralEvaluationConfig } from './generalEvaluation';
-import type { Notation } from './TruthTable';
-import { UnaryTable, BinaryTable, VariableTable } from './TruthTable';
+import type { Notation } from './TestTable';
+import { BinaryTable, UnaryTable, VariableTable } from './TestTable';
 
-export interface ITestArgumentBase {
+export interface ITestTableConfigBase {
   /**
-   * Operation / function that needs to be called on the arguments provided in the truthTable.
+   * Operation / function that needs to be called on the arguments provided in the TestTable.
    */
   operation: string;
   /**
@@ -25,19 +25,19 @@ export interface ITestArgumentBase {
    */
   additionalPrefixes?: Record<string, string>;
 }
-export type TestArgument = ITestArgumentBase & {
+export type TestTableConfig = ITestTableConfigBase & {
   /**
-   * Truth table that will check equality;
+   * TestTable that will check equality;
    */
   testTable?: string;
   /**
-   * Truth table that will check if a given error is thrown.
+   * TestTable that will check if a given error is thrown.
    * Result can be '' if the message doesn't need to be checked.
    */
   errorTable?: string;
 };
 
-export function runTestTable(arg: TestArgument): void {
+export function runTestTable(arg: TestTableConfig): void {
   if (!(arg.testTable || arg.errorTable)) {
     // We throw this error and don't just say all is well because not providing a table is probably a user mistake.
     throw new Error('Can not test if neither testTable or errorTable is provided');
@@ -54,17 +54,3 @@ export function runTestTable(arg: TestArgument): void {
   testTable.test();
 }
 
-export function template(expr: string, additionalPrefixes?: Record<string, string>) {
-  const prefix = additionalPrefixes ?
-    Object.entries(additionalPrefixes).map(([ pref, full ]) =>
-      `PREFIX ${pref.endsWith(':') ? pref : (`${pref}:`)} <${full}>\n`) :
-    '';
-  return `
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX fn: <https://www.w3.org/TR/xpath-functions#>
-PREFIX err: <http://www.w3.org/2005/xqt-errors#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-${prefix}
-SELECT * WHERE { ?s ?p ?o FILTER (${expr})}
-`;
-}
