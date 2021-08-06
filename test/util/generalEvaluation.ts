@@ -6,7 +6,8 @@ import type { IAsyncEvaluatorConfig, AsyncExtensionFunctionCreator } from '../..
 import { AsyncEvaluator } from '../../lib/evaluators/AsyncEvaluator';
 import type { ISyncEvaluatorConfig, SyncExtensionFunctionCreator } from '../../lib/evaluators/SyncEvaluator';
 import { SyncEvaluator } from '../../lib/evaluators/SyncEvaluator';
-import { Bindings } from '../../lib/Types';
+import type { Bindings } from '../../lib/Types';
+import { BindingsFromHash } from '../../lib/Types';
 
 export type GeneralEvaluationConfig = { type: 'sync'; config: ISyncEvaluatorConfig } |
 { type: 'async'; config: IAsyncEvaluatorConfig };
@@ -18,7 +19,7 @@ export interface IGeneralEvaluationArg {
 }
 export async function generalEvaluate(arg: IGeneralEvaluationArg):
 Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
-  const bindings: Bindings = arg.bindings ? arg.bindings : Bindings({});
+  const bindings: Bindings = arg.bindings ? arg.bindings : BindingsFromHash({});
   if (arg.generalEvaluationConfig?.type === 'async') {
     return { asyncResult: await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config) };
   }

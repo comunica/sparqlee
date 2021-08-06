@@ -147,21 +147,21 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
 
 function transformOperator(expr: Alg.OperatorExpression, creatorConfig: FunctionCreatorConfig):
 E.OperatorExpression | E.SpecialOperatorExpression {
-  if (C.SpecialOperators.contains(expr.operator)) {
+  if (C.SpecialOperators.has(expr.operator)) {
     const specialOp = <C.SpecialOperator> expr.operator;
     const specialArgs = expr.args.map(arg => transformAlgebra(arg, creatorConfig));
-    const specialFunc = specialFunctions.get(specialOp);
+    const specialFunc = specialFunctions[specialOp];
     if (!specialFunc.checkArity(specialArgs)) {
       throw new Err.InvalidArity(specialArgs, specialOp);
     }
     return new E.SpecialOperator(specialArgs, specialFunc.applyAsync, specialFunc.applySync);
   }
-  if (!C.Operators.contains(expr.operator)) {
+  if (!C.Operators.has(expr.operator)) {
     throw new Err.UnknownOperator(expr.operator);
   }
   const regularOp = <C.RegularOperator> expr.operator;
   const regularArgs = expr.args.map(arg => transformAlgebra(arg, creatorConfig));
-  const regularFunc = regularFunctions.get(regularOp);
+  const regularFunc = regularFunctions[regularOp];
   if (!hasCorrectArity(regularArgs, regularFunc.arity)) {
     throw new Err.InvalidArity(regularArgs, regularOp);
   }
@@ -194,10 +194,10 @@ function transformNamed(expr: Alg.NamedExpression, creatorConfig: FunctionCreato
 E.NamedExpression | E.AsyncExtensionExpression | E.SyncExtensionExpression {
   const funcName = expr.name.value;
   const args = expr.args.map(arg => transformAlgebra(arg, creatorConfig));
-  if (C.NamedOperators.contains(<C.NamedOperator> funcName)) {
+  if (C.NamedOperators.has(<C.NamedOperator> funcName)) {
     // Return a basic named expression
     const op = <C.NamedOperator> expr.name.value;
-    const namedFunc = namedFunctions.get(op);
+    const namedFunc = namedFunctions[op];
     return new E.Named(expr.name, args, namedFunc.apply);
   }
   if (creatorConfig.type === 'sync') {

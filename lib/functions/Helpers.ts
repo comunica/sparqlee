@@ -2,9 +2,6 @@
  * These helpers provide a (albeit inflexible) DSL for writing function
  * definitions for the SPARQL functions.
  */
-
-import { List, Map, Record } from 'immutable';
-
 import * as E from '../expressions';
 import type { SimpleApplication } from '../expressions';
 import * as C from '../util/Consts';
@@ -20,6 +17,25 @@ export function declare(): Builder {
   return new Builder();
 }
 
+function arrayEqual<T>(fst: T[], snd: T[]): boolean {
+  if (fst === snd) {
+    return true;
+  }
+  if (fst === null || snd === null) {
+    return false;
+  }
+  if (fst.length !== snd.length) {
+    return false;
+  }
+
+  for (let i = 0; i < fst.length; ++i) {
+    if (fst[i] !== snd[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export class Builder {
   private implementations: Impl[] = [];
 
@@ -33,16 +49,16 @@ export class Builder {
   }
 
   public set(argTypes: ArgumentType[], func: E.SimpleApplication): Builder {
-    const types = List(argTypes);
+    const types = [ ...argTypes ];
     return this.add(new Impl({ types, func }));
   }
 
   public copy({ from, to }: { from: ArgumentType[]; to: ArgumentType[] }): Builder {
     const last = this.implementations.length - 1;
-    const _from = List(from);
+    const _from = [ ...from ];
     for (let i = last; i >= 0; i--) {
       const impl = this.implementations[i];
-      if (impl.get('types').equals(_from)) {
+      if (arrayEqual(impl.get('types'), _from)) {
         return this.set(to, impl.get('func'));
       }
     }
@@ -282,7 +298,7 @@ export class Builder {
  */
 
 export interface IImplType {
-  types: List<ArgumentType>;
+  types: ArgumentType[];
   func: E.SimpleApplication;
 }
 
@@ -294,23 +310,26 @@ const implDefaults = {
   },
 };
 
-export class Impl extends Record(implDefaults) {
+export class Impl implements IImplType {
+  public types: ArgumentType[];
+  public func: E.SimpleApplication;
   public constructor(params: IImplType) {
-    super(params);
+    this.types = params.types;
+    this.func = params.func;
   }
 
   public get<T extends keyof IImplType>(value: T): IImplType[T] {
-    return super.get(value);
+    return this[value];
   }
 
-  public toPair(): [List<ArgumentType>, E.SimpleApplication] {
+  public toPair(): [ArgumentType[], E.SimpleApplication] {
     return [ this.get('types'), this.get('func') ];
   }
 }
 
 export function map(implementations: Impl[]): OverloadMap {
   const typeImplPair = implementations.map(i => i.toPair());
-  return Map<List<ArgumentType>, E.SimpleApplication>(typeImplPair);
+  return new Map<ArgumentType[], E.SimpleApplication>(typeImplPair);
 }
 
 // ----------------------------------------------------------------------------

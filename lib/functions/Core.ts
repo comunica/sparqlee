@@ -1,5 +1,3 @@
-import { List } from 'immutable';
-
 import type * as E from '../expressions';
 import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
@@ -11,7 +9,7 @@ type Term = E.TermExpression;
 // ----------------------------------------------------------------------------
 
 // Maps argument types on their specific implementation.
-export type OverloadMap = Map<List<ArgumentType>, E.SimpleApplication>;
+export type OverloadMap = Map<ArgumentType[], E.SimpleApplication>;
 
 // Function and operator arguments are 'flattened' in the SPARQL spec.
 // If the argument is a literal, the datatype often also matters.
@@ -64,16 +62,16 @@ export abstract class BaseFunction<Operator> {
 }
 
 const Typer = {
-  asConcreteTypes(args: Term[]): List<ArgumentType> {
-    return List(args.map((term: any) => term.type || term.termType));
+  asConcreteTypes(args: Term[]): ArgumentType[] {
+    return args.map((term: any) => term.type || term.termType);
   },
 
-  asTermTypes(args: Term[]): List<E.TermType> {
-    return List(args.map((term: E.TermExpression) => term.termType));
+  asTermTypes(args: Term[]): E.TermType[] {
+    return args.map((term: E.TermExpression) => term.termType);
   },
 
-  asGenericTerms(args: Term[]): List<'term'> {
-    return <List<'term'>> List(Array.from({ length: args.length }).fill('term'));
+  asGenericTerms(args: Term[]): 'term'[] {
+    return <'term'[]> Array.from({ length: args.length }).fill('term');
   },
 };
 
