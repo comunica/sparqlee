@@ -1,4 +1,3 @@
-import { Map } from 'immutable';
 import type * as RDF from 'rdf-js';
 
 export type Bindings = Map<string, RDF.Term>;
@@ -9,8 +8,8 @@ export type Bindings = Map<string, RDF.Term>;
  * @return {Bindings} The immutable bindings from the hash.
  * @constructor
  */
-export function Bindings(hash: Record<string, RDF.Term>): Bindings {
-  return Map(hash);
+export function BindingsFromHash(hash: Record<string, RDF.Term>): Bindings {
+  return new Map(Object.entries(hash));
 }
 
 export interface IExpressionEvaluator<ExpressionType, TermType> {

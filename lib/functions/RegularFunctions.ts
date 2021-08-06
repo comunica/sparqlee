@@ -1,6 +1,5 @@
 import { Decimal } from 'decimal.js';
 import { sha1, sha256, sha384, sha512 } from 'hash.js';
-import { Map } from 'immutable';
 import { DataFactory } from 'rdf-data-factory';
 import { hash as md5 } from 'spark-md5';
 import * as uuid from 'uuid';
@@ -692,7 +691,7 @@ const SHA512 = {
 /**
  * Collect all the definitions from above into an object
  */
-const _definitions: {[key in C.RegularOperator]: IDefinition } = {
+const _definitions: Record<C.RegularOperator, IDefinition> = {
   // --------------------------------------------------------------------------
   // Operator Mapping
   // https://www.w3.org/TR/sparql11-query/#OperatorMapping
@@ -793,4 +792,4 @@ export interface IDefinition {
   overloads: OverloadMap;
 }
 
-export const definitions = Map<C.RegularOperator, IDefinition>(_definitions);
+export const definitions = _definitions;

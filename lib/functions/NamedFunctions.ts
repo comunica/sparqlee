@@ -1,5 +1,3 @@
-import { Map } from 'immutable';
-
 import type * as E from '../expressions';
 import type * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
@@ -157,7 +155,7 @@ const toBooleanNamed = {
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-const _definitions: {[key in C.NamedOperator]: IDefinition } = {
+const _definitions: Record<C.NamedOperator, IDefinition> = {
   // --------------------------------------------------------------------------
   // XPath Constructor functions
   // https://www.w3.org/TR/sparql11-query/#FunctionMapping
@@ -181,4 +179,4 @@ export interface IDefinition {
   overloads: OverloadMap;
 }
 
-export const namedDefinitions = Map<C.NamedOperator, IDefinition>(_definitions);
+export const namedDefinitions = _definitions;

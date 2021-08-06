@@ -1,4 +1,3 @@
-import { Map } from 'immutable';
 import { resolve as resolveRelativeIri } from 'relative-to-absolute-iri';
 import * as uuid from 'uuid';
 
@@ -400,7 +399,7 @@ export interface ISpecialDefinition {
   checkArity?: (args: E.Expression[]) => boolean;
 }
 
-const _specialDefinitions: {[key in C.SpecialOperator]: ISpecialDefinition } = {
+const _specialDefinitions: Record<C.SpecialOperator, ISpecialDefinition> = {
   // --------------------------------------------------------------------------
   // Functional Forms
   // https://www.w3.org/TR/sparql11-query/#func-forms
@@ -424,4 +423,4 @@ const _specialDefinitions: {[key in C.SpecialOperator]: ISpecialDefinition } = {
   BNODE,
 };
 
-export const specialDefinitions = Map<C.SpecialOperator, ISpecialDefinition>(_specialDefinitions);
+export const specialDefinitions = _specialDefinitions;

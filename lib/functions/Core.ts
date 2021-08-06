@@ -1,4 +1,3 @@
-import type { Map } from 'immutable';
 import { List } from 'immutable';
 
 import type * as E from '../expressions';
