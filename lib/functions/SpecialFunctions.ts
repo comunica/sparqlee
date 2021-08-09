@@ -399,7 +399,7 @@ export interface ISpecialDefinition {
   checkArity?: (args: E.Expression[]) => boolean;
 }
 
-const _specialDefinitions: Record<C.SpecialOperator, ISpecialDefinition> = {
+export const specialDefinitions: Record<C.SpecialOperator, ISpecialDefinition> = {
   // --------------------------------------------------------------------------
   // Functional Forms
   // https://www.w3.org/TR/sparql11-query/#func-forms
@@ -423,4 +423,3 @@ const _specialDefinitions: Record<C.SpecialOperator, ISpecialDefinition> = {
   BNODE,
 };
 
-export const specialDefinitions = _specialDefinitions;

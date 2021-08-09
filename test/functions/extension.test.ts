@@ -1,7 +1,7 @@
 import { DataFactory } from 'rdf-data-factory';
 import type * as RDF from 'rdf-js';
 import type { SyncExtensionFunctionCreator } from '../../lib/evaluators/SyncEvaluator';
-import { BindingsFromHash } from '../../lib/Types';
+import { Bindings } from '../../lib/Types';
 import { bool, merge, numeric } from '../util/Aliases';
 import type { GeneralEvaluationConfig } from '../util/generalEvaluation';
 import { generalEvaluate } from '../util/generalEvaluation';
@@ -109,7 +109,7 @@ describe('extension functions:', () => {
         }
         return arg;
       };
-      const bindings = BindingsFromHash({
+      const bindings = Bindings({
         '?o': DF.literal('AppLe', stringType),
       });
       const generalEvaluationConfig: GeneralEvaluationConfig = {

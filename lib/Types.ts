@@ -10,8 +10,9 @@ export type Bindings = Map<string, RDF.Term>;
  * @return {Bindings} The immutable bindings from the hash.
  * @constructor
  */
-export function BindingsFromHash(hash: Record<string, RDF.Term>): Bindings {
-  return Map(Object.entries(hash));
+// eslint-disable-next-line no-redeclare
+export function Bindings(hash: Record<string, RDF.Term>): Bindings {
+  return Map(hash);
 }
 
 export interface IExpressionEvaluator<ExpressionType, TermType> {

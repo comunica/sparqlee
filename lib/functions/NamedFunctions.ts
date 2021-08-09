@@ -155,7 +155,7 @@ const toBooleanNamed = {
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-const _definitions: Record<C.NamedOperator, IDefinition> = {
+export const namedDefinitions: Record<C.NamedOperator, IDefinition> = {
   // --------------------------------------------------------------------------
   // XPath Constructor functions
   // https://www.w3.org/TR/sparql11-query/#FunctionMapping
@@ -178,5 +178,3 @@ export interface IDefinition {
   arity: number | number[];
   overloads: OverloadMap;
 }
-
-export const namedDefinitions = _definitions;

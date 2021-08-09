@@ -691,7 +691,7 @@ const SHA512 = {
 /**
  * Collect all the definitions from above into an object
  */
-const _definitions: Record<C.RegularOperator, IDefinition> = {
+export const definitions: Record<C.RegularOperator, IDefinition> = {
   // --------------------------------------------------------------------------
   // Operator Mapping
   // https://www.w3.org/TR/sparql11-query/#OperatorMapping
@@ -791,5 +791,3 @@ export interface IDefinition {
   arity: number | number[];
   overloads: OverloadMap;
 }
-
-export const definitions = _definitions;
