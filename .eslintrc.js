@@ -14,9 +14,7 @@ module.exports = {
         // should stay off
         'mocha/no-exports': 'off',
         'mocha/no-skipped-tests': 'off',
-
-        // TODO: use native datastructures instead of those provided by Immutable. Issue #94
-        //'no-redeclare': 'off',
+        
         'no-sync': 'off',
         // Issue #95 pointed out this can be disabled here. https://eslint.org/docs/rules/no-implicit-globals
         'no-implicit-globals': 'off',

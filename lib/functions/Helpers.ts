@@ -2,6 +2,10 @@
  * These helpers provide a (albeit inflexible) DSL for writing function
  * definitions for the SPARQL functions.
  */
+
+// eslint-disable-next-line no-redeclare
+import { List, Map } from 'immutable';
+
 import * as E from '../expressions';
 import type { SimpleApplication } from '../expressions';
 import * as C from '../util/Consts';
@@ -17,25 +21,6 @@ export function declare(): Builder {
   return new Builder();
 }
 
-function arrayEqual<T>(fst: T[], snd: T[]): boolean {
-  if (fst === snd) {
-    return true;
-  }
-  if (fst === null || snd === null) {
-    return false;
-  }
-  if (fst.length !== snd.length) {
-    return false;
-  }
-
-  for (let i = 0; i < fst.length; ++i) {
-    if (fst[i] !== snd[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
 export class Builder {
   private implementations: Impl[] = [];
 
@@ -49,17 +34,17 @@ export class Builder {
   }
 
   public set(argTypes: ArgumentType[], func: E.SimpleApplication): Builder {
-    const types = [ ...argTypes ];
+    const types = List(argTypes);
     return this.add(new Impl({ types, func }));
   }
 
   public copy({ from, to }: { from: ArgumentType[]; to: ArgumentType[] }): Builder {
     const last = this.implementations.length - 1;
-    const _from = [ ...from ];
+    const _from = List(from);
     for (let i = last; i >= 0; i--) {
       const impl = this.implementations[i];
-      if (arrayEqual(impl.get('types'), _from)) {
-        return this.set(to, impl.get('func'));
+      if (impl.types.equals(_from)) {
+        return this.set(to, impl.func);
       }
     }
     throw new Err.UnexpectedError(
@@ -298,12 +283,12 @@ export class Builder {
  */
 
 export interface IImplType {
-  types: ArgumentType[];
+  types: List<ArgumentType>;
   func: E.SimpleApplication;
 }
 
-const implDefaults = {
-  types: <ArgumentType[]> [],
+const implDefaults: IImplType = {
+  types: List(),
   func() {
     const msg = 'Implementation not set yet declared as implemented';
     throw new Err.UnexpectedError(msg);
@@ -311,25 +296,22 @@ const implDefaults = {
 };
 
 export class Impl implements IImplType {
-  public types: ArgumentType[];
+  public types: List<ArgumentType>;
   public func: E.SimpleApplication;
-  public constructor(params: IImplType) {
+
+  public constructor(params?: IImplType) {
+    this.init(params || implDefaults);
+  }
+
+  private init(params: IImplType): void {
     this.types = params.types;
     this.func = params.func;
-  }
-
-  public get<T extends keyof IImplType>(value: T): IImplType[T] {
-    return this[value];
-  }
-
-  public toPair(): [ArgumentType[], E.SimpleApplication] {
-    return [ this.get('types'), this.get('func') ];
   }
 }
 
 export function map(implementations: Impl[]): OverloadMap {
-  const typeImplPair = implementations.map(i => i.toPair());
-  return new Map<ArgumentType[], E.SimpleApplication>(typeImplPair);
+  const typeImplPair = implementations.map(i => [ i.types, i.func ]);
+  return Map<List<ArgumentType>, E.SimpleApplication>(typeImplPair);
 }
 
 // ----------------------------------------------------------------------------
