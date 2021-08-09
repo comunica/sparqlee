@@ -25,7 +25,7 @@ type Term = E.TermExpression;
 // https://www.w3.org/TR/xpath-functions/#casting-from-primitive-to-primitive
 // ----------------------------------------------------------------------------
 
-const toStringNamed = {
+const xsdToString = {
   arity: 1,
   overloads: declare()
     .onNumeric1((val: E.NumericLiteral) => string(number(val.typedValue).str()))
@@ -34,7 +34,7 @@ const toStringNamed = {
     .collect(),
 };
 
-const toFloatNamed = {
+const xsdToFloat = {
   arity: 1,
   overloads: declare()
     .onNumeric1((val: E.NumericLiteral) => number(val.typedValue))
@@ -50,7 +50,7 @@ const toFloatNamed = {
     .collect(),
 };
 
-const toDoubleNamed = {
+const xsdToDouble = {
   arity: 1,
   overloads: declare()
     .onNumeric1((val: E.NumericLiteral) => number(val.typedValue, TypeURL.XSD_DOUBLE))
@@ -66,7 +66,7 @@ const toDoubleNamed = {
     .collect(),
 };
 
-const toDecimalNamed = {
+const xsdToDecimal = {
   arity: 1,
   overloads: declare()
     .onNumeric1((val: E.Term) => {
@@ -89,7 +89,7 @@ const toDecimalNamed = {
     .collect(),
 };
 
-const toIntegerNamed = {
+const xsdToInteger = {
   arity: 1,
   overloads: declare()
     .onBoolean1Typed(val => number(val ? 1 : 0, TypeURL.XSD_INTEGER))
@@ -112,7 +112,7 @@ const toIntegerNamed = {
     .collect(),
 };
 
-const toDatetimeNamed = {
+const xsdToDatetime = {
   arity: 1,
   overloads: declare()
     .onUnary('date', (val: E.DateTimeLiteral) => val)
@@ -127,7 +127,7 @@ const toDatetimeNamed = {
     .collect(),
 };
 
-const toBooleanNamed = {
+const xsdToBoolean = {
   arity: 1,
   overloads: declare()
     .onNumeric1((val: E.NumericLiteral) => bool(val.coerceEBV()))
@@ -160,14 +160,14 @@ export const namedDefinitions: Record<C.NamedOperator, IDefinition> = {
   // XPath Constructor functions
   // https://www.w3.org/TR/sparql11-query/#FunctionMapping
   // --------------------------------------------------------------------------
-  [TypeURL.XSD_STRING]: toStringNamed,
-  [TypeURL.XSD_FLOAT]: toFloatNamed,
-  [TypeURL.XSD_DOUBLE]: toDoubleNamed,
-  [TypeURL.XSD_DECIMAL]: toDecimalNamed,
-  [TypeURL.XSD_INTEGER]: toIntegerNamed,
-  [TypeURL.XSD_DATE_TIME]: toDatetimeNamed,
-  [TypeURL.XSD_DATE]: toDatetimeNamed,
-  [TypeURL.XSD_BOOLEAN]: toBooleanNamed,
+  [TypeURL.XSD_STRING]: xsdToString,
+  [TypeURL.XSD_FLOAT]: xsdToFloat,
+  [TypeURL.XSD_DOUBLE]: xsdToDouble,
+  [TypeURL.XSD_DECIMAL]: xsdToDecimal,
+  [TypeURL.XSD_INTEGER]: xsdToInteger,
+  [TypeURL.XSD_DATE_TIME]: xsdToDatetime,
+  [TypeURL.XSD_DATE]: xsdToDatetime,
+  [TypeURL.XSD_BOOLEAN]: xsdToBoolean,
 };
 
 // ----------------------------------------------------------------------------

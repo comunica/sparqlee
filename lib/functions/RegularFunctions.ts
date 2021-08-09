@@ -170,28 +170,28 @@ const greaterThanEqual = {
 // https://www.w3.org/TR/sparql11-query/#func-rdfTerms
 // ----------------------------------------------------------------------------
 
-const rdfTermIsIRI = {
+const isIRI = {
   arity: 1,
   overloads: declare()
     .onTerm1(term => bool(term.termType === 'namedNode'))
     .collect(),
 };
 
-const rdfTermIsBlank = {
+const isBlank = {
   arity: 1,
   overloads: declare()
     .onTerm1(term => bool(term.termType === 'blankNode'))
     .collect(),
 };
 
-const rdfTermIsLiteral = {
+const isLiteral = {
   arity: 1,
   overloads: declare()
     .onTerm1(term => bool(term.termType === 'literal'))
     .collect(),
 };
 
-const rdfTermIsNumeric = {
+const isNumeric = {
   arity: 1,
   overloads: declare()
     .onNumeric1(term => bool(true))
@@ -199,21 +199,21 @@ const rdfTermIsNumeric = {
     .collect(),
 };
 
-const rdfTermToString = {
+const STR = {
   arity: 1,
   overloads: declare()
     .onTerm1(term => string(term.str()))
     .collect(),
 };
 
-const rdfTermLang = {
+const lang = {
   arity: 1,
   overloads: declare()
     .onLiteral1(lit => string(lit.language || ''))
     .collect(),
 };
 
-const rdfTermDatatype = {
+const datatype = {
   arity: 1,
   overloads: declare()
     .onLiteral1(lit => new E.NamedNode(lit.typeURL.value))
@@ -226,7 +226,7 @@ const rdfTermDatatype = {
 // See special functions
 // const BNODE = {};
 
-const rdfTermSTRDT = {
+const STRDT = {
   arity: 2,
   overloads: declare()
     .onBinary(
@@ -239,7 +239,7 @@ const rdfTermSTRDT = {
     .collect(),
 };
 
-const rdfTermSTRLANG = {
+const STRLANG = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
@@ -249,14 +249,14 @@ const rdfTermSTRLANG = {
     .collect(),
 };
 
-const rdfTermUUID = {
+const UUID = {
   arity: 0,
   overloads: declare()
     .set([], () => new E.NamedNode(`urn:uuid:${uuid.v4()}`))
     .collect(),
 };
 
-const rdfTermSTRUUID = {
+const STRUUID = {
   arity: 0,
   overloads: declare()
     .set([], () => string(uuid.v4()))
@@ -714,20 +714,20 @@ export const definitions: Record<C.RegularOperator, IDefinition> = {
   // Functions on RDF Terms
   // https://www.w3.org/TR/sparql11-query/#func-rdfTerms
   // --------------------------------------------------------------------------
-  isiri: rdfTermIsIRI,
-  isblank: rdfTermIsBlank,
-  isliteral: rdfTermIsLiteral,
-  isnumeric: rdfTermIsNumeric,
-  str: rdfTermToString,
-  lang: rdfTermLang,
-  datatype: rdfTermDatatype,
+  isiri: isIRI,
+  isblank: isBlank,
+  isliteral: isLiteral,
+  isnumeric: isNumeric,
+  str: STR,
+  lang,
+  datatype,
   // 'iri': IRI (see special operators),
   // 'uri': IRI (see special operators),
   // 'BNODE': BNODE (see special operators),
-  strdt: rdfTermSTRDT,
-  strlang: rdfTermSTRLANG,
-  uuid: rdfTermUUID,
-  struuid: rdfTermSTRUUID,
+  strdt: STRDT,
+  strlang: STRLANG,
+  uuid: UUID,
+  struuid: STRUUID,
 
   // --------------------------------------------------------------------------
   // Functions on strings
