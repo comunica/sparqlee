@@ -4,7 +4,7 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import { translate } from 'sparqlalgebrajs';
 
 import { SyncEvaluator } from '../lib/evaluators/SyncEvaluator';
-import { BindingsFromHash } from '../lib/Types';
+import { Bindings } from '../lib/Types';
 
 const USAGE = `
 Usage: sparqlee <expression>
@@ -40,7 +40,7 @@ async function main(): Promise<void> {
 
   const evaluator = new SyncEvaluator(expression);
 
-  const result = evaluator.evaluate(BindingsFromHash({}));
+  const result = evaluator.evaluate(Bindings({}));
 
   // eslint-disable-next-line no-console
   console.log(result);
