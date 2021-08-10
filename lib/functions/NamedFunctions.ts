@@ -9,7 +9,7 @@ import {
   parseXSDInteger,
 } from '../util/Parsing';
 
-import type { OverloadMap } from './Core';
+import type { OverloadNode } from './Core';
 import { bool, dateTime, declare, number, string } from './Helpers';
 
 type Term = E.TermExpression;
@@ -176,5 +176,5 @@ export const namedDefinitions: Record<C.NamedOperator, IDefinition> = {
 
 export interface IDefinition {
   arity: number | number[];
-  overloads: OverloadMap;
+  overloads: OverloadNode;
 }

@@ -10,7 +10,7 @@ import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
-import type { OverloadMap } from './Core';
+import type { OverloadNode } from './Core';
 import { bool, declare, langString, number, string } from './Helpers';
 import * as X from './XPathFunctions';
 
@@ -789,5 +789,5 @@ export const definitions: Record<C.RegularOperator, IDefinition> = {
 
 export interface IDefinition {
   arity: number | number[];
-  overloads: OverloadMap;
+  overloads: OverloadNode;
 }
