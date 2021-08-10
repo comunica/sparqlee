@@ -49,8 +49,7 @@ export class Builder {
   }
 
   public set(argTypes: ArgumentType[], func: E.SimpleApplication): Builder {
-    const types = [ ...argTypes ];
-    return this.add(new Impl({ types, func }));
+    return this.add(new Impl({ types: argTypes, func }));
   }
 
   public copy({ from, to }: { from: ArgumentType[]; to: ArgumentType[] }): Builder {
