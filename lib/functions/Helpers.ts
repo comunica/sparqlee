@@ -9,7 +9,8 @@ import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 
 import type { ArgumentType } from './Core';
-import { OverloadNode, promote } from './Core';
+import { promote } from './Core';
+import { OverloadNode } from './OverloadNode';
 
 type Term = E.TermExpression;
 

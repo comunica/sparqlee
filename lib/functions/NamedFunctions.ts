@@ -9,8 +9,8 @@ import {
   parseXSDInteger,
 } from '../util/Parsing';
 
-import type { OverloadNode } from './Core';
 import { bool, dateTime, declare, number, string } from './Helpers';
+import type { OverloadNode } from './OverloadNode';
 
 type Term = E.TermExpression;
 

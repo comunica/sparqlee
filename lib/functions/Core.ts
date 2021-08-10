@@ -1,63 +1,13 @@
 import type * as E from '../expressions';
 import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
+import type { OverloadNode } from './OverloadNode';
 
 type Term = E.TermExpression;
 
 // ----------------------------------------------------------------------------
 // Overloaded Functions
 // ----------------------------------------------------------------------------
-
-type SearchStack = OverloadNode[];
-
-export class OverloadNode {
-  private implementation?: E.SimpleApplication | undefined;
-  private readonly subTrees: Record<string, OverloadNode>;
-  public constructor() {
-    this.implementation = undefined;
-    this.subTrees = {};
-  }
-
-  /**
-   * Adds an overload to the tree structure considering this as the tree's root.
-   * @param argumentTypes a list of ArgumentTypes that would need to be provided in the same order to
-   * get the implementation.
-   * @param func the implementation for this overload.
-   */
-  public addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication): void {
-    this._addOverload([ ...argumentTypes ], func);
-  }
-
-  private _addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication): void {
-    const argument = argumentTypes.shift();
-    if (!argument) {
-      this.implementation = func;
-      return;
-    }
-    const str = argument;
-    if (!this.subTrees[str]) {
-      this.subTrees[str] = new OverloadNode();
-    }
-    this.subTrees[str]._addOverload(argumentTypes, func);
-  }
-
-  /**
-   * @param arg term to try and match to possible overloads of this node.
-   * @returns SearchStack a stack with top element the next node that should be asked for implementation or overload.
-   */
-  public getSubTreeWithArg(arg: Term): SearchStack {
-    const matching = Object.entries(this.subTrees).map(([ type, node ]) =>
-      // eslint-disable-next-line unicorn/no-nested-ternary
-      [ type === (<any>arg).type ? 2 : type === arg.termType ? 1 : type === 'term' ? 0 : undefined, node ])
-      .filter(([ prio, _ ]) => prio !== undefined);
-    matching.sort(([ priorityA, nodeA ], [ priorityB, nodeB ]) => <number>priorityA - <number>priorityB);
-    return matching.map(([ _, node ]) => <OverloadNode> node);
-  }
-
-  public getImplementation(): E.SimpleApplication | undefined {
-    return this.implementation;
-  }
-}
 
 // Function and operator arguments are 'flattened' in the SPARQL spec.
 // If the argument is a literal, the datatype often also matters.
@@ -90,27 +40,6 @@ export abstract class BaseFunction<Operator> {
   protected abstract handleInvalidTypes(args: Term[]): never;
 
   /**
-   * Searches in a depth fist way for the best matching overload.
-   * @param args
-   * @private
-   */
-  private search(args: Term[]): E.SimpleApplication {
-    const searchStack: { node: OverloadNode; index: number }[] = [];
-    const startIndex = 0;
-    searchStack.push(...this.overloads.getSubTreeWithArg(args[startIndex]).map(node =>
-      ({ node, index: startIndex + 1 })));
-    while (searchStack.length > 0) {
-      const { index, node } = <{ node: OverloadNode; index: number }> searchStack.pop();
-      if (index === args.length) {
-        return node.getImplementation();
-      }
-      searchStack.push(...node.getSubTreeWithArg(args[index]).map(item =>
-        ({ node: item, index: index + 1 })));
-    }
-    return this.overloads.getImplementation();
-  }
-
-  /**
    * We monomorph by checking the map of overloads for keys corresponding
    * to the runtime types. We start by checking for an implementation for the
    * most concrete types (integer, string, date, IRI), if we find none,
@@ -122,7 +51,7 @@ export abstract class BaseFunction<Operator> {
    * terms.
    */
   private monomorph(args: Term[]): E.SimpleApplication {
-    return this.search(args);
+    return this.overloads.search(args);
   }
 }
 

@@ -10,8 +10,8 @@ import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
-import type { OverloadNode } from './Core';
 import { bool, declare, langString, number, string } from './Helpers';
+import type { OverloadNode } from './OverloadNode';
 import * as X from './XPathFunctions';
 
 const DF = new DataFactory();
