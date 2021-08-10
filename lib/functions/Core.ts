@@ -50,7 +50,7 @@ export abstract class BaseFunction<Operator> {
    * for every concrete type when the function is generic over termtypes or
    * terms.
    */
-  private monomorph(args: Term[]): E.SimpleApplication {
+  private monomorph(args: Term[]): E.SimpleApplication | undefined {
     return this.overloads.search(args);
   }
 }
