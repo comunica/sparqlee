@@ -11,7 +11,7 @@ import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { bool, declare, langString, number, string } from './Helpers';
-import type { OverloadNode } from './OverloadNode';
+import type { OverloadTree } from './OverloadTree';
 import * as X from './XPathFunctions';
 
 const DF = new DataFactory();
@@ -789,5 +789,5 @@ export const definitions: Record<C.RegularOperator, IDefinition> = {
 
 export interface IDefinition {
   arity: number | number[];
-  overloads: OverloadNode;
+  overloads: OverloadTree;
 }

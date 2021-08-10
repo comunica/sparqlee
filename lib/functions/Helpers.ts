@@ -10,7 +10,7 @@ import * as Err from '../util/Errors';
 
 import type { ArgumentType } from './Core';
 import { promote } from './Core';
-import { OverloadNode } from './OverloadNode';
+import { OverloadTree } from './OverloadTree';
 
 type Term = E.TermExpression;
 
@@ -39,7 +39,7 @@ function arraysEqual<T>(fst: T[], snd: T[]): boolean {
 export class Builder {
   private implementations: Impl[] = [];
 
-  public collect(): OverloadNode {
+  public collect(): OverloadTree {
     return transformToNode(this.implementations);
   }
 
@@ -49,19 +49,15 @@ export class Builder {
   }
 
   public set(argTypes: ArgumentType[], func: E.SimpleApplication): Builder {
-    // TODO: Does this need to be a copy? - ask in PR.
     const types = [ ...argTypes ];
     return this.add(new Impl({ types, func }));
   }
 
   public copy({ from, to }: { from: ArgumentType[]; to: ArgumentType[] }): Builder {
     const last = this.implementations.length - 1;
-    // TODO: Does this need to be a copy? - ask in PR.
-    const _from = [ ...from ];
     for (let i = last; i >= 0; i--) {
       const impl = this.implementations[i];
-      // TODO: I have no idea what this does? do we need this 'expensive' equals? - ask in PR.
-      if (arraysEqual(impl.types, _from)) {
+      if (arraysEqual(impl.types, from)) {
         return this.set(to, impl.func);
       }
     }
@@ -327,8 +323,8 @@ export class Impl implements IImplType {
   }
 }
 
-export function transformToNode(implementations: Impl[]): OverloadNode {
-  const res: OverloadNode = new OverloadNode();
+export function transformToNode(implementations: Impl[]): OverloadTree {
+  const res: OverloadTree = new OverloadTree();
   for (const implementation of implementations) {
     res.addOverload(implementation.types, implementation.func);
   }

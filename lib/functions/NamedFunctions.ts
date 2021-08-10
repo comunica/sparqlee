@@ -10,7 +10,7 @@ import {
 } from '../util/Parsing';
 
 import { bool, dateTime, declare, number, string } from './Helpers';
-import type { OverloadNode } from './OverloadNode';
+import type { OverloadTree } from './OverloadTree';
 
 type Term = E.TermExpression;
 
@@ -176,5 +176,5 @@ export const namedDefinitions: Record<C.NamedOperator, IDefinition> = {
 
 export interface IDefinition {
   arity: number | number[];
-  overloads: OverloadNode;
+  overloads: OverloadTree;
 }

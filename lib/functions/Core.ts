@@ -1,7 +1,7 @@
 import type * as E from '../expressions';
 import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
-import type { OverloadNode } from './OverloadNode';
+import type { OverloadTree } from './OverloadTree';
 
 type Term = E.TermExpression;
 
@@ -15,12 +15,12 @@ export type ArgumentType = 'term' | E.TermType | C.Type;
 
 export interface IOverloadedDefinition {
   arity: number | number[];
-  overloads: OverloadNode;
+  overloads: OverloadTree;
 }
 
 export abstract class BaseFunction<Operator> {
   public arity: number | number[];
-  private readonly overloads: OverloadNode;
+  private readonly overloads: OverloadTree;
 
   protected constructor(public operator: Operator, definition: IOverloadedDefinition) {
     this.arity = definition.arity;
