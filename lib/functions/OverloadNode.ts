@@ -43,8 +43,7 @@ export class OverloadNode {
    * @returns SearchStack a stack with top element the next node that should be asked for implementation or overload.
    */
   public getSubTreeWithArg(arg: E.TermExpression): SearchStack {
-    // The numbers here aren't magic.
-    // They just provide a priority, a way to tell what type is more concrete and should be looked at first.
+    // The numbers a priority, a way to tell what type is more concrete and should be looked at first.
     const matching: [number, OverloadNode][] = [];
     for (const [ type, node ] of Object.entries(this.subTrees)) {
       if (type === (<any>arg).type) {
