@@ -3,7 +3,6 @@
  * definitions for the SPARQL functions.
  */
 import * as E from '../expressions';
-import type { SimpleApplication } from '../expressions';
 import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
@@ -18,52 +17,38 @@ export function declare(): Builder {
   return new Builder();
 }
 
-function arraysEqual<T>(fst: T[], snd: T[]): boolean {
-  if (fst === snd) {
-    return true;
-  }
-  if (fst === null || snd === null) {
-    return false;
-  }
-  if (fst.length !== snd.length) {
-    return false;
-  }
-  for (let i = 0; i < fst.length; ++i) {
-    if (fst[i] !== snd[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
 export class Builder {
-  private implementations: Impl[] = [];
+  private readonly overloadTree: OverloadTree;
+  private collected: boolean;
+
+  public constructor() {
+    this.overloadTree = new OverloadTree();
+    this.collected = false;
+  }
 
   public collect(): OverloadTree {
-    return transformToNode(this.implementations);
-  }
-
-  public add(impl: Impl): Builder {
-    this.implementations.push(impl);
-    return this;
+    if (this.collected) {
+      // Only 1 time allowed because we can't copy a tree. (And we don't need this).
+      throw new Error('Builders can only be collected once!');
+    }
+    this.collected = true;
+    return this.overloadTree;
   }
 
   public set(argTypes: ArgumentType[], func: E.SimpleApplication): Builder {
-    return this.add(new Impl({ types: argTypes, func }));
+    this.overloadTree.addOverload(argTypes, func);
+    return this;
   }
 
   public copy({ from, to }: { from: ArgumentType[]; to: ArgumentType[] }): Builder {
-    const last = this.implementations.length - 1;
-    for (let i = last; i >= 0; i--) {
-      const impl = this.implementations[i];
-      if (arraysEqual(impl.types, from)) {
-        return this.set(to, impl.func);
-      }
+    const impl = this.overloadTree.getImplementationExact(from);
+    if (!impl) {
+      throw new Err.UnexpectedError(
+        'Tried to copy implementation, but types not found',
+        { from, to },
+      );
     }
-    throw new Err.UnexpectedError(
-      'Tried to copy implementation, but types not found',
-      { from, to },
-    );
+    return this.set(to, impl);
   }
 
   public onUnary<T extends Term>(type: ArgumentType, op: (val: T) => Term): Builder {
@@ -99,17 +84,6 @@ export class Builder {
   Builder {
     return this.set(types, ([ a1, a2, a3, a4 ]: [E.Literal<A1>, E.Literal<A2>, E.Literal<A3>, E.Literal<A4>]) =>
       op(a1.typedValue, a2.typedValue, a3.typedValue, a4.typedValue));
-  }
-
-  public unimplemented(msg: string): Builder {
-    for (let arity = 0; arity <= 5; arity++) {
-      const types: ArgumentType[] = <ArgumentType[]> Array.from({ length: arity }).fill('term');
-      const func: SimpleApplication = (_args: Term[]) => {
-        throw new Err.UnimplementedError(msg);
-      };
-      this.set(types, func);
-    }
-    return this;
   }
 
   public onTerm1(op: (term: Term) => Term): Builder {
@@ -242,61 +216,6 @@ export class Builder {
       throw new Err.InvalidLexicalForm(args[index - 1].toRDF());
     });
   }
-
-  private chain(impls: Impl[]): Builder {
-    this.implementations = [ ...this.implementations, ...impls ];
-    return this;
-  }
-}
-
-// ----------------------------------------------------------------------------
-// Type Safety Helpers
-// ----------------------------------------------------------------------------
-
-/**
- * Immutable.js type definitions are pretty unsafe, and this is typo-prone work.
- * These helpers allow use to create OverloadMaps with more type-safety.
- * One entry in the OverloadMap is described by the record Impl;
- *
- * A list of Impl's then gets constructed into an Immutable.js Map.
- *
- * See:
- * https://medium.com/@alexxgent/enforcing-types-with-immutablejs-and-typescript-6ab980819b6a
- */
-
-export interface IImplType {
-  types: ArgumentType[];
-  func: E.SimpleApplication;
-}
-
-const implDefaults: IImplType = {
-  types: [],
-  func() {
-    const msg = 'Implementation not set yet declared as implemented';
-    throw new Err.UnexpectedError(msg);
-  },
-};
-
-export class Impl implements IImplType {
-  public types: ArgumentType[];
-  public func: E.SimpleApplication;
-
-  public constructor(params?: IImplType) {
-    this.init(params || implDefaults);
-  }
-
-  private init(params: IImplType): void {
-    this.types = params.types;
-    this.func = params.func;
-  }
-}
-
-export function transformToNode(implementations: Impl[]): OverloadTree {
-  const res: OverloadTree = new OverloadTree();
-  for (const implementation of implementations) {
-    res.addOverload(implementation.types, implementation.func);
-  }
-  return res;
 }
 
 // ----------------------------------------------------------------------------

@@ -122,11 +122,26 @@ export function typeCanBeProvidedTo(_baseType: string, argumentType: LiteralType
  */
 export class OverloadTree {
   private implementation?: E.SimpleApplication | undefined;
-  private readonly subTrees: Record<string, OverloadTree>;
+  private readonly subTrees: Record<ArgumentType, OverloadTree>;
 
   public constructor() {
     this.implementation = undefined;
-    this.subTrees = {};
+    this.subTrees = Object.create(null);
+  }
+
+  /**
+   * Get the implementation that exactly matches @param args .
+   */
+  public getImplementationExact(args: ArgumentType[]): E.SimpleApplication | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias,consistent-this
+    let node: OverloadTree = this;
+    for (const expression of args) {
+      node = node.subTrees[expression];
+      if (!node) {
+        return undefined;
+      }
+    }
+    return node.implementation;
   }
 
   /**
