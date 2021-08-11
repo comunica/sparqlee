@@ -6,7 +6,12 @@ import type { ArgumentType } from './Core';
 export type SearchStack = OverloadTree[];
 export type OverRideType = LiteralTypes | 'term';
 
-// Types that are not mentioned just map to 'term'. A DAG will be created of this. Make sure it doesn't have any cycles!
+/**
+ * Some of the types here have some super relation.
+ * This should match the relations provided in @see{transformLiteral}.
+ * Types that are not mentioned just map to 'term'.
+ * A DAG will be created based on this. Make sure it doesn't have any cycles!
+ */
 export const extensionTableInput: Record<LiteralTypes, OverRideType> = {
   [TypeURL.XSD_DATE_TIME]: 'term',
   [TypeURL.XSD_BOOLEAN]: 'term',
@@ -139,6 +144,8 @@ export class OverloadTree {
       ({ node, index: startIndex + 1 })));
     while (searchStack.length > 0) {
       const { index, node } = <{ node: OverloadTree; index: number }>searchStack.pop();
+      // We check the implementation because it would be possible a path is created but not implemented.
+      // ex: f(double, double, double) and f(term, term). and calling f(double, double).
       if (index === args.length && node.implementation) {
         return node.implementation;
       }

@@ -1,7 +1,7 @@
 import { DataFactory } from 'rdf-data-factory';
 import type * as RDF from 'rdf-js';
 
-import { extensionTable, typeCanBeProvidedTo } from '../functions/OverloadTree';
+import { typeCanBeProvidedTo } from '../functions/OverloadTree';
 import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
@@ -68,6 +68,8 @@ export class BlankNode extends Term {
 // Literals-- -----------------------------------------------------------------
 export class Literal<T> extends Term {
   public termType: 'literal' = 'literal';
+  // TODO: Ask for PR: do we still need this type? I keep it just for NonLexicalLiteral right now.
+  //  Do we need the TypeAlias.SPARQL_NON_LEXICAL? We might be able to just use typeURL.value?
   public type: LiteralTypes;
 
   public constructor(
@@ -94,20 +96,31 @@ export class Literal<T> extends Term {
 }
 
 export class NumericLiteral extends Literal<number> {
-  private static specificFormatterCreator(type: TypeURL): ((val: number) => string) {
+  private readonly specificFormatter: ((val: number) => string);
+  public constructor(
+    public typedValue: number,
+    public typeURL: RDF.NamedNode,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(typedValue, typeURL, strValue, language);
+    if (!typeCanBeProvidedTo(<LiteralTypes> typeURL.value, TypeAlias.SPARQL_NUMERIC)) {
+      throw new Error(
+        `TypeUrl '${this.type}' provided to NumericLiteral should implement ${TypeAlias.SPARQL_NUMERIC}`,
+      );
+    }
+
+    const type = this.type;
     // Avoid emitting non lexical integers
     if (typeCanBeProvidedTo(type, TypeURL.XSD_INTEGER)) {
-      return value => value.toFixed(0);
-    }
-    if (typeCanBeProvidedTo(type, TypeURL.XSD_DECIMAL)) {
-      return value => value.toString();
-    }
-    if (typeCanBeProvidedTo(type, TypeURL.XSD_FLOAT)) {
-      return value => value.toString();
-    }
-    if (typeCanBeProvidedTo(type, TypeURL.XSD_DOUBLE)) {
+      this.specificFormatter = value => value.toFixed(0);
+    } else if (typeCanBeProvidedTo(type, TypeURL.XSD_DECIMAL)) {
+      this.specificFormatter = value => value.toString();
+    } else if (typeCanBeProvidedTo(type, TypeURL.XSD_FLOAT)) {
+      this.specificFormatter = value => value.toString();
+    } else if (typeCanBeProvidedTo(type, TypeURL.XSD_DOUBLE)) {
       // https://www.w3.org/TR/xmlschema-2/#double
-      return value => {
+      this.specificFormatter = value => {
         const jsExponential = value.toExponential();
         const [ jsMantisse, jsExponent ] = jsExponential.split('e');
 
@@ -122,17 +135,14 @@ export class NumericLiteral extends Literal<number> {
 
         return `${mantisse}E${exponent}`;
       };
+      // // Be consistent with float
+      // decimal: (value) => {
+      //   const jsDecimal = value.toString();
+      //   return jsDecimal.match(/\./)
+      //     ? jsDecimal
+      //     : jsDecimal + '.0';
+      // },
     }
-    return () => {
-      throw new Error(`${type} is not a numeric type`);
-    };
-    // // Be consistent with float
-    // decimal: (value) => {
-    //   const jsDecimal = value.toString();
-    //   return jsDecimal.match(/\./)
-    //     ? jsDecimal
-    //     : jsDecimal + '.0';
-    // },
   }
 
   // ExtensionTable[type][TypeAlias.SPARQL_NUMERIC] !== undefined
@@ -152,7 +162,7 @@ export class NumericLiteral extends Literal<number> {
 
   public str(): string {
     return this.strValue ||
-      NumericLiteral.specificFormatterCreator(this.type)(this.typedValue);
+      this.specificFormatter(this.typedValue);
   }
 }
 
@@ -234,8 +244,8 @@ export class NonLexicalLiteral extends Literal<undefined> {
   }
 
   public coerceEBV(): boolean {
-    const isNumericOrBool =
-      extensionTable[this.shouldBeCategory].SPARQL_NUMERIC || this.shouldBeCategory === TypeURL.XSD_BOOLEAN;
+    const isNumericOrBool = typeCanBeProvidedTo(this.shouldBeCategory, TypeURL.XSD_BOOLEAN) ||
+      typeCanBeProvidedTo(this.shouldBeCategory, TypeAlias.SPARQL_NUMERIC);
     if (isNumericOrBool) {
       return false;
     }

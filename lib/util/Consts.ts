@@ -120,7 +120,13 @@ export const commonTerms: Record<string, RDF.Term> = {
 };
 
 export function type(typeString: string): LiteralTypes {
-  return Object.values(TypeURL).includes(<TypeURL> typeString) ? <TypeURL> typeString : TypeAlias.SPARQL_OTHER;
+  if (Object.values(TypeURL).includes(<TypeURL> typeString)) {
+    return <TypeURL> typeString;
+  }
+  if ([ null, undefined, '' ].includes(typeString)) {
+    return TypeURL.XSD_STRING;
+  }
+  return TypeAlias.SPARQL_OTHER;
 }
 
 // ----------------------------------------------------------------------------

@@ -76,6 +76,11 @@ function transformWildcard(term: Alg.WildcardExpression): E.Expression {
 }
 
 // TODO: Maybe do this with a map?
+/**
+ * Some of the types here have some super relation.
+ * This should match the relations provided in @see{extensionTableInput}.
+ * @param lit
+ */
 export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
   if (!lit.datatype) {
     return lit.language ?
@@ -108,8 +113,7 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
       return new E.LangStringLiteral(lit.value, lit.language);
 
     case DT.XSD_DATE_TIME_STAMP:
-    case DT.XSD_DATE_TIME:
-    case DT.XSD_DATE: {
+    case DT.XSD_DATE_TIME: {
       const dateVal: Date = new Date(lit.value);
       if (Number.isNaN(dateVal.getTime())) {
         return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
