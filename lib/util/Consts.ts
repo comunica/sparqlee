@@ -3,13 +3,10 @@ import type * as RDF from 'rdf-js';
 
 const DF = new DataFactory();
 
-export const TRUE_STR = '"true"^^xsd:boolean';
-export const FALSE_STR = '"false"^^xsd:boolean';
-export const EVB_ERR_STR = '"not an dateTime"^^xsd:dateTime';
-
 export type LiteralTypes = TypeAlias | TypeURL;
 
 export enum TypeAlias {
+  // Numeric is everything defined in https://www.w3.org/TR/sparql11-query/#operandDataTypes
   SPARQL_NUMERIC = 'SPARQL_NUMERIC',
   SPARQL_STRINGLY = 'SPARQL_STRINGLY',
   SPARQL_OTHER = 'SPARQL_OTHER',
@@ -73,52 +70,6 @@ export function make(dt: LiteralTypes): RDF.NamedNode {
   return DF.namedNode(dt);
 }
 
-// https://www.w3.org/TR/sparql11-query/#operandDataTypes
-export enum NumericTypeURL {
-  // Numeric types
-  XSD_INTEGER = 'http://www.w3.org/2001/XMLSchema#integer',
-  XSD_DECIMAL = 'http://www.w3.org/2001/XMLSchema#decimal',
-  XSD_FLOAT = 'http://www.w3.org/2001/XMLSchema#float',
-  XSD_DOUBLE = 'http://www.w3.org/2001/XMLSchema#double',
-
-  // Derived numeric types
-  XSD_NON_POSITIVE_INTEGER = 'http://www.w3.org/2001/XMLSchema#nonPositiveInteger',
-  XSD_NEGATIVE_INTEGER = 'http://www.w3.org/2001/XMLSchema#negativeInteger',
-  XSD_LONG = 'http://www.w3.org/2001/XMLSchema#long',
-  XSD_INT = 'http://www.w3.org/2001/XMLSchema#int',
-  XSD_SHORT = 'http://www.w3.org/2001/XMLSchema#short',
-  XSD_BYTE = 'http://www.w3.org/2001/XMLSchema#byte',
-  XSD_NON_NEGATIVE_INTEGER = 'http://www.w3.org/2001/XMLSchema#nonNegativeInteger',
-  XSD_UNSIGNED_LONG = 'http://www.w3.org/2001/XMLSchema#unsignedLong',
-  XSD_UNSIGNED_INT = 'http://www.w3.org/2001/XMLSchema#unsignedInt',
-  XSD_UNSIGNED_SHORT = 'http://www.w3.org/2001/XMLSchema#unsignedShort',
-  XSD_UNSIGNED_BYTE = 'http://www.w3.org/2001/XMLSchema#unsignedByte',
-  XSD_POSITIVE_INTEGER = 'http://www.w3.org/2001/XMLSchema#positiveInteger',
-}
-
-export enum DerivedIntegerTypeURL {
-  XSD_NON_POSITIVE_INTEGER = 'http://www.w3.org/2001/XMLSchema#nonPositiveInteger',
-  XSD_NEGATIVE_INTEGER = 'http://www.w3.org/2001/XMLSchema#negativeInteger',
-  XSD_LONG = 'http://www.w3.org/2001/XMLSchema#long',
-  XSD_INT = 'http://www.w3.org/2001/XMLSchema#int',
-  XSD_SHORT = 'http://www.w3.org/2001/XMLSchema#short',
-  XSD_BYTE = 'http://www.w3.org/2001/XMLSchema#byte',
-  XSD_NON_NEGATIVE_INTEGER = 'http://www.w3.org/2001/XMLSchema#nonNegativeInteger',
-  XSD_UNSIGNED_LONG = 'http://www.w3.org/2001/XMLSchema#unsignedLong',
-  XSD_UNSIGNED_INT = 'http://www.w3.org/2001/XMLSchema#unsignedInt',
-  XSD_UNSIGNED_SHORT = 'http://www.w3.org/2001/XMLSchema#unsignedShort',
-  XSD_UNSIGNED_BYTE = 'http://www.w3.org/2001/XMLSchema#unsignedByte',
-  XSD_POSITIVE_INTEGER = 'http://www.w3.org/2001/XMLSchema#positiveInteger',
-}
-
-export const NumericTypeURLs: Set<string> = new Set(Object.values(NumericTypeURL));
-export const DerivedIntegerTypeURLs = new Set(Object.values(DerivedIntegerTypeURL));
-
-export const commonTerms: Record<string, RDF.Term> = {
-  true: DF.literal('true', DF.namedNode(TypeURL.XSD_BOOLEAN)),
-  false: DF.literal('false', DF.namedNode(TypeURL.XSD_BOOLEAN)),
-};
-
 export function type(typeString: string): LiteralTypes {
   if (Object.values(TypeURL).includes(<TypeURL> typeString)) {
     return <TypeURL> typeString;
@@ -133,7 +84,6 @@ export function type(typeString: string): LiteralTypes {
 // Operators
 // ----------------------------------------------------------------------------
 
-export type OperatorCategory = 'regular' | 'special';
 export type Operator = RegularOperator | SpecialOperator;
 
 // TODO: Remove unneeded double typing

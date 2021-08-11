@@ -108,7 +108,11 @@ function extensionTableBuilderInitKey(key: LiteralTypes, value: OverRideType, re
 }
 extensionTableInit();
 
-export function typeCanBeProvidedTo(baseType: OverRideType, argumentType: LiteralTypes): boolean {
+export function typeCanBeProvidedTo(_baseType: string, argumentType: LiteralTypes): boolean {
+  if (![ ...Object.values(TypeAlias), ...Object.values(TypeURL), 'term' ].includes(_baseType)) {
+    return false;
+  }
+  const baseType = <OverRideType> _baseType;
   return baseType === 'term' ||
     (extensionTable[baseType] && extensionTable[baseType][argumentType] !== undefined);
 }

@@ -4,10 +4,11 @@ import type { Algebra } from 'sparqlalgebrajs';
 import * as E from './expressions';
 import { regularFunctions } from './functions';
 import { number, string } from './functions/Helpers';
+import { typeCanBeProvidedTo } from './functions/OverloadTree';
 import { transformLiteral } from './Transformation';
-import type { SetFunction } from './util/Consts';
+import type { LiteralTypes, SetFunction } from './util/Consts';
 import * as C from './util/Consts';
-import { TypeURL } from './util/Consts';
+import { TypeAlias, TypeURL } from './util/Consts';
 import { parseXSDFloat } from './util/Parsing';
 
 const DF = new DataFactory();
@@ -212,15 +213,15 @@ export const aggregators: Readonly<{[key in SetFunction]: IAggregatorClass }> = 
   sample: Sample,
 };
 
-function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number; type: C.NumericTypeURL } {
+function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number; type: LiteralTypes } {
   // TODO: Check behaviour
   if (term.termType !== 'Literal') {
     throw new Error(`Term with value ${term.value} has type ${term.termType} and is not a numeric literal`);
-  } else if (!C.NumericTypeURLs.has(term.datatype.value)) {
+  } else if (!typeCanBeProvidedTo(term.datatype.value, TypeAlias.SPARQL_NUMERIC)) {
     throw new Error(`Term datatype ${term.datatype.value} with value ${term.value} has type ${term.termType} and is not a numeric literal`);
   }
 
-  const type: C.NumericTypeURL = <C.NumericTypeURL> term.datatype.value;
+  const type: LiteralTypes = <LiteralTypes> term.datatype.value;
   const value = parseXSDFloat(term.value);
   return { type, value };
 }
