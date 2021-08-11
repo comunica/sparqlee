@@ -221,7 +221,10 @@ export class OverloadTree {
   }
 }
 
-// TODO: maybe we should also have this sorted list in memory? + should be cleaned, is a test for now!
+/**
+ * Provided a list of Types this will return the most concrete type implemented by all items in that list.
+ * @param args
+ */
 export function typeWidening(...args: LiteralTypes[]): OverRideType {
   if (args.length === 0) {
     throw new Error('Should get at least 1 arg');
@@ -229,9 +232,10 @@ export function typeWidening(...args: LiteralTypes[]): OverRideType {
   if (args.length === 1) {
     return args[0];
   }
-  const sorted = args.map(overrideType => [ ...Object.entries(extensionTable[overrideType])
+  // We could keep these sorted lists in memory but we don't need them that often?
+  const sorted = args.map(overrideType => Object.entries(extensionTable[overrideType])
     .sort(([ typeA, prioA ], [ typeB, prioB ]) => prioA - prioB)
-    .map(([ urlType, prio ]) => <OverRideType>urlType), overrideType ]);
+    .map(([ urlType, prio ]) => <OverRideType>urlType));
   let res: OverRideType = 'term';
   let index = 0;
   const max = Math.max(...sorted.map(list => list.length));
@@ -248,7 +252,7 @@ export function typeWidening(...args: LiteralTypes[]): OverRideType {
 }
 
 /**
- * Some weird casting rules. I thook them over from the previous implementation, that implementation said:
+ * Some weird casting rules. I took them over from the previous implementation, that implementation said:
  * > Arithmetic operators take 2 numeric arguments, and return a single numerical
  * > value. The type of the return value is heavily dependant on the types of the
  * > input arguments. In JS everything is a double, but in SPARQL it is not.
