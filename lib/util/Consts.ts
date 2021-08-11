@@ -92,7 +92,7 @@ export const commonTerms: Record<string, RDF.Term> = {
   false: DF.literal('false', DF.namedNode(TypeURL.XSD_BOOLEAN)),
 };
 
-// TODO: Rename to primitive
+// TODO: Rename to primitive - Should remove this and replace with aliases.
 // https://www.w3.org/TR/xmlschema-2/#built-in-primitive-datatypes
 export type Type =
   'string'

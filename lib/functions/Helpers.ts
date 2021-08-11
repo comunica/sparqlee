@@ -2,18 +2,15 @@
  * These helpers provide a (albeit inflexible) DSL for writing function
  * definitions for the SPARQL functions.
  */
-
-// eslint-disable-next-line no-redeclare
-import { List, Map } from 'immutable';
-
 import * as E from '../expressions';
 import type { SimpleApplication } from '../expressions';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 
-import type { ArgumentType, OverloadMap } from './Core';
+import type { ArgumentType } from './Core';
 import { promote } from './Core';
+import { OverloadTree } from './OverloadTree';
 
 type Term = E.TermExpression;
 
@@ -21,11 +18,29 @@ export function declare(): Builder {
   return new Builder();
 }
 
+function arraysEqual<T>(fst: T[], snd: T[]): boolean {
+  if (fst === snd) {
+    return true;
+  }
+  if (fst === null || snd === null) {
+    return false;
+  }
+  if (fst.length !== snd.length) {
+    return false;
+  }
+  for (let i = 0; i < fst.length; ++i) {
+    if (fst[i] !== snd[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export class Builder {
   private implementations: Impl[] = [];
 
-  public collect(): OverloadMap {
-    return map(this.implementations);
+  public collect(): OverloadTree {
+    return transformToNode(this.implementations);
   }
 
   public add(impl: Impl): Builder {
@@ -34,16 +49,14 @@ export class Builder {
   }
 
   public set(argTypes: ArgumentType[], func: E.SimpleApplication): Builder {
-    const types = List(argTypes);
-    return this.add(new Impl({ types, func }));
+    return this.add(new Impl({ types: argTypes, func }));
   }
 
   public copy({ from, to }: { from: ArgumentType[]; to: ArgumentType[] }): Builder {
     const last = this.implementations.length - 1;
-    const _from = List(from);
     for (let i = last; i >= 0; i--) {
       const impl = this.implementations[i];
-      if (impl.types.equals(_from)) {
+      if (arraysEqual(impl.types, from)) {
         return this.set(to, impl.func);
       }
     }
@@ -283,12 +296,12 @@ export class Builder {
  */
 
 export interface IImplType {
-  types: List<ArgumentType>;
+  types: ArgumentType[];
   func: E.SimpleApplication;
 }
 
 const implDefaults: IImplType = {
-  types: List(),
+  types: [],
   func() {
     const msg = 'Implementation not set yet declared as implemented';
     throw new Err.UnexpectedError(msg);
@@ -296,7 +309,7 @@ const implDefaults: IImplType = {
 };
 
 export class Impl implements IImplType {
-  public types: List<ArgumentType>;
+  public types: ArgumentType[];
   public func: E.SimpleApplication;
 
   public constructor(params?: IImplType) {
@@ -309,9 +322,12 @@ export class Impl implements IImplType {
   }
 }
 
-export function map(implementations: Impl[]): OverloadMap {
-  const typeImplPair = implementations.map(i => [ i.types, i.func ]);
-  return Map<List<ArgumentType>, E.SimpleApplication>(typeImplPair);
+export function transformToNode(implementations: Impl[]): OverloadTree {
+  const res: OverloadTree = new OverloadTree();
+  for (const implementation of implementations) {
+    res.addOverload(implementation.types, implementation.func);
+  }
+  return res;
 }
 
 // ----------------------------------------------------------------------------
