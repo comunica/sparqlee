@@ -7,7 +7,7 @@ import * as uuid from 'uuid';
 import * as E from '../expressions';
 import { transformLiteral } from '../Transformation';
 import * as C from '../util/Consts';
-import { TypeURL } from '../util/Consts';
+import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { bool, declare, langString, number, string } from './Helpers';
@@ -61,7 +61,7 @@ const division = {
   overloads: declare()
     .arithmetic((left, right) => Decimal.div(left, right).toNumber())
     .onBinaryTyped(
-      [ 'integer', 'integer' ],
+      [ TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
       (left: number, right: number) => {
         if (right === 0) {
           throw new Err.ExpressionError('Integer division by 0');
@@ -230,7 +230,7 @@ const STRDT = {
   arity: 2,
   overloads: declare()
     .onBinary(
-      [ 'string', 'namedNode' ],
+      [ TypeURL.XSD_STRING, 'namedNode' ],
       (str: E.StringLiteral, iri: E.NamedNode) => {
         const lit = DF.literal(str.typedValue, DF.namedNode(iri.value));
         return transformLiteral(lit);
@@ -243,7 +243,7 @@ const STRLANG = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (val: string, language: string) => new E.LangStringLiteral(val, language.toLowerCase()),
     )
     .collect(),
@@ -279,20 +279,20 @@ const SUBSTR = {
   arity: [ 2, 3 ],
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'integer' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_INTEGER ],
       (source: string, startingLoc: number) => string([ ...source ].slice(startingLoc - 1).join('')),
     )
     .onBinary(
-      [ 'langString', 'integer' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_INTEGER ],
       (source: E.LangStringLiteral, startingLoc: E.NumericLiteral) => {
         const sub = [ ...source.typedValue ].slice(startingLoc.typedValue - 1).join('');
         return langString(sub, source.language);
       },
     )
-    .onTernaryTyped([ 'string', 'integer', 'integer' ],
+    .onTernaryTyped([ TypeURL.XSD_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
       (source: string, startingLoc: number, length: number) =>
         string([ ...source ].slice(startingLoc - 1, length).join('')))
-    .onTernary([ 'langString', 'integer', 'integer' ],
+    .onTernary([ TypeURL.RDF_LANG_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
       (source: E.LangStringLiteral, startingLoc: E.NumericLiteral, length: E.NumericLiteral) => {
         const sub = [ ...source.typedValue ].slice(startingLoc.typedValue - 1, length.typedValue).join('');
         return langString(sub, source.language);
@@ -318,17 +318,14 @@ const LCASE = {
 
 const STRSTARTS = {
   arity: 2,
+  // TODO: What about (string, langstring)? & TEST: Does TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING get priority?
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
-      (arg1: string, arg2: string) => bool(arg1.startsWith(arg2)),
-    )
-    .onBinaryTyped(
-      [ 'langString', 'string' ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => bool(arg1.startsWith(arg2)),
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -341,17 +338,14 @@ const STRSTARTS = {
 
 const STRENDS = {
   arity: 2,
+  // TODO: What about (string, langstring)?
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
-      (arg1: string, arg2: string) => bool(arg1.endsWith(arg2)),
-    )
-    .onBinaryTyped(
-      [ 'langString', 'string' ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => bool(arg1.endsWith(arg2)),
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -366,15 +360,11 @@ const CONTAINS = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
-      (arg1: string, arg2: string) => bool(arg1.includes(arg2)),
-    )
-    .onBinaryTyped(
-      [ 'langString', 'string' ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => bool(arg1.includes(arg2)),
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -389,11 +379,11 @@ const STRBEFORE = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => string(arg1.slice(0, Math.max(0, arg1.indexOf(arg2)))),
     )
     .onBinary(
-      [ 'langString', 'string' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
         const sub = arg1.typedValue.slice(0, Math.max(0, a1.indexOf(a2)));
@@ -401,7 +391,7 @@ const STRBEFORE = {
       },
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -418,11 +408,11 @@ const STRAFTER = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => string(arg1.slice(arg1.indexOf(arg2)).slice(arg2.length)),
     )
     .onBinary(
-      [ 'langString', 'string' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
         const sub = a1.slice(a1.indexOf(a2)).slice(a2.length);
@@ -430,7 +420,7 @@ const STRAFTER = {
       },
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -456,7 +446,7 @@ const langmatches = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (tag: string, range: string) => bool(X.langMatches(tag, range)),
     ).collect(),
 };
@@ -468,10 +458,8 @@ const regex3: (text: string, pattern: string, flags: string) => E.BooleanLiteral
 const REGEX = {
   arity: [ 2, 3 ],
   overloads: declare()
-    .onBinaryTyped([ 'string', 'string' ], regex2)
-    .onBinaryTyped([ 'langString', 'string' ], regex2)
-    .onTernaryTyped([ 'string', 'string', 'string' ], regex3)
-    .onTernaryTyped([ 'langString', 'string', 'string' ], regex3)
+    .onBinaryTyped([ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ], regex2)
+    .onTernaryTyped([ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING, TypeURL.XSD_STRING ], regex3)
     .collect(),
 };
 
@@ -479,24 +467,25 @@ const REPLACE = {
   arity: [ 3, 4 ],
   overloads: declare()
     .onTernaryTyped(
-      [ 'string', 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (arg: string, pattern: string, replacement: string) =>
         string(X.replace(arg, pattern, replacement)),
     )
     .set(
-      [ 'langString', 'string', 'string' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       ([ arg, pattern, replacement ]: [E.LangStringLiteral, E.StringLiteral, E.StringLiteral]) => {
         const result = X.replace(arg.typedValue, pattern.typedValue, replacement.typedValue);
         return langString(result, arg.language);
       },
     )
     .onQuaternaryTyped(
-      [ 'string', 'string', 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (arg: string, pattern: string, replacement: string, flags: string) =>
         string(X.replace(arg, pattern, replacement, flags)),
     )
     .set(
-      [ 'langString', 'string', 'string', 'string' ], ([ arg, pattern, replacement, flags ]:
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
+      ([ arg, pattern, replacement, flags ]:
       [E.LangStringLiteral, E.StringLiteral, E.StringLiteral, E.StringLiteral]) => {
         const result = X.replace(arg.typedValue, pattern.typedValue, replacement.typedValue, flags.typedValue);
         return langString(result, arg.language);

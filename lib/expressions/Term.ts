@@ -1,7 +1,10 @@
 import { DataFactory } from 'rdf-data-factory';
 import type * as RDF from 'rdf-js';
 
+import { extensionTable, typeCanBeProvidedTo } from '../functions/OverloadTree';
+import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
+import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import type { TermExpression, TermType } from './Expressions';
 import { ExpressionType } from './Expressions';
@@ -65,7 +68,7 @@ export class BlankNode extends Term {
 // Literals-- -----------------------------------------------------------------
 export class Literal<T> extends Term {
   public termType: 'literal' = 'literal';
-  public type: C.Type;
+  public type: LiteralTypes;
 
   public constructor(
     public typedValue: T,
@@ -91,11 +94,38 @@ export class Literal<T> extends Term {
 }
 
 export class NumericLiteral extends Literal<number> {
-  private static readonly specificFormatters: {[key in C.PrimitiveNumericType]: (val: number) => string } = {
+  private static specificFormatterCreator(type: TypeURL): ((val: number) => string) {
     // Avoid emitting non lexical integers
-    integer: value => value.toFixed(0),
-    float: value => value.toString(),
-    decimal: value => value.toString(),
+    if (typeCanBeProvidedTo(type, TypeURL.XSD_INTEGER)) {
+      return value => value.toFixed(0);
+    }
+    if (typeCanBeProvidedTo(type, TypeURL.XSD_DECIMAL)) {
+      return value => value.toString();
+    }
+    if (typeCanBeProvidedTo(type, TypeURL.XSD_FLOAT)) {
+      return value => value.toString();
+    }
+    if (typeCanBeProvidedTo(type, TypeURL.XSD_DOUBLE)) {
+      // https://www.w3.org/TR/xmlschema-2/#double
+      return value => {
+        const jsExponential = value.toExponential();
+        const [ jsMantisse, jsExponent ] = jsExponential.split('e');
+
+        // Leading + must be removed for integer
+        // https://www.w3.org/TR/xmlschema-2/#integer
+        const exponent = jsExponent.replace(/\+/u, '');
+
+        // SPARQL test suite prefers trailing zero's
+        const mantisse = jsMantisse.includes('.') ?
+          jsMantisse :
+          `${jsMantisse}.0`;
+
+        return `${mantisse}E${exponent}`;
+      };
+    }
+    return () => {
+      throw new Error(`${type} is not a numeric type`);
+    };
     // // Be consistent with float
     // decimal: (value) => {
     //   const jsDecimal = value.toString();
@@ -103,26 +133,10 @@ export class NumericLiteral extends Literal<number> {
     //     ? jsDecimal
     //     : jsDecimal + '.0';
     // },
+  }
 
-    // https://www.w3.org/TR/xmlschema-2/#double
-    double(value) {
-      const jsExponential = value.toExponential();
-      const [ jsMantisse, jsExponent ] = jsExponential.split('e');
-
-      // Leading + must be removed for integer
-      // https://www.w3.org/TR/xmlschema-2/#integer
-      const exponent = jsExponent.replace(/\+/u, '');
-
-      // SPARQL test suite prefers trailing zero's
-      const mantisse = jsMantisse.includes('.') ?
-        jsMantisse :
-        `${jsMantisse}.0`;
-
-      return `${mantisse}E${exponent}`;
-    },
-  };
-
-  public type: C.PrimitiveNumericType;
+  // ExtensionTable[type][TypeAlias.SPARQL_NUMERIC] !== undefined
+  public type: C.TypeURL;
 
   public coerceEBV(): boolean {
     return !!this.typedValue;
@@ -138,7 +152,7 @@ export class NumericLiteral extends Literal<number> {
 
   public str(): string {
     return this.strValue ||
-      NumericLiteral.specificFormatters[this.type](this.typedValue);
+      NumericLiteral.specificFormatterCreator(this.type)(this.typedValue);
   }
 }
 
@@ -175,8 +189,12 @@ export class LangStringLiteral extends Literal<string> {
 // https://www.w3.org/TR/sparql11-query/#func-strings
 // This does not include language tagged literals
 export class StringLiteral extends Literal<string> {
-  public constructor(public typedValue: string) {
-    super(typedValue, C.make(C.TypeURL.XSD_STRING), typedValue);
+  /**
+   * @param typedValue
+   * @param dataType Should be type that implements XSD_STRING
+   */
+  public constructor(public typedValue: string, dataType?: RDF.NamedNode) {
+    super(typedValue, dataType || C.make(C.TypeURL.XSD_STRING), typedValue);
   }
 
   public coerceEBV(): boolean {
@@ -202,7 +220,7 @@ export class StringLiteral extends Literal<string> {
  *  - ... some other more precise thing i can't find...
  */
 export class NonLexicalLiteral extends Literal<undefined> {
-  private readonly shouldBeCategory: C.Type;
+  private readonly shouldBeCategory: LiteralTypes;
   public constructor(
     typedValue: undefined,
     typeURL: RDF.NamedNode,
@@ -211,15 +229,13 @@ export class NonLexicalLiteral extends Literal<undefined> {
   ) {
     super(typedValue, typeURL, strValue, language);
     this.typedValue = undefined;
-    this.type = 'nonlexical';
+    this.type = TypeAlias.SPARQL_NON_LEXICAL;
     this.shouldBeCategory = C.type(typeURL.value);
   }
 
   public coerceEBV(): boolean {
     const isNumericOrBool =
-      C.PrimitiveNumericTypes.has(this.shouldBeCategory) ||
-      this.shouldBeCategory === 'boolean';
-
+      extensionTable[this.shouldBeCategory].SPARQL_NUMERIC || this.shouldBeCategory === TypeURL.XSD_BOOLEAN;
     if (isNumericOrBool) {
       return false;
     }

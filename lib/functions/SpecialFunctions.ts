@@ -4,6 +4,7 @@ import * as uuid from 'uuid';
 import * as E from '../expressions';
 import type { Bindings } from '../Types';
 import * as C from '../util/Consts';
+import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 
 import { bool, langString, string, typeCheckLit } from './Helpers';
@@ -283,7 +284,7 @@ const concat = {
     const pLits = args
       .map(async expr => evaluate(expr, mapping))
       .map(async pTerm =>
-        typeCheckLit<string>(await pTerm, [ 'string', 'langString' ], args, C.SpecialOperator.CONCAT));
+        typeCheckLit<string>(await pTerm, TypeAlias.SPARQL_STRINGLY, args, C.SpecialOperator.CONCAT));
     const lits = await Promise.all(pLits);
     const strings = lits.map(lit => lit.typedValue);
     const joined = strings.join('');
@@ -294,7 +295,7 @@ const concat = {
   applySync({ args, evaluate, mapping }: E.EvalContextSync): Term {
     const lits = args
       .map(expr => evaluate(expr, mapping))
-      .map(pTerm => typeCheckLit<string>(pTerm, [ 'string', 'langString' ], args, C.SpecialOperator.CONCAT));
+      .map(pTerm => typeCheckLit<string>(pTerm, TypeAlias.SPARQL_STRINGLY, args, C.SpecialOperator.CONCAT));
     const strings = lits.map(lit => lit.typedValue);
     const joined = strings.join('');
     const lang = langAllEqual(lits) ? lits[0].language : undefined;
@@ -335,7 +336,7 @@ const IRI = {
 
 function IRI_(input: Term, baseIRI: string | undefined, args: E.Expression[]): Term {
   const lit = input.termType !== 'namedNode' ?
-    typeCheckLit<string>(input, [ 'string' ], args, C.SpecialOperator.IRI) :
+    typeCheckLit<string>(input, TypeURL.XSD_STRING, args, C.SpecialOperator.IRI) :
     <E.NamedNode> input;
 
   const iri = resolveRelativeIri(lit.str(), baseIRI || '');
@@ -355,7 +356,7 @@ const BNODE = {
       undefined;
 
     const strInput = input ?
-      typeCheckLit(input, [ 'string' ], args, C.SpecialOperator.BNODE).str() :
+      typeCheckLit(input, TypeURL.XSD_STRING, args, C.SpecialOperator.BNODE).str() :
       undefined;
 
     if (context.bnode) {
@@ -371,7 +372,7 @@ const BNODE = {
       undefined;
 
     const strInput = input ?
-      typeCheckLit(input, [ 'string' ], args, C.SpecialOperator.BNODE).str() :
+      typeCheckLit(input, TypeURL.XSD_STRING, args, C.SpecialOperator.BNODE).str() :
       undefined;
 
     if (context.bnode) {

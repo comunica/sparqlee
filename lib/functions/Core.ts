@@ -11,7 +11,7 @@ type Term = E.TermExpression;
 
 // Function and operator arguments are 'flattened' in the SPARQL spec.
 // If the argument is a literal, the datatype often also matters.
-export type ArgumentType = 'term' | E.TermType | C.Type;
+export type ArgumentType = 'term' | E.TermType | C.TypeURL | C.TypeAlias;
 
 export interface IOverloadedDefinition {
   arity: number | number[];
@@ -152,37 +152,4 @@ export interface ISpecialDefinition {
   applyAsync: E.SpecialApplicationAsync;
   applySync: E.SpecialApplicationSync;
   checkArity?: (args: E.Expression[]) => boolean;
-}
-
-// Type Promotion -------------------------------------------------------------
-
-const _promote: {[t in C.PrimitiveNumericType]: {[tt in C.PrimitiveNumericType]: C.PrimitiveNumericType }} = {
-  integer: {
-    integer: 'integer',
-    decimal: 'decimal',
-    float: 'float',
-    double: 'double',
-  },
-  decimal: {
-    integer: 'decimal',
-    decimal: 'decimal',
-    float: 'float',
-    double: 'double',
-  },
-  float: {
-    integer: 'float',
-    decimal: 'float',
-    float: 'float',
-    double: 'double',
-  },
-  double: {
-    integer: 'double',
-    decimal: 'double',
-    float: 'double',
-    double: 'double',
-  },
-};
-
-export function promote(left: C.PrimitiveNumericType, right: C.PrimitiveNumericType): C.PrimitiveNumericType {
-  return _promote[left][right];
 }

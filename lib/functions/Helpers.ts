@@ -4,13 +4,13 @@
  */
 import * as E from '../expressions';
 import type { SimpleApplication } from '../expressions';
+import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 
 import type { ArgumentType } from './Core';
-import { promote } from './Core';
-import { OverloadTree } from './OverloadTree';
+import { arithmeticWidening, extensionTable, OverloadTree } from './OverloadTree';
 
 type Term = E.TermExpression;
 
@@ -122,54 +122,49 @@ export class Builder {
 
   public onBoolean1(op: (lit: E.BooleanLiteral) => Term): Builder {
     return this
-      .set([ 'boolean' ], ([ lit ]: [E.BooleanLiteral]) => op(lit));
+      .set([ C.TypeURL.XSD_BOOLEAN ], ([ lit ]: [E.BooleanLiteral]) => op(lit));
   }
 
   public onBoolean1Typed(op: (lit: boolean) => Term): Builder {
     return this
-      .set([ 'boolean' ], ([ lit ]: [E.BooleanLiteral]) => op(lit.typedValue));
+      .set([ C.TypeURL.XSD_BOOLEAN ], ([ lit ]: [E.BooleanLiteral]) => op(lit.typedValue));
   }
 
   public onString1(op: (lit: E.Literal<string>) => Term): Builder {
     return this
-      .set([ 'string' ], ([ lit ]: [E.Literal<string>]) => op(lit));
+      .set([ C.TypeURL.XSD_STRING ], ([ lit ]: [E.Literal<string>]) => op(lit));
   }
 
   public onString1Typed(op: (lit: string) => Term): Builder {
     return this
-      .set([ 'string' ], ([ lit ]: [E.Literal<string>]) => op(lit.typedValue));
+      .set([ C.TypeURL.XSD_STRING ], ([ lit ]: [E.Literal<string>]) => op(lit.typedValue));
   }
 
   public onLangString1(op: (lit: E.LangStringLiteral) => Term): Builder {
     return this
-      .set([ 'langString' ], ([ lit ]: [E.LangStringLiteral]) => op(lit));
+      .set([ C.TypeURL.RDF_LANG_STRING ], ([ lit ]: [E.LangStringLiteral]) => op(lit));
   }
 
   public onStringly1(op: (lit: E.Literal<string>) => Term): Builder {
     return this
-      .set([ 'string' ], ([ lit ]: [E.Literal<string>]) => op(lit))
-      .set([ 'langString' ], ([ lit ]: [E.Literal<string>]) => op(lit));
+      .set([ C.TypeAlias.SPARQL_STRINGLY ], ([ lit ]: [E.Literal<string>]) => op(lit));
   }
 
   public onStringly1Typed(op: (lit: string) => Term): Builder {
     return this
-      .set([ 'string' ], ([ lit ]: [E.Literal<string>]) => op(lit.typedValue))
-      .set([ 'langString' ], ([ lit ]: [E.Literal<string>]) => op(lit.typedValue));
+      .set([ C.TypeAlias.SPARQL_STRINGLY ], ([ lit ]: [E.Literal<string>]) => op(lit.typedValue));
   }
 
   public onNumeric1(op: (val: E.NumericLiteral) => Term): Builder {
     return this
-      .set([ 'integer' ], ([ val ]: [E.NumericLiteral]) => op(val))
-      .set([ 'decimal' ], ([ val ]: [E.NumericLiteral]) => op(val))
-      .set([ 'float' ], ([ val ]: [E.NumericLiteral]) => op(val))
-      .set([ 'double' ], ([ val ]: [E.NumericLiteral]) => op(val))
-      .invalidLexicalForm([ 'nonlexical' ], 1);
+      .set([ C.TypeAlias.SPARQL_NUMERIC ], ([ val ]: [E.NumericLiteral]) => op(val))
+      .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL ], 1);
   }
 
   public onDateTime1(op: (date: E.DateTimeLiteral) => Term): Builder {
     return this
-      .set([ 'date' ], ([ val ]: [E.DateTimeLiteral]) => op(val))
-      .invalidLexicalForm([ 'nonlexical' ], 1);
+      .set([ C.TypeURL.XSD_DATE_TIME ], ([ val ]: [E.DateTimeLiteral]) => op(val))
+      .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL ], 1);
   }
 
   /**
@@ -184,8 +179,7 @@ export class Builder {
    */
   public arithmetic(op: (left: number, right: number) => number): Builder {
     return this.numeric(([ left, right ]: E.NumericLiteral[]) => {
-      const promotionType = promote(left.type, right.type);
-      const resultType = C.decategorize(promotionType);
+      const resultType = arithmeticWidening(left.type, right.type);
       return number(op(left.typedValue, right.typedValue), resultType);
     });
   }
@@ -200,72 +194,47 @@ export class Builder {
   public stringTest(test: (left: string, right: string) => boolean): Builder {
     return this
       .set(
-        [ 'string', 'string' ],
+        [ C.TypeURL.XSD_STRING, C.TypeURL.XSD_STRING ],
         ([ left, right ]: E.StringLiteral[]) => {
           const result = test(left.typedValue, right.typedValue);
           return bool(result);
         },
       )
-      .invalidLexicalForm([ 'nonlexical', 'string' ], 1)
-      .invalidLexicalForm([ 'string', 'nonlexical' ], 2);
+      .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL, C.TypeURL.XSD_STRING ], 1)
+      .invalidLexicalForm([ C.TypeURL.XSD_STRING, C.TypeAlias.SPARQL_NON_LEXICAL ], 2);
   }
 
   public booleanTest(test: (left: boolean, right: boolean) => boolean): Builder {
     return this
       .set(
-        [ 'boolean', 'boolean' ],
+        [ C.TypeURL.XSD_BOOLEAN, C.TypeURL.XSD_BOOLEAN ],
         ([ left, right ]: E.BooleanLiteral[]) => {
           const result = test(left.typedValue, right.typedValue);
           return bool(result);
         },
       )
-      .invalidLexicalForm([ 'nonlexical', 'boolean' ], 1)
-      .invalidLexicalForm([ 'boolean', 'nonlexical' ], 2);
+      .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL, C.TypeURL.XSD_BOOLEAN ], 1)
+      .invalidLexicalForm([ C.TypeURL.XSD_BOOLEAN, C.TypeAlias.SPARQL_NON_LEXICAL ], 2);
   }
 
   public dateTimeTest(test: (left: Date, right: Date) => boolean): Builder {
     return this
       .set(
-        [ 'date', 'date' ],
+        [ C.TypeURL.XSD_DATE_TIME, C.TypeURL.XSD_DATE_TIME ],
         ([ left, right ]: E.DateTimeLiteral[]) => {
           const result = test(left.typedValue, right.typedValue);
           return bool(result);
         },
       )
-      .invalidLexicalForm([ 'nonlexical', 'date' ], 1)
-      .invalidLexicalForm([ 'date', 'nonlexical' ], 2);
+      .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL, C.TypeURL.XSD_DATE_TIME ], 1)
+      .invalidLexicalForm([ C.TypeURL.XSD_DATE_TIME, C.TypeAlias.SPARQL_NON_LEXICAL ], 2);
   }
 
   public numeric(op: E.SimpleApplication): Builder {
     return this
-      .set([ 'integer', 'integer' ], op)
-      .set([ 'integer', 'decimal' ], op)
-      .set([ 'integer', 'float' ], op)
-      .set([ 'integer', 'double' ], op)
-      .invalidLexicalForm([ 'integer', 'nonlexical' ], 2)
-
-      .set([ 'decimal', 'integer' ], op)
-      .set([ 'decimal', 'decimal' ], op)
-      .set([ 'decimal', 'float' ], op)
-      .set([ 'decimal', 'double' ], op)
-      .invalidLexicalForm([ 'decimal', 'nonlexical' ], 2)
-
-      .set([ 'float', 'integer' ], op)
-      .set([ 'float', 'decimal' ], op)
-      .set([ 'float', 'float' ], op)
-      .set([ 'float', 'double' ], op)
-      .invalidLexicalForm([ 'float', 'nonlexical' ], 2)
-
-      .set([ 'double', 'integer' ], op)
-      .set([ 'double', 'decimal' ], op)
-      .set([ 'double', 'float' ], op)
-      .set([ 'double', 'double' ], op)
-      .invalidLexicalForm([ 'double', 'nonlexical' ], 2)
-
-      .invalidLexicalForm([ 'nonlexical', 'integer' ], 1)
-      .invalidLexicalForm([ 'nonlexical', 'decimal' ], 1)
-      .invalidLexicalForm([ 'nonlexical', 'float' ], 1)
-      .invalidLexicalForm([ 'nonlexical', 'double' ], 1);
+      .set([ C.TypeAlias.SPARQL_NUMERIC, C.TypeAlias.SPARQL_NUMERIC ], op)
+      .invalidLexicalForm([ C.TypeAlias.SPARQL_NUMERIC, C.TypeAlias.SPARQL_NON_LEXICAL ], 2)
+      .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL, C.TypeAlias.SPARQL_NUMERIC ], 1);
   }
 
   public invalidLexicalForm(types: ArgumentType[], index: number): Builder {
@@ -338,7 +307,7 @@ export function bool(val: boolean): E.BooleanLiteral {
   return new E.BooleanLiteral(val);
 }
 
-export function number(num: number, dt?: C.TypeURL): E.NumericLiteral {
+export function number(num: number, dt?: C.LiteralTypes): E.NumericLiteral {
   return new E.NumericLiteral(num, C.make(dt || TypeURL.XSD_FLOAT), undefined);
 }
 
@@ -365,7 +334,7 @@ export function dateTime(date: Date, str: string): E.DateTimeLiteral {
 
 export function typeCheckLit<T>(
   term: E.TermExpression,
-  allowed: ArgumentType[],
+  allowed: LiteralTypes,
   args: E.Expression[],
   op: C.Operator,
 ): E.Literal<T> {
@@ -375,7 +344,7 @@ export function typeCheckLit<T>(
 
   const lit = <E.Literal<any>> term;
 
-  if (!allowed.includes(lit.type)) {
+  if (!(extensionTable[lit.type] && extensionTable[lit.type][allowed])) {
     throw new Err.InvalidArgumentTypes(args, op);
   }
 

@@ -4,8 +4,8 @@ import { Algebra as Alg } from 'sparqlalgebrajs';
 
 import type { AsyncExtensionFunction, AsyncExtensionFunctionCreator } from './evaluators/AsyncEvaluator';
 import type { SyncExtensionFunction, SyncExtensionFunctionCreator } from './evaluators/SyncEvaluator';
-import * as E from './expressions';
 import type { AsyncExtensionApplication, SimpleApplication } from './expressions';
+import * as E from './expressions';
 import { namedFunctions, regularFunctions, specialFunctions } from './functions';
 import * as C from './util/Consts';
 import { TypeURL as DT } from './util/Consts';
@@ -92,11 +92,22 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
         new E.StringLiteral(lit.value);
     }
 
+    case DT.XSD_NORMALIZED_STRING:
+    case DT.XSD_TOKEN:
+    case DT.XSD_LANGUAGE:
+    case DT.XSD_NM_TOKEN:
+    case DT.XSD_NAME:
+    case DT.XSD_NC_NAME:
+    case DT.XSD_ENTITY:
+    case DT.XSD_ID:
+    case DT.XSD_ID_REF:
     case DT.XSD_STRING:
-      return new E.StringLiteral(lit.value);
+      return new E.StringLiteral(lit.value, lit.datatype);
+
     case DT.RDF_LANG_STRING:
       return new E.LangStringLiteral(lit.value, lit.language);
 
+    case DT.XSD_DATE_TIME_STAMP:
     case DT.XSD_DATE_TIME:
     case DT.XSD_DATE: {
       const dateVal: Date = new Date(lit.value);
@@ -113,20 +124,20 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
       return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
     }
 
-    case DT.XSD_INTEGER:
     case DT.XSD_DECIMAL:
-    case DT.XSD_NEGATIVE_INTEGER:
-    case DT.XSD_NON_NEGATIVE_INTEGER:
+    case DT.XSD_INTEGER:
     case DT.XSD_NON_POSITIVE_INTEGER:
-    case DT.XSD_POSITIVE_INTEGER:
+    case DT.XSD_NEGATIVE_INTEGER:
     case DT.XSD_LONG:
+    case DT.XSD_INT:
     case DT.XSD_SHORT:
     case DT.XSD_BYTE:
+    case DT.XSD_NON_NEGATIVE_INTEGER:
+    case DT.XSD_POSITIVE_INTEGER:
     case DT.XSD_UNSIGNED_LONG:
     case DT.XSD_UNSIGNED_INT:
     case DT.XSD_UNSIGNED_SHORT:
-    case DT.XSD_UNSIGNED_BYTE:
-    case DT.XSD_INT: {
+    case DT.XSD_UNSIGNED_BYTE: {
       const intVal: number = P.parseXSDDecimal(lit.value);
       if (intVal === undefined) {
         return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
