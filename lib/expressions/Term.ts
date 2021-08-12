@@ -1,11 +1,11 @@
 import { DataFactory } from 'rdf-data-factory';
 import type * as RDF from 'rdf-js';
 
-import { typeCanBeProvidedTo } from '../functions/OverloadTree';
 import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
+import { typeCanBeProvidedTo } from '../util/TypeHandling';
 import type { TermExpression, TermType } from './Expressions';
 import { ExpressionType } from './Expressions';
 

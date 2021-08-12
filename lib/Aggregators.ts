@@ -4,12 +4,12 @@ import type { Algebra } from 'sparqlalgebrajs';
 import * as E from './expressions';
 import { regularFunctions } from './functions';
 import { number, string } from './functions/Helpers';
-import { typeCanBeProvidedTo } from './functions/OverloadTree';
 import { transformLiteral } from './Transformation';
 import type { LiteralTypes, SetFunction } from './util/Consts';
 import * as C from './util/Consts';
 import { TypeAlias, TypeURL } from './util/Consts';
 import { parseXSDFloat } from './util/Parsing';
+import { typeCanBeProvidedTo } from './util/TypeHandling';
 
 const DF = new DataFactory();
 

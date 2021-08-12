@@ -8,8 +8,9 @@ import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 
+import { arithmeticWidening, extensionTable } from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
-import { arithmeticWidening, extensionTable, OverloadTree } from './OverloadTree';
+import { OverloadTree } from './OverloadTree';
 
 type Term = E.TermExpression;
 
