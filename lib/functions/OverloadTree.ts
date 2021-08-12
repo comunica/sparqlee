@@ -1,5 +1,4 @@
 import type * as E from '../expressions';
-import type { TermExpression } from '../expressions';
 import { TypeURL } from '../util/Consts';
 import type { OverrideType } from '../util/TypeHandling';
 import { extensionTable } from '../util/TypeHandling';
@@ -83,7 +82,10 @@ export class OverloadTree {
       this.implementation = func;
       return;
     }
-    const implementation: [ArgumentType, E.SimpleApplication][] = [[ argumentType, func ]];
+    if (!this.subTrees[argumentType]) {
+      this.subTrees[argumentType] = new OverloadTree(this.depth + 1);
+    }
+    this.subTrees[argumentType]._addOverload(_argumentTypes, func);
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
     //  When a function takes a string, it can also accept a XSD_ANY_URI if it is cased first.
     if (argumentType === TypeURL.XSD_STRING) {
@@ -99,16 +101,10 @@ export class OverloadTree {
       this.addPromotedOverload(TypeURL.XSD_DOUBLE, func, arg =>
         number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
     }
-    for (const [ arg, impl ] of implementation) {
-      if (!this.subTrees[arg]) {
-        this.subTrees[arg] = new OverloadTree(this.depth + 1);
-      }
-      this.subTrees[arg]._addOverload(_argumentTypes, impl);
-    }
   }
 
   private addPromotedOverload(typeToPromote: ArgumentType, func: E.SimpleApplication,
-    conversionFunction: (arg: TermExpression) => TermExpression, argumentTypes: ArgumentType[]): void {
+    conversionFunction: (arg: E.TermExpression) => E.TermExpression, argumentTypes: ArgumentType[]): void {
     if (!this.subTrees[typeToPromote]) {
       this.subTrees[typeToPromote] = new OverloadTree(this.depth + 1);
     }
