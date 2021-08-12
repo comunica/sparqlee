@@ -1,9 +1,10 @@
 import type * as E from '../expressions';
+import type { TermExpression } from '../expressions';
 import { TypeURL } from '../util/Consts';
 import type { OverrideType } from '../util/TypeHandling';
 import { extensionTable } from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
-import { string } from './Helpers';
+import { number, string } from './Helpers';
 
 export type SearchStack = OverloadTree[];
 
@@ -77,7 +78,7 @@ export class OverloadTree {
   }
 
   private _addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication): void {
-    const argumentType = argumentTypes.shift();
+    const [ argumentType, ..._argumentTypes ] = argumentTypes;
     if (!argumentType) {
       this.implementation = func;
       return;
@@ -86,19 +87,36 @@ export class OverloadTree {
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
     //  When a function takes a string, it can also accept a XSD_ANY_URI if it is cased first.
     if (argumentType === TypeURL.XSD_STRING) {
-      implementation.push([ TypeURL.XSD_ANY_URI, args => func([
-        ...args.slice(0, this.depth),
-        string(args[this.depth].str()),
-        ...args.slice(this.depth + 1, args.length),
-      ]) ]);
+      this.addPromotedOverload(TypeURL.XSD_ANY_URI, func, arg => string(arg.str()), _argumentTypes);
     }
-    // TODO: same needs to happen for the numeric types.
+    if (argumentType === TypeURL.XSD_FLOAT) {
+      this.addPromotedOverload(TypeURL.XSD_DOUBLE, func, arg =>
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
+    }
+    if (argumentType === TypeURL.XSD_DECIMAL) {
+      this.addPromotedOverload(TypeURL.XSD_FLOAT, func, arg =>
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_FLOAT), _argumentTypes);
+      this.addPromotedOverload(TypeURL.XSD_DOUBLE, func, arg =>
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
+    }
     for (const [ arg, impl ] of implementation) {
       if (!this.subTrees[arg]) {
         this.subTrees[arg] = new OverloadTree(this.depth + 1);
       }
-      this.subTrees[arg]._addOverload(argumentTypes, impl);
+      this.subTrees[arg]._addOverload(_argumentTypes, impl);
     }
+  }
+
+  private addPromotedOverload(typeToPromote: ArgumentType, func: E.SimpleApplication,
+    conversionFunction: (arg: TermExpression) => TermExpression, argumentTypes: ArgumentType[]): void {
+    if (!this.subTrees[typeToPromote]) {
+      this.subTrees[typeToPromote] = new OverloadTree(this.depth + 1);
+    }
+    this.subTrees[typeToPromote]._addOverload(argumentTypes, args => func([
+      ...args.slice(0, this.depth),
+      conversionFunction(args[this.depth]),
+      ...args.slice(this.depth + 1, args.length),
+    ]));
   }
 
   /**
