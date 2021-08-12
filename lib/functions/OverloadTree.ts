@@ -18,7 +18,7 @@ export class OverloadTree {
   public constructor(depth?: number) {
     this.implementation = undefined;
     this.subTrees = Object.create(null);
-    this.depth = depth;
+    this.depth = depth || 0;
   }
 
   /**

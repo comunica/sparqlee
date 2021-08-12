@@ -21,6 +21,7 @@ describe('evaluation of \'-\' like', () => {
       -0f  0f  =  0f
       -1f  1f  = -2f
       -6f -12f =  6f
+      -6i -12f =  6f
     
       -3f 3i = -6f
     

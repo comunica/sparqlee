@@ -42,6 +42,7 @@ describe('string functions', () => {
   });
 
   describe('evaluations of \'substr\' like', () => {
+    // Last test is dedicated to type promotion
     runTestTable({
       arity: 'vary',
       operation: 'substr',
@@ -59,6 +60,7 @@ describe('string functions', () => {
       "👨‍👩‍👧‍👦"@en 2 = "‍👩‍👧‍👦"@en
       "👪"@en 1 1 = "👪"@en
       "👨‍👩‍👧‍👦"@en 1 1 = "👨"@en
+      "3"^^xsd:anyURI 1 1 = "3"
       `,
     });
   });
