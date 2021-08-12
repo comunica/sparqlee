@@ -1,6 +1,6 @@
 import { DataFactory } from 'rdf-data-factory';
-import { template } from '../util/Aliases';
-import { generalEvaluate } from '../util/generalEvaluation';
+import { template } from '../../util/Aliases';
+import { generalEvaluate } from '../../util/generalEvaluation';
 import fn = jest.fn;
 
 const DF = new DataFactory();

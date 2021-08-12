@@ -1,8 +1,8 @@
 import { DataFactory } from 'rdf-data-factory';
 import type * as RDF from 'rdf-js';
 
-import { TypeURL as DT } from '../../lib/util/Consts';
-import { orderTypes } from '../../lib/util/Ordering';
+import { TypeURL as DT } from '../../../lib/util/Consts';
+import { orderTypes } from '../../../lib/util/Ordering';
 
 const DF = new DataFactory();
 

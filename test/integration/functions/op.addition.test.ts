@@ -1,6 +1,6 @@
-import { numeric } from '../util/Aliases';
-import { Notation } from '../util/TestTable';
-import { runTestTable } from '../util/utils';
+import { numeric } from '../../util/Aliases';
+import { Notation } from '../../util/TestTable';
+import { runTestTable } from '../../util/utils';
 
 describe('evaluation of \'+\' like', () => {
   runTestTable({

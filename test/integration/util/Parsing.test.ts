@@ -1,4 +1,4 @@
-import { parseXSDDateTime } from '../../lib/util/Parsing';
+import { parseXSDDateTime } from '../../../lib/util/Parsing';
 
 describe('util/parsing', () => {
   describe('parseXSDDateTime', () => {

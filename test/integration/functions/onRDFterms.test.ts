@@ -1,5 +1,5 @@
-import { Notation } from '../util/TestTable';
-import { runTestTable } from '../util/utils';
+import { Notation } from '../../util/TestTable';
+import { runTestTable } from '../../util/utils';
 
 describe('evaluation of functions on RDF terms', () => {
   describe('like \'str\' receiving', () => {

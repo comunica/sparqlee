@@ -1,7 +1,7 @@
-import { bool } from '../util/Aliases';
-import { Notation } from '../util/TestTable';
-import type { ITestTableConfigBase } from '../util/utils';
-import { runTestTable } from '../util/utils';
+import { bool } from '../../util/Aliases';
+import { Notation } from '../../util/TestTable';
+import type { ITestTableConfigBase } from '../../util/utils';
+import { runTestTable } from '../../util/utils';
 
 describe('unary functions', () => {
   describe('evaluation of \'! (unary)\' like', () => {

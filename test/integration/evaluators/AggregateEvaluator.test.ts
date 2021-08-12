@@ -3,9 +3,9 @@ import type * as RDF from 'rdf-js';
 
 import type { Algebra } from 'sparqlalgebrajs';
 
-import { AggregateEvaluator } from '../../lib/evaluators/AggregateEvaluator';
-import { AsyncAggregateEvaluator } from '../../lib/evaluators/AsyncAggregateEvaluator';
-import { Bindings } from '../../lib/Types';
+import { AggregateEvaluator } from '../../../lib/evaluators/AggregateEvaluator';
+import { AsyncAggregateEvaluator } from '../../../lib/evaluators/AsyncAggregateEvaluator';
+import { Bindings } from '../../../lib/Types';
 
 const DF = new DataFactory();
 

@@ -1,8 +1,8 @@
-import { bool, error, merge } from '../util/Aliases';
+import { bool, error, merge } from '../../util/Aliases';
 
-import { Notation } from '../util/TestTable';
-import type { ITestTableConfigBase } from '../util/utils';
-import { runTestTable } from '../util/utils';
+import { Notation } from '../../util/TestTable';
+import type { ITestTableConfigBase } from '../../util/utils';
+import { runTestTable } from '../../util/utils';
 
 const config: ITestTableConfigBase = {
   operation: '||',

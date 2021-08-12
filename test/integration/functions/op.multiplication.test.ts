@@ -1,7 +1,7 @@
-import { error, merge, numeric } from '../util/Aliases';
-import { Notation } from '../util/TestTable';
-import type { ITestTableConfigBase } from '../util/utils';
-import { runTestTable } from '../util/utils';
+import { error, merge, numeric } from '../../util/Aliases';
+import { Notation } from '../../util/TestTable';
+import type { ITestTableConfigBase } from '../../util/utils';
+import { runTestTable } from '../../util/utils';
 
 const config: ITestTableConfigBase = {
   arity: 2,
