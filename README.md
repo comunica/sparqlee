@@ -325,17 +325,31 @@ When you create one, the SPARQL Algebra expression that is passed will be transf
 
 ### Type System
 
-[See functions/Core.ts](./lib/functions/Core.ts)
+See [functions/Core.ts](./lib/functions/Core.ts), [funcions/OverloadTree.ts](.lib/funcions/OverloadTree.ts) and
+[util/TypeHandling.ts](./lib/util/TypeHandling.ts).
 
-The type system is tailored for doing (supposedly) quick evaluation of overloaded functions. A function object consists of a map of argument types to a concrete function implementation for those argument types.
+The type system is tailored for doing (supposedly) quick evaluation of overloaded functions.
+A function object consists of a tree like structure over argument types. 
+A node in this tree contains a concrete function implementation for the argument types followed in the tree.
 
-When a function object is called with some functions, it looks up a concrete implementation. If we can not find one, we consider the argument of invalid types.
+When a function object is called with some functions, it looks up a concrete implementation.
+If we can not find one, we consider the argument of invalid types.
 
-Since many derived types exist, we also associate every literal with it's primitive datatype when constructing a literal. This handles **subtype substitution**, as we define allowed types in function of these primitives types. Note: the derived type is not maintained after an operation on the term, since I found no functions for which this was relevant.
+Since many derived types exist,
+we also associate every literal with its primitive datatype when constructing a literal.
+When handling literal types we use **[subtype substitution](https://www.w3.org/TR/xpath-31/#dt-subtype-substitution)**.
+What this means is that the types provided to a function don't need to the same but,
+can also be a restriction on the expected type.
+This 'restriced form of' relationship is implemented as follows:
+![type system](type-scheme.svg)
+So, when expecting an argument of type XSD:integer, we could provide XSD:long instead and the
+function cal would still be succeeded. It's important to note no cast would be called on the argument.
 
-**Type promotion** is handled in a couple of ways. Firstly, a bit like C++ vtables, if we can not find a implementation for the concrete (primitive) types, we try to find an implementation for the term-types of all the arguments, if that fails, we look for an implementation on generic terms.
-
-We also handle type promotion by explicitly coding for it. This is done in the arithmetic functions `+, -, *, /`.
+More complex is **[type promotion](https://www.w3.org/TR/xpath-31/#promotion)**.
+This defines some rules where a cast would be called on an argument.
+Defining a function `f` with an argument of type XSD:string and,
+calling this function with something of type XSD:anyURI will cast the argument to XSD:string. 
+This is different from subtype substitution because in this case a cast is performed.
 
 ### Testing
 

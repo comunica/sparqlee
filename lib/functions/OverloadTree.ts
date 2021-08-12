@@ -91,15 +91,15 @@ export class OverloadTree {
     if (argumentType === TypeURL.XSD_STRING) {
       this.addPromotedOverload(TypeURL.XSD_ANY_URI, func, arg => string(arg.str()), _argumentTypes);
     }
-    if (argumentType === TypeURL.XSD_FLOAT) {
-      this.addPromotedOverload(TypeURL.XSD_DOUBLE, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
-    }
-    if (argumentType === TypeURL.XSD_DECIMAL) {
+    if (argumentType === TypeURL.XSD_DOUBLE) {
       this.addPromotedOverload(TypeURL.XSD_FLOAT, func, arg =>
         number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_FLOAT), _argumentTypes);
-      this.addPromotedOverload(TypeURL.XSD_DOUBLE, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
+      this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DECIMAL), _argumentTypes);
+    }
+    if (argumentType === TypeURL.XSD_FLOAT) {
+      this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DECIMAL), _argumentTypes);
     }
   }
 
