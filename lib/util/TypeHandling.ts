@@ -18,6 +18,9 @@ export const extensionTableInput: Record<LiteralTypes, OverrideType> = {
   [TypeAlias.SPARQL_OTHER]: 'term',
   [TypeAlias.SPARQL_NON_LEXICAL]: 'term',
 
+  // Read https://www.w3.org/TR/xpath-31/#promotion \ne https://www.w3.org/TR/xpath-31/#dt-subtype-substitution
+  [TypeURL.XSD_ANY_URI]: 'term',
+
   // Datetime types
   [TypeURL.XSD_DATE_TIME_STAMP]: TypeURL.XSD_DATE_TIME,
 
@@ -28,10 +31,6 @@ export const extensionTableInput: Record<LiteralTypes, OverrideType> = {
   // Stringly types
   [TypeURL.RDF_LANG_STRING]: TypeAlias.SPARQL_STRINGLY,
   [TypeURL.XSD_STRING]: TypeAlias.SPARQL_STRINGLY,
-
-  // TODO: SHOULD NOT BE HANDLED LIKE THIS
-  //  read https://www.w3.org/TR/xpath-31/#promotion \ne https://www.w3.org/TR/xpath-31/#dt-subtype-substitution
-  [TypeURL.XSD_ANY_URI]: TypeURL.XSD_STRING,
 
   // String types
   [TypeURL.XSD_NORMALIZED_STRING]: TypeURL.XSD_STRING,

@@ -1,7 +1,9 @@
 import type * as E from '../expressions';
+import { TypeURL } from '../util/Consts';
 import type { OverrideType } from '../util/TypeHandling';
 import { extensionTable } from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
+import { string } from './Helpers';
 
 export type SearchStack = OverloadTree[];
 
@@ -11,10 +13,12 @@ export type SearchStack = OverloadTree[];
 export class OverloadTree {
   private implementation?: E.SimpleApplication | undefined;
   private readonly subTrees: Record<ArgumentType, OverloadTree>;
+  private readonly depth: number;
 
-  public constructor() {
+  public constructor(depth?: number) {
     this.implementation = undefined;
     this.subTrees = Object.create(null);
+    this.depth = depth;
   }
 
   /**
@@ -78,10 +82,23 @@ export class OverloadTree {
       this.implementation = func;
       return;
     }
-    if (!this.subTrees[argumentType]) {
-      this.subTrees[argumentType] = new OverloadTree();
+    const implementation: [ArgumentType, E.SimpleApplication][] = [[ argumentType, func ]];
+    // Defined by https://www.w3.org/TR/xpath-31/#promotion .
+    //  When a function takes a string, it can also accept a XSD_ANY_URI if it is cased first.
+    if (argumentType === TypeURL.XSD_STRING) {
+      implementation.push([ TypeURL.XSD_ANY_URI, args => func([
+        ...args.slice(0, this.depth),
+        string(args[this.depth].str()),
+        ...args.slice(this.depth + 1, args.length),
+      ]) ]);
     }
-    this.subTrees[argumentType]._addOverload(argumentTypes, func);
+    // TODO: same needs to happen for the numeric types.
+    for (const [ arg, impl ] of implementation) {
+      if (!this.subTrees[arg]) {
+        this.subTrees[arg] = new OverloadTree(this.depth + 1);
+      }
+      this.subTrees[arg]._addOverload(argumentTypes, impl);
+    }
   }
 
   /**
