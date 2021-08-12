@@ -1,6 +1,6 @@
-import { bool, int, numeric } from '../util/Aliases';
-import { Notation } from '../util/TestTable';
-import { runTestTable } from '../util/utils';
+import { bool, int, numeric } from '../../util/Aliases';
+import { Notation } from '../../util/TestTable';
+import { runTestTable } from '../../util/utils';
 
 describe('string functions', () => {
   describe('evaluation of \'strlen\' like', () => {

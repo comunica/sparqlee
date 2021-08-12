@@ -1,8 +1,8 @@
 import { DataFactory } from 'rdf-data-factory';
 
-import * as E from '../../lib/expressions';
+import * as E from '../../../lib/expressions';
 
-import { TypeURL } from './../../lib/util/Consts';
+import { TypeURL } from '../../../lib/util/Consts';
 
 const DF = new DataFactory();
 

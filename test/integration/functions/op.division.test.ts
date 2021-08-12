@@ -1,6 +1,6 @@
-import { merge, numeric } from '../util/Aliases';
-import { Notation } from '../util/TestTable';
-import { runTestTable } from '../util/utils';
+import { merge, numeric } from '../../util/Aliases';
+import { Notation } from '../../util/TestTable';
+import { runTestTable } from '../../util/utils';
 
 const config = {
   arity: 2,

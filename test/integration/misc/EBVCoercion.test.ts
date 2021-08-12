@@ -1,6 +1,6 @@
-import { bool } from '../util/Aliases';
-import { Notation } from '../util/TestTable';
-import { runTestTable } from '../util/utils';
+import { bool } from '../../util/Aliases';
+import { Notation } from '../../util/TestTable';
+import { runTestTable } from '../../util/utils';
 // https://www.w3.org/TR/sparql11-query/#ebv
 // Using && as utility to force EBV
 describe('the coercion of RDF terms to it\'s EBV like', () => {
