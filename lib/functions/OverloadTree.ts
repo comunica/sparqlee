@@ -4,7 +4,7 @@ import { TypeAlias, TypeURL } from '../util/Consts';
 import type { ArgumentType } from './Core';
 
 export type SearchStack = OverloadTree[];
-export type OverRideType = LiteralTypes | 'term';
+export type OverrideType = LiteralTypes | 'term';
 
 /**
  * Some of the types here have some super relation.
@@ -12,7 +12,7 @@ export type OverRideType = LiteralTypes | 'term';
  * Types that are not mentioned just map to 'term'.
  * A DAG will be created based on this. Make sure it doesn't have any cycles!
  */
-export const extensionTableInput: Record<LiteralTypes, OverRideType> = {
+export const extensionTableInput: Record<LiteralTypes, OverrideType> = {
   [TypeURL.XSD_DATE_TIME]: 'term',
   [TypeURL.XSD_BOOLEAN]: 'term',
   [TypeURL.XSD_DATE]: 'term',
@@ -33,7 +33,8 @@ export const extensionTableInput: Record<LiteralTypes, OverRideType> = {
   [TypeURL.RDF_LANG_STRING]: TypeAlias.SPARQL_STRINGLY,
   [TypeURL.XSD_STRING]: TypeAlias.SPARQL_STRINGLY,
 
-  // XSD_ANY_URI is a weird one, it was handled equal to XSD_STRING before, we keep this? TODO - need to edit chart
+  // TODO: SHOULD NOT BE HANDLED LIKE THIS
+  //  read https://www.w3.org/TR/xpath-31/#promotion \ne https://www.w3.org/TR/xpath-31/#dt-subtype-substitution
   [TypeURL.XSD_ANY_URI]: TypeURL.XSD_STRING,
 
   // String types
@@ -50,9 +51,9 @@ export const extensionTableInput: Record<LiteralTypes, OverRideType> = {
   // Numeric types
   // https://www.w3.org/TR/sparql11-query/#operandDataTypes
   // > numeric denotes typed literals with datatypes xsd:integer, xsd:decimal, xsd:float, and xsd:double
-  [TypeURL.XSD_DECIMAL]: TypeAlias.SPARQL_NUMERIC,
-  [TypeURL.XSD_FLOAT]: TypeAlias.SPARQL_NUMERIC,
   [TypeURL.XSD_DOUBLE]: TypeAlias.SPARQL_NUMERIC,
+  [TypeURL.XSD_FLOAT]: TypeAlias.SPARQL_NUMERIC,
+  [TypeURL.XSD_DECIMAL]: TypeAlias.SPARQL_NUMERIC,
 
   // Decimal types
   [TypeURL.XSD_INTEGER]: TypeURL.XSD_DECIMAL,
@@ -93,7 +94,7 @@ function extensionTableInit(): void {
   }
   extensionTable = res;
 }
-function extensionTableBuilderInitKey(key: LiteralTypes, value: OverRideType, res: ExtensionTableBuilder): void {
+function extensionTableBuilderInitKey(key: LiteralTypes, value: OverrideType, res: ExtensionTableBuilder): void {
   if (value === 'term' || value === undefined) {
     const baseRes = Object.create(null);
     baseRes.depth = 0;
@@ -112,7 +113,7 @@ export function typeCanBeProvidedTo(_baseType: string, argumentType: LiteralType
   if (![ ...Object.values(TypeAlias), ...Object.values(TypeURL), 'term' ].includes(_baseType)) {
     return false;
   }
-  const baseType = <OverRideType> _baseType;
+  const baseType = <OverrideType> _baseType;
   return baseType === 'term' ||
     (extensionTable[baseType] && extensionTable[baseType][argumentType] !== undefined);
 }
@@ -212,7 +213,7 @@ export class OverloadTree {
     }
     if (arg.termType === 'literal') {
       const concreteType = (<E.Literal<any>> arg).type;
-      const possibleMatches = <[OverRideType, number][]> Object.entries(extensionTable[concreteType]);
+      const possibleMatches = <[OverrideType, number][]> Object.entries(extensionTable[concreteType]);
       const matches = possibleMatches.filter(([ matchType, _ ]) => matchType in this.subTrees);
       matches.sort(([ matchTypeA, prioA ], [ matchTypeB, prioB ]) => prioA - prioB);
       res.push(...matches.map(([ sortedType, _ ]) => this.subTrees[sortedType]));
@@ -225,7 +226,7 @@ export class OverloadTree {
  * Provided a list of Types this will return the most concrete type implemented by all items in that list.
  * @param args
  */
-export function typeWidening(...args: LiteralTypes[]): OverRideType {
+export function typeWidening(...args: LiteralTypes[]): OverrideType {
   if (args.length === 0) {
     throw new Error('Should get at least 1 arg');
   }
@@ -235,12 +236,12 @@ export function typeWidening(...args: LiteralTypes[]): OverRideType {
   // We could keep these sorted lists in memory but we don't need them that often?
   const sorted = args.map(overrideType => Object.entries(extensionTable[overrideType])
     .sort(([ typeA, prioA ], [ typeB, prioB ]) => prioA - prioB)
-    .map(([ urlType, prio ]) => <OverRideType>urlType));
-  let res: OverRideType = 'term';
+    .map(([ urlType, prio ]) => <OverrideType>urlType));
+  let res: OverrideType = 'term';
   let index = 0;
   const max = Math.max(...sorted.map(list => list.length));
   while (index < max) {
-    const tempRes: OverRideType = sorted[0][index];
+    const tempRes: OverrideType = sorted[0][index];
     // eslint-disable-next-line @typescript-eslint/no-loop-func
     if (sorted.some(list => list[index] !== tempRes)) {
       return res;
