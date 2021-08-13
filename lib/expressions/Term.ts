@@ -96,7 +96,6 @@ export class Literal<T> extends Term {
 }
 
 export class NumericLiteral extends Literal<number> {
-  private readonly specificFormatter: ((val: number) => string);
   public constructor(
     public typedValue: number,
     public typeURL: RDF.NamedNode,
@@ -105,22 +104,27 @@ export class NumericLiteral extends Literal<number> {
   ) {
     super(typedValue, typeURL, strValue, language);
     if (!typeCanBeProvidedTo(<LiteralTypes> typeURL.value, TypeAlias.SPARQL_NUMERIC)) {
-      throw new Error(
-        `TypeUrl '${this.type}' provided to NumericLiteral should implement ${TypeAlias.SPARQL_NUMERIC}`,
-      );
+      throw this.getTypeError();
     }
+  }
 
-    const type = this.type;
-    // Avoid emitting non lexical integers
+  private getTypeError(): Error {
+    return new Error(`TypeUrl '${this.type}' provided to NumericLiteral should implement ${TypeAlias.SPARQL_NUMERIC}`);
+  }
+
+  private specificFormatterCreator(type: LiteralTypes): ((val: number) => string) {
     if (typeCanBeProvidedTo(type, TypeURL.XSD_INTEGER)) {
-      this.specificFormatter = value => value.toFixed(0);
-    } else if (typeCanBeProvidedTo(type, TypeURL.XSD_DECIMAL)) {
-      this.specificFormatter = value => value.toString();
-    } else if (typeCanBeProvidedTo(type, TypeURL.XSD_FLOAT)) {
-      this.specificFormatter = value => value.toString();
-    } else if (typeCanBeProvidedTo(type, TypeURL.XSD_DOUBLE)) {
+      return value => value.toFixed(0);
+    }
+    if (typeCanBeProvidedTo(type, TypeURL.XSD_DECIMAL)) {
+      return value => value.toString();
+    }
+    if (typeCanBeProvidedTo(type, TypeURL.XSD_FLOAT)) {
+      return value => value.toString();
+    }
+    if (typeCanBeProvidedTo(type, TypeURL.XSD_DOUBLE)) {
       // https://www.w3.org/TR/xmlschema-2/#double
-      this.specificFormatter = value => {
+      return value => {
         const jsExponential = value.toExponential();
         const [ jsMantisse, jsExponent ] = jsExponential.split('e');
 
@@ -135,17 +139,12 @@ export class NumericLiteral extends Literal<number> {
 
         return `${mantisse}E${exponent}`;
       };
-      // // Be consistent with float
-      // decimal: (value) => {
-      //   const jsDecimal = value.toString();
-      //   return jsDecimal.match(/\./)
-      //     ? jsDecimal
-      //     : jsDecimal + '.0';
-      // },
     }
+    return () => {
+      throw this.getTypeError();
+    };
   }
 
-  // ExtensionTable[type][TypeAlias.SPARQL_NUMERIC] !== undefined
   public type: C.TypeURL;
 
   public coerceEBV(): boolean {
@@ -162,7 +161,7 @@ export class NumericLiteral extends Literal<number> {
 
   public str(): string {
     return this.strValue ||
-      this.specificFormatter(this.typedValue);
+      this.specificFormatterCreator(this.type)(this.typedValue);
   }
 }
 
@@ -179,8 +178,8 @@ export class BooleanLiteral extends Literal<boolean> {
 export class DateTimeLiteral extends Literal<Date> {
   // StrValue is mandatory here because toISOString will always add
   // milliseconds, even if they were not present.
-  public constructor(public typedValue: Date, public strValue: string) {
-    super(typedValue, C.make(C.TypeURL.XSD_DATE_TIME), strValue);
+  public constructor(public typedValue: Date, public strValue: string, dataType?: RDF.NamedNode) {
+    super(typedValue, dataType || C.make(C.TypeURL.XSD_DATE_TIME), strValue);
   }
 }
 
@@ -244,7 +243,8 @@ export class NonLexicalLiteral extends Literal<undefined> {
   }
 
   public coerceEBV(): boolean {
-    const isNumericOrBool = typeCanBeProvidedTo(this.shouldBeCategory, TypeURL.XSD_BOOLEAN) ||
+    const isNumericOrBool =
+      typeCanBeProvidedTo(this.shouldBeCategory, TypeURL.XSD_BOOLEAN) ||
       typeCanBeProvidedTo(this.shouldBeCategory, TypeAlias.SPARQL_NUMERIC);
     if (isNumericOrBool) {
       return false;

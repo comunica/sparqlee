@@ -2,6 +2,7 @@ import type { LiteralTypes } from './Consts';
 import { TypeAlias, TypeURL } from './Consts';
 
 export type OverrideType = LiteralTypes | 'term';
+
 /**
  * Some of the types here have some super relation.
  * This should match the relations provided in @see{transformLiteral}.
@@ -72,6 +73,7 @@ type SubExtensionTable = Record<LiteralTypes, number>;
 type SubExtensionTableBuilder = SubExtensionTable & { depth: number };
 type ExtensionTable = Record<LiteralTypes, SubExtensionTable>;
 type ExtensionTableBuilder = Record<LiteralTypes, SubExtensionTableBuilder>;
+// TODO: check: een SubExtensionTable mag nooit toEntries gedaan worden!
 export let extensionTable: ExtensionTable;
 
 // No circular structure allowed! & No other keys allowed!
@@ -105,13 +107,20 @@ function extensionTableBuilderInitKey(key: LiteralTypes, value: OverrideType, re
   res[key] = { ...res[value], [key]: res[value].depth + 1, depth: res[value].depth + 1 };
 }
 
-export function typeCanBeProvidedTo(_baseType: string, argumentType: LiteralTypes): boolean {
-  if (![ ...Object.values(TypeAlias), ...Object.values(TypeURL), 'term' ].includes(_baseType)) {
+export function isOverrideType(type: string): OverrideType | undefined {
+  if (type in extensionTable || type === 'term') {
+    return <OverrideType> type;
+  }
+  return undefined;
+}
+
+export function typeCanBeProvidedTo(baseType: string, argumentType: LiteralTypes): boolean {
+  const type: OverrideType | undefined = isOverrideType(baseType);
+  if (!type) {
     return false;
   }
-  const baseType = <OverrideType>_baseType;
-  return baseType === 'term' ||
-    (extensionTable[baseType] && extensionTable[baseType][argumentType] !== undefined);
+  return type !== 'term' &&
+    (extensionTable[type] && extensionTable[type][argumentType] !== undefined);
 }
 
 /**
@@ -151,6 +160,7 @@ export function typeWidening(...args: LiteralTypes[]): OverrideType {
  * > input arguments. In JS everything is a double, but in SPARQL it is not.
  * > {@link https://www.w3.org/TR/sparql11-query/#OperatorMapping}
  * > {@link https://www.w3.org/TR/xpath-functions/#op.numeric}
+ * TODO: is nu opgelost door promotion?
  * @param args
  */
 export function arithmeticWidening(...args: LiteralTypes[]): LiteralTypes {

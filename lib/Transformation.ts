@@ -75,13 +75,18 @@ function transformWildcard(term: Alg.WildcardExpression): E.Expression {
   return new E.NamedNode(term.wildcard.value);
 }
 
-// TODO: Maybe do this with a map?
+// TODO: don't hard code this!
 /**
- * Some of the types here have some super relation.
- * This should match the relations provided in @see{extensionTableInput}.
- * @param lit
+ * Some of the types here are a subtype of another type,
+ * and are assigned the class of their supertype because the logic (regarding the class) is identical.
+ * These relations should match the relations provided in @see{extensionTableInput}.
+ * Important note: These types should follow https://www.w3.org/TR/rdf11-concepts/#h3_xsd-datatypes
+ * @param lit the rdf literal we want to transform to an internal Literal expression.
  */
 export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
+  // Both here and within the switch we transform to LangStringLiteral or StringLiteral.
+  // We do this when we detect a simple literal being used.
+  // Original issue regarding this behaviour: https://github.com/w3c/sparql-12/issues/112
   if (!lit.datatype) {
     return lit.language ?
       new E.LangStringLiteral(lit.value, lit.language) :
@@ -114,11 +119,17 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
 
     case DT.XSD_DATE_TIME_STAMP:
     case DT.XSD_DATE_TIME: {
+      // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
+      // This is because sparql functions don't care about the timezone.
+      // It's also doesn't break the specs because we keep the string representation stored,
+      // that way we can always give it back. There are also no sparql functions that alter a date.
+      // (So the representation initial representation always stays valid)
+      // https://github.com/comunica/sparqlee/pull/103#discussion_r688462368
       const dateVal: Date = new Date(lit.value);
       if (Number.isNaN(dateVal.getTime())) {
         return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
       }
-      return new E.DateTimeLiteral(new Date(lit.value), lit.value);
+      return new E.DateTimeLiteral(new Date(lit.value), lit.value, lit.datatype);
     }
 
     case DT.XSD_BOOLEAN: {

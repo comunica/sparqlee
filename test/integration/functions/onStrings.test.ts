@@ -20,7 +20,6 @@ describe('string functions', () => {
   });
 
   // TODO: Add errors for when non BCP47 strings are passed
-  //  this is equivalent to making argument of langMatches XSD_language?
   describe('evaluation of \'langMatches\' like', () => {
     runTestTable({
       arity: 2,
@@ -60,7 +59,7 @@ describe('string functions', () => {
       "👨‍👩‍👧‍👦"@en 2 = "‍👩‍👧‍👦"@en
       "👪"@en 1 1 = "👪"@en
       "👨‍👩‍👧‍👦"@en 1 1 = "👨"@en
-      "3"^^xsd:anyURI 1 1 = "3"
+      '"type promotion"^^xsd:anyURI' 2 4 = "ype"
       `,
     });
   });

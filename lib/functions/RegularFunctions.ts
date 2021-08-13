@@ -56,6 +56,7 @@ const multiplication = {
     .collect(),
 };
 
+// TODO: test if this gives a decimal?
 const division = {
   arity: 2,
   overloads: declare()
@@ -170,6 +171,9 @@ const greaterThanEqual = {
 // https://www.w3.org/TR/sparql11-query/#func-rdfTerms
 // ----------------------------------------------------------------------------
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-isIRI
+ */
 const isIRI = {
   arity: 1,
   overloads: declare()
@@ -177,6 +181,9 @@ const isIRI = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-isBlank
+ */
 const isBlank = {
   arity: 1,
   overloads: declare()
@@ -184,6 +191,9 @@ const isBlank = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-isLiteral
+ */
 const isLiteral = {
   arity: 1,
   overloads: declare()
@@ -191,6 +201,10 @@ const isLiteral = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-isNumeric
+ * TODO: should have a test when implementing extensionOverloadTypes
+ */
 const isNumeric = {
   arity: 1,
   overloads: declare()
@@ -199,6 +213,9 @@ const isNumeric = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-str
+ */
 const STR = {
   arity: 1,
   overloads: declare()
@@ -206,6 +223,9 @@ const STR = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-lang
+ */
 const lang = {
   arity: 1,
   overloads: declare()
@@ -213,6 +233,9 @@ const lang = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-datatype
+ */
 const datatype = {
   arity: 1,
   overloads: declare()
@@ -226,6 +249,9 @@ const datatype = {
 // See special functions
 // const BNODE = {};
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strdt
+ */
 const STRDT = {
   arity: 2,
   overloads: declare()
@@ -238,7 +264,10 @@ const STRDT = {
     )
     .collect(),
 };
-
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strlang
+ * This indeed expects a string as second argument and not an XSD_LANGUAGE.
+ */
 const STRLANG = {
   arity: 2,
   overloads: declare()
@@ -249,6 +278,9 @@ const STRLANG = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-uuid
+ */
 const UUID = {
   arity: 0,
   overloads: declare()
@@ -256,6 +288,9 @@ const UUID = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-struuid
+ */
 const STRUUID = {
   arity: 0,
   overloads: declare()
@@ -268,6 +303,9 @@ const STRUUID = {
 // https://www.w3.org/TR/sparql11-query/#func-forms
 // ----------------------------------------------------------------------------
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strlen
+ */
 const STRLEN = {
   arity: 1,
   overloads: declare()
@@ -275,6 +313,9 @@ const STRLEN = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-substr
+ */
 const SUBSTR = {
   arity: [ 2, 3 ],
   overloads: declare()
@@ -300,6 +341,9 @@ const SUBSTR = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-ucase
+ */
 const UCASE = {
   arity: 1,
   overloads: declare()
@@ -308,6 +352,9 @@ const UCASE = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-lcase
+ */
 const LCASE = {
   arity: 1,
   overloads: declare()
@@ -316,9 +363,13 @@ const LCASE = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strstarts
+ * for this and the following functions you'll see (string, langstring) is not allowed. This behaviour is defined in:
+ * https://www.w3.org/TR/sparql11-query/#func-arg-compatibility
+ */
 const STRSTARTS = {
   arity: 2,
-  // TODO: What about (string, langstring)? & TEST: Does TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING get priority?
   overloads: declare()
     .onBinaryTyped(
       [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
@@ -336,9 +387,11 @@ const STRSTARTS = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strends
+ */
 const STRENDS = {
   arity: 2,
-  // TODO: What about (string, langstring)?
   overloads: declare()
     .onBinaryTyped(
       [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
@@ -356,6 +409,9 @@ const STRENDS = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-contains
+ */
 const CONTAINS = {
   arity: 2,
   overloads: declare()
@@ -375,6 +431,9 @@ const CONTAINS = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strbefore
+ */
 const STRBEFORE = {
   arity: 2,
   overloads: declare()
@@ -404,6 +463,9 @@ const STRBEFORE = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strafter
+ */
 const STRAFTER = {
   arity: 2,
   overloads: declare()
@@ -433,6 +495,9 @@ const STRAFTER = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-encode
+ */
 const ENCODE_FOR_URI = {
   arity: 1,
   overloads: declare()
@@ -442,6 +507,9 @@ const ENCODE_FOR_URI = {
 // See special operators
 // const CONCAT = {}
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-langMatches
+ */
 const langmatches = {
   arity: 2,
   overloads: declare()
@@ -455,6 +523,9 @@ const regex2: (text: string, pattern: string) => E.BooleanLiteral =
   (text: string, pattern: string) => bool(X.matches(text, pattern));
 const regex3: (text: string, pattern: string, flags: string) => E.BooleanLiteral =
   (text: string, pattern: string, flags: string) => bool(X.matches(text, pattern, flags));
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-regex
+ */
 const REGEX = {
   arity: [ 2, 3 ],
   overloads: declare()
@@ -463,6 +534,9 @@ const REGEX = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-replace
+ */
 const REPLACE = {
   arity: [ 3, 4 ],
   overloads: declare()
@@ -499,6 +573,9 @@ const REPLACE = {
 // https://www.w3.org/TR/sparql11-query/#func-numerics
 // ----------------------------------------------------------------------------
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-abs
+ */
 const abs = {
   arity: 1,
   overloads: declare()
@@ -508,6 +585,9 @@ const abs = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-round
+ */
 const round = {
   arity: 1,
   overloads: declare()
@@ -517,6 +597,9 @@ const round = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-ceil
+ */
 const ceil = {
   arity: 1,
   overloads: declare()
@@ -526,6 +609,9 @@ const ceil = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-floor
+ */
 const floor = {
   arity: 1,
   overloads: declare()
@@ -535,6 +621,9 @@ const floor = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#idp2130040
+ */
 const rand = {
   arity: 0,
   overloads: declare()
@@ -554,6 +643,9 @@ function parseDate(dateLit: E.DateTimeLiteral): P.ISplittedDate {
 // See special operators
 // const now = {};
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-year
+ */
 const year = {
   arity: 1,
   overloads: declare()
@@ -563,6 +655,9 @@ const year = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-month
+ */
 const month = {
   arity: 1,
   overloads: declare()
@@ -572,6 +667,9 @@ const month = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-day
+ */
 const day = {
   arity: 1,
   overloads: declare()
@@ -581,6 +679,9 @@ const day = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-hours
+ */
 const hours = {
   arity: 1,
   overloads: declare()
@@ -590,6 +691,9 @@ const hours = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-minutes
+ */
 const minutes = {
   arity: 1,
   overloads: declare()
@@ -599,6 +703,9 @@ const minutes = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-seconds
+ */
 const seconds = {
   arity: 1,
   overloads: declare()
@@ -608,6 +715,9 @@ const seconds = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-timezone
+ */
 const timezone = {
   arity: 1,
   overloads: declare()
@@ -623,6 +733,9 @@ const timezone = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-tz
+ */
 const tz = {
   arity: 1,
   overloads: declare()
@@ -637,6 +750,9 @@ const tz = {
 // https://www.w3.org/TR/sparql11-query/#func-hash
 // ----------------------------------------------------------------------------
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-md5
+ */
 const MD5 = {
   arity: 1,
   overloads: declare()
@@ -644,6 +760,9 @@ const MD5 = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-sha1
+ */
 const SHA1 = {
   arity: 1,
   overloads: declare()
@@ -651,6 +770,9 @@ const SHA1 = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-sha256
+ */
 const SHA256 = {
   arity: 1,
   overloads: declare()
@@ -658,6 +780,9 @@ const SHA256 = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-sha384
+ */
 const SHA384 = {
   arity: 1,
   overloads: declare()
@@ -665,6 +790,9 @@ const SHA384 = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-sha512
+ */
 const SHA512 = {
   arity: 1,
   overloads: declare()

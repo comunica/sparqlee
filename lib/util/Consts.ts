@@ -8,12 +8,17 @@ export type LiteralTypes = TypeAlias | TypeURL;
 export enum TypeAlias {
   // Numeric is everything defined in https://www.w3.org/TR/sparql11-query/#operandDataTypes
   SPARQL_NUMERIC = 'SPARQL_NUMERIC',
+  /**
+   * Stringly is everything defined in https://www.w3.org/TR/sparql11-query/#func-strings
+   * In other words it is a simple literal, a plain literal with language tag, or a literal with datatype xsd:string
+   * In other words, since sparqlee transforms a simple literal to xsd_string. It is RDF_LANG_STRING or XSD_STRING.
+   * Reasons for this are mentioned here: w3c/sparql-12#112
+   */
   SPARQL_STRINGLY = 'SPARQL_STRINGLY',
   SPARQL_OTHER = 'SPARQL_OTHER',
   SPARQL_NON_LEXICAL = 'SPARQL_NON_LEXICAL',
 }
 
-// TODO: Consider inlining all with 'const enum' - do we need to handle this right now? Can this be removed?
 export enum TypeURL {
   XSD_ANY_URI = 'http://www.w3.org/2001/XMLSchema#anyURI',
   XSD_STRING = 'http://www.w3.org/2001/XMLSchema#string',

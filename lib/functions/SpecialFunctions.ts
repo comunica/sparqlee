@@ -13,6 +13,10 @@ import { regularFunctions, specialFunctions } from '.';
 type Term = E.TermExpression;
 type PTerm = Promise<E.TermExpression>;
 
+// TODO: since the special functions aren't put in the tree,
+//  we should make sure every feature the tree provides is handled here as well.
+//  Think about for example type promotion.
+
 // ----------------------------------------------------------------------------
 // Functional forms
 // ----------------------------------------------------------------------------
@@ -321,7 +325,12 @@ const now = {
   },
 };
 
-// https://www.w3.org/TR/sparql11-query/#func-iri
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-iri
+ * Note that the spec here says:
+ * > Passing any RDF term other than a simple literal, xsd:string or an IRI is an error.
+ * It should be noted that this is the case. A simple literal is an xsd:string.
+ */
 const IRI = {
   arity: 1,
   async applyAsync({ args, evaluate, mapping, context }: E.EvalContextAsync): PTerm {
@@ -334,6 +343,9 @@ const IRI = {
   },
 };
 
+// TODO: this should not be XSD string. The specs talk about
+//  > Passing any RDF term other than a simple literal, xsd:string or an IRI is an error.
+//  should we create a sparql type grouping this?
 function IRI_(input: Term, baseIRI: string | undefined, args: E.Expression[]): Term {
   const lit = input.termType !== 'namedNode' ?
     typeCheckLit<string>(input, TypeURL.XSD_STRING, args, C.SpecialOperator.IRI) :
@@ -343,8 +355,10 @@ function IRI_(input: Term, baseIRI: string | undefined, args: E.Expression[]): T
   return new E.NamedNode(iri);
 }
 
-// https://www.w3.org/TR/sparql11-query/#func-bnode
-// id has to be distinct over all id's in dataset
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-bnode
+ * id has to be distinct over all id's in dataset
+ */
 const BNODE = {
   arity: Number.POSITIVE_INFINITY,
   checkArity(args: E.Expression[]) {

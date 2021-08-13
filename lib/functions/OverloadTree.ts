@@ -22,7 +22,7 @@ export class OverloadTree {
   }
 
   /**
-   * Get the implementation that exactly matches @param args .
+   * Get the implementation for the types that exactly match @param args .
    */
   public getImplementationExact(args: ArgumentType[]): E.SimpleApplication | undefined {
     // eslint-disable-next-line @typescript-eslint/no-this-alias,consistent-this
@@ -87,7 +87,7 @@ export class OverloadTree {
     }
     this.subTrees[argumentType]._addOverload(_argumentTypes, func);
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
-    //  When a function takes a string, it can also accept a XSD_ANY_URI if it is cased first.
+    //  When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
     if (argumentType === TypeURL.XSD_STRING) {
       this.addPromotedOverload(TypeURL.XSD_ANY_URI, func, arg => string(arg.str()), _argumentTypes);
     }
@@ -131,6 +131,7 @@ export class OverloadTree {
     }
     if (arg.termType === 'literal') {
       const concreteType = (<E.Literal<any>> arg).type;
+      // TODO: do this right
       const possibleMatches = <[OverrideType, number][]> Object.entries(extensionTable[concreteType]);
       const matches = possibleMatches.filter(([ matchType, _ ]) => matchType in this.subTrees);
       matches.sort(([ matchTypeA, prioA ], [ matchTypeB, prioB ]) => prioA - prioB);

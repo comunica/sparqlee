@@ -308,7 +308,7 @@ To be fully spec compliant, the IRI/URI functions should take into account base 
 
 ### Adding or fixing functions
 
-Functions are defined in the [functions directory](lib/functions/), and you can add or fix them there. All definitions are defined using a builder model defined in [Helpers.ts](lib/functions/Helpers.ts).
+Functions are defined in the [functions directory](lib/functions/), and you can add or fix them there. All definitions are defined using a builder model defined in [Helpers.test.ts](lib/functions/Helpers.ts).
 
 Three kinds exists:
 
@@ -329,27 +329,29 @@ See [functions/Core.ts](./lib/functions/Core.ts), [funcions/OverloadTree.ts](.li
 [util/TypeHandling.ts](./lib/util/TypeHandling.ts).
 
 The type system is tailored for doing (supposedly) quick evaluation of overloaded functions.
-A function object consists of a tree like structure over argument types. 
-A node in this tree contains a concrete function implementation for the argument types followed in the tree.
 
-When a function object is called with some functions, it looks up a concrete implementation.
+A function definition object consists of a tree-like structure with a type (e.g. `xsd:float`) at each internal node.
+Each level of the tree represents an argument of the function
+(e.g. function with arity two also has a tree of depth two).
+The leaves contain a function implementation matching the concrete types defined by the path of the tree.
+
+When a function is called with some arguments, a depth first search,
+to find an implementation among all overloads matching the types of the arguments,
+is performed in the tree.
 If we can not find one, we consider the argument of invalid types.
 
-Since many derived types exist,
-we also associate every literal with its primitive datatype when constructing a literal.
-When handling literal types we use **[subtype substitution](https://www.w3.org/TR/xpath-31/#dt-subtype-substitution)**.
-What this means is that the types provided to a function don't need to the same but,
-can also be a restriction on the expected type.
-This 'restriced form of' relationship is implemented as follows:
-![type system](type-scheme.svg)
-So, when expecting an argument of type XSD:integer, we could provide XSD:long instead and the
-function cal would still be succeeded. It's important to note no cast would be called on the argument.
+We also handle **[subtype substitution](https://www.w3.org/TR/xpath-31/#dt-subtype-substitution)** for literal terms.
+What this means is that for every argument of the function and it's associated accepted type,
+we also accept all subtypes of that type for that argument.
+These sub/super-type relations define the following type tree:
+![type tree](docs/type-scheme.svg)
+So, when expecting an argument of type `xsd:integer` we could provide `xsd:long` instead and the
+function call would still succeed. The type of the term does not change in this operation.
 
-More complex is **[type promotion](https://www.w3.org/TR/xpath-31/#promotion)**.
-This defines some rules where a cast would be called on an argument.
-Defining a function `f` with an argument of type XSD:string and,
-calling this function with something of type XSD:anyURI will cast the argument to XSD:string. 
-This is different from subtype substitution because in this case a cast is performed.
+We also handle **[type promotion](https://www.w3.org/TR/xpath-31/#promotion)**,
+it defines some rules where a types can be promoted to another, even if there is no super-type relation.
+Examples include `xsd:float`  and `xsd:decimal` to `xsd:double`and `xsd:anyURI` to `xsd:string`.
+In this case, the datatype of the term will change to the type it is promoted to.
 
 ### Testing
 
