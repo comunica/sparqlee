@@ -5,7 +5,7 @@ import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import { typeCanBeProvidedTo } from '../util/TypeHandling';
+import { isSubTypeOf } from '../util/TypeHandling';
 import type { TermExpression, TermType } from './Expressions';
 import { ExpressionType } from './Expressions';
 
@@ -113,7 +113,7 @@ class TypeCheckedLiteral<T> extends Literal<T> {
     public language?: string,
   ) {
     super(typedValue, dataType || typeToCheck, strValue, language);
-    if (dataType && !typeCanBeProvidedTo(dataType, typeToCheck)) {
+    if (dataType && !isSubTypeOf(dataType, typeToCheck)) {
       throw this.getTypeError(typeToCheck);
     }
     this.dataType = <LiteralTypes> dataType || typeToCheck;
@@ -121,7 +121,7 @@ class TypeCheckedLiteral<T> extends Literal<T> {
 
   protected getTypeError(typeToImplement: string): Error {
     return new Error(
-      `TypeUrl '${this.dataType}' provided to NumericLiteral should implement ${typeToImplement}`,
+      `TypeUrl '${this.dataType}' provided but expected a type implementing ${typeToImplement}`,
     );
   }
 }
@@ -137,35 +137,31 @@ export class NumericLiteral extends TypeCheckedLiteral<number> {
   }
 
   private specificFormatterCreator(type: LiteralTypes): ((val: number) => string) {
-    if (typeCanBeProvidedTo(type, TypeURL.XSD_INTEGER)) {
+    if (isSubTypeOf(type, TypeURL.XSD_INTEGER)) {
       return value => value.toFixed(0);
     }
-    if (typeCanBeProvidedTo(type, TypeURL.XSD_DECIMAL)) {
+    if (isSubTypeOf(type, TypeURL.XSD_DECIMAL)) {
       return value => value.toString();
     }
-    if (typeCanBeProvidedTo(type, TypeURL.XSD_FLOAT)) {
+    if (isSubTypeOf(type, TypeURL.XSD_FLOAT)) {
       return value => value.toString();
     }
-    if (typeCanBeProvidedTo(type, TypeURL.XSD_DOUBLE)) {
-      // https://www.w3.org/TR/xmlschema-2/#double
-      return value => {
-        const jsExponential = value.toExponential();
-        const [ jsMantisse, jsExponent ] = jsExponential.split('e');
+    // Since we checked on construction on this being a TypeAlias.SPARQL_NUMERIC. This can only be an TypeURL.XSD_DOUBLE
+    // https://www.w3.org/TR/xmlschema-2/#double
+    return value => {
+      const jsExponential = value.toExponential();
+      const [ jsMantisse, jsExponent ] = jsExponential.split('e');
 
-        // Leading + must be removed for integer
-        // https://www.w3.org/TR/xmlschema-2/#integer
-        const exponent = jsExponent.replace(/\+/u, '');
+      // Leading + must be removed for integer
+      // https://www.w3.org/TR/xmlschema-2/#integer
+      const exponent = jsExponent.replace(/\+/u, '');
 
-        // SPARQL test suite prefers trailing zero's
-        const mantisse = jsMantisse.includes('.') ?
-          jsMantisse :
-          `${jsMantisse}.0`;
+      // SPARQL test suite prefers trailing zero's
+      const mantisse = jsMantisse.includes('.') ?
+        jsMantisse :
+        `${jsMantisse}.0`;
 
-        return `${mantisse}E${exponent}`;
-      };
-    }
-    return () => {
-      throw this.getTypeError(TypeAlias.SPARQL_NUMERIC);
+      return `${mantisse}E${exponent}`;
     };
   }
 
@@ -264,8 +260,8 @@ export class NonLexicalLiteral extends Literal<undefined> {
 
   public coerceEBV(): boolean {
     const isNumericOrBool =
-      typeCanBeProvidedTo(this.typeURL, TypeURL.XSD_BOOLEAN) ||
-      typeCanBeProvidedTo(this.typeURL, TypeAlias.SPARQL_NUMERIC);
+      isSubTypeOf(this.typeURL, TypeURL.XSD_BOOLEAN) ||
+      isSubTypeOf(this.typeURL, TypeAlias.SPARQL_NUMERIC);
     if (isNumericOrBool) {
       return false;
     }

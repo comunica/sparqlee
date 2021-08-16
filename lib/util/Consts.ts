@@ -1,8 +1,3 @@
-import { DataFactory } from 'rdf-data-factory';
-import type * as RDF from 'rdf-js';
-
-const DF = new DataFactory();
-
 export type LiteralTypes = TypeAlias | TypeURL;
 
 export enum TypeAlias {
@@ -68,10 +63,6 @@ export enum TypeURL {
   XSD_DURATION = 'http://www.w3.org/2001/XMLSchema#duration',
   XSD_YEAR_MONTH_DURATION = 'http://www.w3.org/2001/XMLSchema#yearMonthDuration',
   XSD_DAYTIME_DURATION = 'http://www.w3.org/2001/XMLSchema#dayTimeDuration',
-}
-
-export function make(dt: LiteralTypes): RDF.NamedNode {
-  return DF.namedNode(dt);
 }
 
 // ----------------------------------------------------------------------------

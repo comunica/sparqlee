@@ -9,7 +9,7 @@ import type { LiteralTypes, SetFunction } from './util/Consts';
 import * as C from './util/Consts';
 import { TypeAlias, TypeURL } from './util/Consts';
 import { parseXSDFloat } from './util/Parsing';
-import { typeCanBeProvidedTo } from './util/TypeHandling';
+import { isSubTypeOf } from './util/TypeHandling';
 
 const DF = new DataFactory();
 
@@ -217,7 +217,7 @@ function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number; typ
   // TODO: Check behaviour
   if (term.termType !== 'Literal') {
     throw new Error(`Term with value ${term.value} has type ${term.termType} and is not a numeric literal`);
-  } else if (!typeCanBeProvidedTo(term.datatype.value, TypeAlias.SPARQL_NUMERIC)) {
+  } else if (!isSubTypeOf(term.datatype.value, TypeAlias.SPARQL_NUMERIC)) {
     throw new Error(`Term datatype ${term.datatype.value} with value ${term.value} has type ${term.termType} and is not a numeric literal`);
   }
 

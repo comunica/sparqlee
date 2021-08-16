@@ -12,7 +12,7 @@ import { TypeURL, TypeURL as DT } from './util/Consts';
 import * as Err from './util/Errors';
 import { ExtensionFunctionError } from './util/Errors';
 import * as P from './util/Parsing';
-import { typeCanBeProvidedTo } from './util/TypeHandling';
+import { isSubTypeOf } from './util/TypeHandling';
 
 type FunctionCreatorConfig = { type: 'sync'; creator: SyncExtensionFunctionCreator } |
 { type: 'async'; creator: AsyncExtensionFunctionCreator };
@@ -91,13 +91,13 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
 
   const dataType = lit.datatype.value;
 
-  if (typeCanBeProvidedTo(dataType, TypeURL.XSD_STRING)) {
+  if (isSubTypeOf(dataType, TypeURL.XSD_STRING)) {
     return new E.StringLiteral(lit.value, dataType);
   }
-  if (typeCanBeProvidedTo(dataType, DT.RDF_LANG_STRING)) {
+  if (isSubTypeOf(dataType, DT.RDF_LANG_STRING)) {
     return new E.LangStringLiteral(lit.value, lit.language);
   }
-  if (typeCanBeProvidedTo(dataType, DT.XSD_DATE_TIME)) {
+  if (isSubTypeOf(dataType, DT.XSD_DATE_TIME)) {
     // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
     // This is because sparql functions don't care about the timezone.
     // It's also doesn't break the specs because we keep the string representation stored,
@@ -110,20 +110,20 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
     }
     return new E.DateTimeLiteral(new Date(lit.value), lit.value, dataType);
   }
-  if (typeCanBeProvidedTo(dataType, DT.XSD_BOOLEAN)) {
+  if (isSubTypeOf(dataType, DT.XSD_BOOLEAN)) {
     if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
       return new E.NonLexicalLiteral(undefined, dataType, lit.value);
     }
     return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
   }
-  if (typeCanBeProvidedTo(dataType, DT.XSD_DECIMAL)) {
+  if (isSubTypeOf(dataType, DT.XSD_DECIMAL)) {
     const intVal: number = P.parseXSDDecimal(lit.value);
     if (intVal === undefined) {
       return new E.NonLexicalLiteral(undefined, dataType, lit.value);
     }
     return new E.NumericLiteral(intVal, dataType, lit.value);
   }
-  if (typeCanBeProvidedTo(dataType, DT.XSD_FLOAT) || typeCanBeProvidedTo(dataType, DT.XSD_DOUBLE)) {
+  if (isSubTypeOf(dataType, DT.XSD_FLOAT) || isSubTypeOf(dataType, DT.XSD_DOUBLE)) {
     const doubleVal: number = P.parseXSDFloat(lit.value);
     if (doubleVal === undefined) {
       return new E.NonLexicalLiteral(undefined, dataType, lit.value);

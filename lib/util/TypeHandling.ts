@@ -8,17 +8,6 @@ export type OverrideType = LiteralTypes | 'term';
  * A DAG will be created based on this. Make sure it doesn't have any cycles!
  */
 export const extensionTableInput: Record<LiteralTypes, OverrideType> = {
-  [TypeURL.XSD_DATE_TIME]: 'term',
-  [TypeURL.XSD_BOOLEAN]: 'term',
-  [TypeURL.XSD_DATE]: 'term',
-  [TypeURL.XSD_DURATION]: 'term',
-  [TypeAlias.SPARQL_NUMERIC]: 'term',
-  [TypeAlias.SPARQL_STRINGLY]: 'term',
-  [TypeAlias.SPARQL_NON_LEXICAL]: 'term',
-
-  // Read https://www.w3.org/TR/xpath-31/#promotion \ne https://www.w3.org/TR/xpath-31/#dt-subtype-substitution
-  [TypeURL.XSD_ANY_URI]: 'term',
-
   // Datetime types
   [TypeURL.XSD_DATE_TIME_STAMP]: TypeURL.XSD_DATE_TIME,
 
@@ -65,6 +54,15 @@ export const extensionTableInput: Record<LiteralTypes, OverrideType> = {
   [TypeURL.XSD_UNSIGNED_INT]: TypeURL.XSD_UNSIGNED_LONG,
   [TypeURL.XSD_UNSIGNED_SHORT]: TypeURL.XSD_UNSIGNED_INT,
   [TypeURL.XSD_UNSIGNED_BYTE]: TypeURL.XSD_UNSIGNED_SHORT,
+
+  [TypeURL.XSD_DATE_TIME]: 'term',
+  [TypeURL.XSD_BOOLEAN]: 'term',
+  [TypeURL.XSD_DATE]: 'term',
+  [TypeURL.XSD_DURATION]: 'term',
+  [TypeAlias.SPARQL_NUMERIC]: 'term',
+  [TypeAlias.SPARQL_STRINGLY]: 'term',
+  [TypeAlias.SPARQL_NON_LEXICAL]: 'term',
+  [TypeURL.XSD_ANY_URI]: 'term',
 };
 type SubExtensionTable = Record<LiteralTypes, number>;
 type SubExtensionTableBuilder = SubExtensionTable & { depth: number };
@@ -119,10 +117,11 @@ export function isOverrideType(type: string): OverrideType | undefined {
 
 /**
  * This function needs do be O(1) at all times! The execution time of this function is vital!
+ * We define typeA isSubtypeOf typeA as true.
  * @param baseType type you want to provide.
  * @param argumentType type you want to provide @param baseType to.
  */
-export function typeCanBeProvidedTo(baseType: string, argumentType: LiteralTypes): boolean {
+export function isSubTypeOf(baseType: string, argumentType: LiteralTypes): boolean {
   const type: OverrideType | undefined = isOverrideType(baseType);
   if (!type) {
     return false;
@@ -162,6 +161,7 @@ export function typeWidening(...args: LiteralTypes[]): OverrideType {
 }
 
 /**
+ * TODO: @wsschella, could you provde some documentation on these rules?
  * Some weird casting rules. I took them over from the previous implementation, that implementation said:
  * > Arithmetic operators take 2 numeric arguments, and return a single numerical
  * > value. The type of the return value is heavily dependant on the types of the
@@ -173,12 +173,13 @@ export function typeWidening(...args: LiteralTypes[]): OverrideType {
 export function arithmeticWidening(...args: LiteralTypes[]): LiteralTypes {
   const widened = isLiteralType(typeWidening(...args));
   if (!widened) {
-    throw new Error('should never happen');
+    throw new Error('Non arithmetic types where provided');
   }
   if (widened !== TypeAlias.SPARQL_NUMERIC) {
     return widened;
   }
   let res: LiteralTypes = TypeURL.XSD_DECIMAL;
+  // This follows some rule of importantness: most important to least impotent: double, float, decimal, integer
   for (const concreteType of args) {
     if (concreteType === TypeAlias.SPARQL_NUMERIC) {
       res = concreteType;

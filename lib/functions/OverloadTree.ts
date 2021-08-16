@@ -90,19 +90,21 @@ export class OverloadTree {
     }
     this.subTrees[argumentType]._addOverload(_argumentTypes, func);
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
-    //  When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
+    // e.g. When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
+    // TODO: When promoting decimal type a cast needs to be preformed.
     if (argumentType === TypeURL.XSD_STRING) {
       this.addPromotedOverload(TypeURL.XSD_ANY_URI, func, arg => string(arg.str()), _argumentTypes);
     }
+    // TODO: in case of decimal a round needs to happen.
     if (argumentType === TypeURL.XSD_DOUBLE) {
       this.addPromotedOverload(TypeURL.XSD_FLOAT, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_FLOAT), _argumentTypes);
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DECIMAL), _argumentTypes);
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
     }
     if (argumentType === TypeURL.XSD_FLOAT) {
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DECIMAL), _argumentTypes);
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_FLOAT), _argumentTypes);
     }
   }
 
