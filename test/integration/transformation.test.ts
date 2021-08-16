@@ -1,6 +1,7 @@
 import { DataFactory } from 'rdf-data-factory';
 import type * as RDF from 'rdf-js';
 
+import { isNonLexicalLiteral } from '../../lib/expressions';
 import { transformLiteral } from '../../lib/Transformation';
 import { TypeURL as DT } from '../../lib/util/Consts';
 
@@ -102,5 +103,77 @@ describe('transformations', () => {
       expect(res.language).toEqual('othertype');
     });
   });
+
+  describe('exports transformLiteral function', () => {
+    describe('handles simple literals', () => {
+      it('transforms simple literal to STRING', () => {
+        const someStr = 'apple';
+        const lit = simpleLiteralCreator(someStr);
+        expect(lit.datatype).toBeFalsy();
+        const res = transformLiteral(lit);
+        expect(res.dataType).toEqual(DT.XSD_STRING);
+        expect(res.strValue).toEqual(someStr);
+        expect(res.typedValue).toEqual(someStr);
+      });
+
+      it('transforms simple literal with language to LANGSTRING', () => {
+        const someStr = 'apple';
+        const lit = simpleLiteralCreator(someStr, undefined, 'eng');
+        expect(lit.datatype).toBeFalsy();
+        expect(lit.language).toBeTruthy();
+        const res = transformLiteral(lit);
+        expect(res.dataType).toEqual(DT.RDF_LANG_STRING);
+        expect(res.strValue).toEqual(someStr);
+        expect(res.typedValue).toEqual(someStr);
+      });
+
+      it('transforms simple literal with empty datatype value', () => {
+        const someStr = 'apple';
+        const lit = simpleLiteralCreator(someStr, null);
+        expect(lit.datatype).toBeTruthy();
+        expect(lit.language).toBeFalsy();
+        expect(lit.datatype.value).toBeFalsy();
+        const res = transformLiteral(lit);
+        expect(res.dataType).toEqual(DT.XSD_STRING);
+        expect(res.strValue).toEqual(someStr);
+        expect(res.typedValue).toEqual(someStr);
+      });
+    });
+
+    describe('returns non-lexical when value and datatype do not match', () => {
+      it('datatype: float', () => {
+        returnNonLexicalTest('apple', DT.XSD_FLOAT);
+      });
+    });
+
+    it('datatype: decimal', () => {
+      returnNonLexicalTest('apple', DT.XSD_DECIMAL);
+    });
+
+    it('datatype: boolean', () => {
+      returnNonLexicalTest('apple', DT.XSD_BOOLEAN);
+    });
+
+    it('datatype: dateTime', () => {
+      returnNonLexicalTest('apple', DT.XSD_DATE_TIME);
+    });
+  });
 });
 
+function simpleLiteralCreator(value: string, dataType?: string, language?: string): RDF.Literal {
+  return {
+    termType: 'Literal',
+    value,
+    language,
+    datatype: dataType === undefined ? undefined : DF.namedNode(dataType),
+    equals: other => false,
+  };
+}
+
+function returnNonLexicalTest(value: string, dataType: string) {
+  const lit = DF.literal(value, DF.namedNode(dataType));
+  const res = isNonLexicalLiteral(transformLiteral(lit));
+  expect(res).toBeTruthy();
+  expect(res.typeURL).toEqual(dataType);
+  expect(res.strValue).toEqual(value);
+}

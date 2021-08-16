@@ -279,3 +279,10 @@ export class NonLexicalLiteral extends Literal<undefined> {
     return this.strValue;
   }
 }
+
+export function isNonLexicalLiteral(lit: Literal<any>): NonLexicalLiteral | undefined {
+  if (lit.typedValue === undefined && lit.dataType === TypeAlias.SPARQL_NON_LEXICAL) {
+    return <NonLexicalLiteral> lit;
+  }
+  return undefined;
+}
