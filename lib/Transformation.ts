@@ -76,12 +76,7 @@ function transformWildcard(term: Alg.WildcardExpression): E.Expression {
   return new E.NamedNode(term.wildcard.value);
 }
 
-// TODO: don't hard code this!
 /**
- * Some of the types here are a subtype of another type,
- * and are assigned the class of their supertype because the logic (regarding the class) is identical.
- * These relations should match the relations provided in @see{extensionTableInput}.
- * Important note: These types should follow https://www.w3.org/TR/rdf11-concepts/#h3_xsd-datatypes
  * @param lit the rdf literal we want to transform to an internal Literal expression.
  */
 export function transformLiteral(lit: RDF.Literal): E.Literal<any> {

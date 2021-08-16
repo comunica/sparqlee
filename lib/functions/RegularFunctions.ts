@@ -56,7 +56,6 @@ const multiplication = {
     .collect(),
 };
 
-// TODO: test if this gives a decimal?
 const division = {
   arity: 2,
   overloads: declare()
@@ -203,7 +202,6 @@ const isLiteral = {
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-isNumeric
- * TODO: should have a test when implementing extensionOverloadTypes
  */
 const isNumeric = {
   arity: 1,

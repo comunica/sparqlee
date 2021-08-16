@@ -11,6 +11,7 @@ export type SearchStack = OverloadTree[];
 
 /**
  * Maps argument types on their specific implementation in a tree like structure.
+ * When adding any functionality to this class, make sure you add it to SpecialFunctions as well.
  */
 export class OverloadTree {
   private implementation?: E.SimpleApplication | undefined;

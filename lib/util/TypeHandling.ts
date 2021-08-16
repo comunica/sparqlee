@@ -4,8 +4,6 @@ import { TypeAlias, TypeURL } from './Consts';
 export type OverrideType = LiteralTypes | 'term';
 
 /**
- * Some of the types here have some super relation.
- * This should match the relations provided in @see{transformLiteral}.
  * Types that are not mentioned just map to 'term'.
  * A DAG will be created based on this. Make sure it doesn't have any cycles!
  */
@@ -72,7 +70,6 @@ type SubExtensionTable = Record<LiteralTypes, number>;
 type SubExtensionTableBuilder = SubExtensionTable & { depth: number };
 type ExtensionTable = Record<LiteralTypes, SubExtensionTable>;
 type ExtensionTableBuilder = Record<LiteralTypes, SubExtensionTableBuilder>;
-// TODO: check: een SubExtensionTable mag nooit toEntries gedaan worden!
 export let extensionTable: ExtensionTable;
 
 // No circular structure allowed! & No other keys allowed!
@@ -171,7 +168,6 @@ export function typeWidening(...args: LiteralTypes[]): OverrideType {
  * > input arguments. In JS everything is a double, but in SPARQL it is not.
  * > {@link https://www.w3.org/TR/sparql11-query/#OperatorMapping}
  * > {@link https://www.w3.org/TR/xpath-functions/#op.numeric}
- * TODO: is nu opgelost door promotion? Nee? heeft te maken met return type?
  * @param args
  */
 export function arithmeticWidening(...args: LiteralTypes[]): LiteralTypes {

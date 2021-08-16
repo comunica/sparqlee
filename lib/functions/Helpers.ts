@@ -3,12 +3,11 @@
  * definitions for the SPARQL functions.
  */
 import * as E from '../expressions';
-import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 
-import { arithmeticWidening, extensionTable, isLiteralType } from '../util/TypeHandling';
+import { arithmeticWidening } from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
 import { OverloadTree } from './OverloadTree';
 
@@ -246,28 +245,4 @@ export function langString(str: string, lang: string): E.LangStringLiteral {
 
 export function dateTime(date: Date, str: string): E.DateTimeLiteral {
   return new E.DateTimeLiteral(date, str);
-}
-
-// ----------------------------------------------------------------------------
-// Util
-// ----------------------------------------------------------------------------
-
-export function typeCheckLit<T>(
-  term: E.TermExpression,
-  allowed: LiteralTypes,
-  args: E.Expression[],
-  op: C.Operator,
-): E.Literal<T> {
-  if (term.termType !== 'literal') {
-    throw new Err.InvalidArgumentTypes(args, op);
-  }
-
-  const lit = <E.Literal<any>> term;
-
-  const type = isLiteralType(lit.dataType);
-  if (!(type && extensionTable[type][allowed])) {
-    throw new Err.InvalidArgumentTypes(args, op);
-  }
-
-  return lit;
 }

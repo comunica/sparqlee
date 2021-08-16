@@ -1,8 +1,6 @@
-import { BlankNode } from '../../../lib/expressions';
 import type { Builder } from '../../../lib/functions/Helpers';
-import { bool, declare, typeCheckLit } from '../../../lib/functions/Helpers';
-import { RegularOperator, TypeURL } from '../../../lib/util/Consts';
-import * as Err from '../../../lib/util/Errors';
+import { bool, declare } from '../../../lib/functions/Helpers';
+import { TypeURL } from '../../../lib/util/Consts';
 import fn = jest.fn;
 
 describe('The function helper file', () => {
@@ -35,16 +33,6 @@ describe('The function helper file', () => {
       const args = [ bool(true) ];
       builder.onBoolean1(func).collect().search(args)(args);
       expect(func).toBeCalledTimes(1);
-    });
-  });
-
-  describe('has a typeCheckLit function', () => {
-    it('throws an error if it does not get a literal', () => {
-      const args = [ bool(true) ];
-      const op = RegularOperator.STR;
-      expect(() =>
-        typeCheckLit(new BlankNode('blank?'), TypeURL.XSD_STRING, args, op))
-        .toThrow(new Err.InvalidArgumentTypes(args, op));
     });
   });
 });
