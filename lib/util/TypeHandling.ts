@@ -114,6 +114,11 @@ export function isOverrideType(type: string): OverrideType | undefined {
   return undefined;
 }
 
+/**
+ * This function needs do be O(1) at all times! The execution time of this function is vital!
+ * @param baseType type you want to provide.
+ * @param argumentType type you want to provide @param baseType to.
+ */
 export function typeCanBeProvidedTo(baseType: string, argumentType: LiteralTypes): boolean {
   const type: OverrideType | undefined = isOverrideType(baseType);
   if (!type) {

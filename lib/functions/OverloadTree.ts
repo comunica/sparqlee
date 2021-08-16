@@ -1,4 +1,5 @@
 import type * as E from '../expressions';
+import type { LiteralTypes } from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import type { OverrideType } from '../util/TypeHandling';
 import { extensionTable } from '../util/TypeHandling';
@@ -130,12 +131,17 @@ export class OverloadTree {
       res.push(this.subTrees[arg.termType]);
     }
     if (arg.termType === 'literal') {
+      // Defending implementation. Mainly the scary sort.
+      // This function has cost O(n) + O(m * log(m)) with n = amount of overloads and m = amount of matched overloads
+      // We map over each of the overloads, filter only the once that can be used (this is normally 1 or 2).
+      // The sort function on an array with 1 or 2 arguments will be negligible.
       const concreteType = (<E.Literal<any>> arg).type;
-      // TODO: do this right
-      const possibleMatches = <[OverrideType, number][]> Object.entries(extensionTable[concreteType]);
-      const matches = possibleMatches.filter(([ matchType, _ ]) => matchType in this.subTrees);
-      matches.sort(([ matchTypeA, prioA ], [ matchTypeB, prioB ]) => prioA - prioB);
-      res.push(...matches.map(([ sortedType, _ ]) => this.subTrees[sortedType]));
+      const subExtention = extensionTable[concreteType];
+      const overLoads = <[OverrideType, OverloadTree][]> Object.entries(this.subTrees);
+      const matches: [number, OverloadTree][] = overLoads.filter(([ matchType, _ ]) => matchType in subExtention)
+        .map(([ matchType, tree ]) => [ subExtention[<LiteralTypes> matchType], tree ]);
+      matches.sort(([ prioA, matchTypeA ], [ prioB, matchTypeB ]) => prioA - prioB);
+      res.push(...matches.map(([ _, sortedType ]) => sortedType));
     }
     return res;
   }

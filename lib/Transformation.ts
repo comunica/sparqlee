@@ -8,10 +8,11 @@ import type { AsyncExtensionApplication, SimpleApplication } from './expressions
 import * as E from './expressions';
 import { namedFunctions, regularFunctions, specialFunctions } from './functions';
 import * as C from './util/Consts';
-import { TypeURL as DT } from './util/Consts';
+import { TypeURL, TypeURL as DT } from './util/Consts';
 import * as Err from './util/Errors';
 import { ExtensionFunctionError } from './util/Errors';
 import * as P from './util/Parsing';
+import { typeCanBeProvidedTo } from './util/TypeHandling';
 
 type FunctionCreatorConfig = { type: 'sync'; creator: SyncExtensionFunctionCreator } |
 { type: 'async'; creator: AsyncExtensionFunctionCreator };
@@ -87,88 +88,54 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
   // Both here and within the switch we transform to LangStringLiteral or StringLiteral.
   // We do this when we detect a simple literal being used.
   // Original issue regarding this behaviour: https://github.com/w3c/sparql-12/issues/112
-  if (!lit.datatype) {
+  if (!lit.datatype || [ null, undefined, '' ].includes(lit.datatype.value)) {
     return lit.language ?
       new E.LangStringLiteral(lit.value, lit.language) :
       new E.StringLiteral(lit.value);
   }
 
-  switch (lit.datatype.value) {
-    case null:
-    case undefined:
-    case '': {
-      return lit.language ?
-        new E.LangStringLiteral(lit.value, lit.language) :
-        new E.StringLiteral(lit.value);
-    }
+  const dataType = lit.datatype.value;
 
-    case DT.XSD_NORMALIZED_STRING:
-    case DT.XSD_TOKEN:
-    case DT.XSD_LANGUAGE:
-    case DT.XSD_NM_TOKEN:
-    case DT.XSD_NAME:
-    case DT.XSD_NC_NAME:
-    case DT.XSD_ENTITY:
-    case DT.XSD_ID:
-    case DT.XSD_ID_REF:
-    case DT.XSD_STRING:
-      return new E.StringLiteral(lit.value, lit.datatype);
-
-    case DT.RDF_LANG_STRING:
-      return new E.LangStringLiteral(lit.value, lit.language);
-
-    case DT.XSD_DATE_TIME_STAMP:
-    case DT.XSD_DATE_TIME: {
-      // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
-      // This is because sparql functions don't care about the timezone.
-      // It's also doesn't break the specs because we keep the string representation stored,
-      // that way we can always give it back. There are also no sparql functions that alter a date.
-      // (So the representation initial representation always stays valid)
-      // https://github.com/comunica/sparqlee/pull/103#discussion_r688462368
-      const dateVal: Date = new Date(lit.value);
-      if (Number.isNaN(dateVal.getTime())) {
-        return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
-      }
-      return new E.DateTimeLiteral(new Date(lit.value), lit.value, lit.datatype);
-    }
-
-    case DT.XSD_BOOLEAN: {
-      if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
-        return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
-      }
-      return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
-    }
-
-    case DT.XSD_DECIMAL:
-    case DT.XSD_INTEGER:
-    case DT.XSD_NON_POSITIVE_INTEGER:
-    case DT.XSD_NEGATIVE_INTEGER:
-    case DT.XSD_LONG:
-    case DT.XSD_INT:
-    case DT.XSD_SHORT:
-    case DT.XSD_BYTE:
-    case DT.XSD_NON_NEGATIVE_INTEGER:
-    case DT.XSD_POSITIVE_INTEGER:
-    case DT.XSD_UNSIGNED_LONG:
-    case DT.XSD_UNSIGNED_INT:
-    case DT.XSD_UNSIGNED_SHORT:
-    case DT.XSD_UNSIGNED_BYTE: {
-      const intVal: number = P.parseXSDDecimal(lit.value);
-      if (intVal === undefined) {
-        return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
-      }
-      return new E.NumericLiteral(intVal, lit.datatype, lit.value);
-    }
-    case DT.XSD_FLOAT:
-    case DT.XSD_DOUBLE: {
-      const doubleVal: number = P.parseXSDFloat(lit.value);
-      if (doubleVal === undefined) {
-        return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
-      }
-      return new E.NumericLiteral(doubleVal, lit.datatype, lit.value);
-    }
-    default: return new E.Literal<string>(lit.value, lit.datatype, lit.value);
+  if (typeCanBeProvidedTo(dataType, TypeURL.XSD_STRING)) {
+    return new E.StringLiteral(lit.value, lit.datatype);
   }
+  if (typeCanBeProvidedTo(dataType, DT.RDF_LANG_STRING)) {
+    return new E.LangStringLiteral(lit.value, lit.language);
+  }
+  if (typeCanBeProvidedTo(dataType, DT.XSD_DATE_TIME)) {
+    // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
+    // This is because sparql functions don't care about the timezone.
+    // It's also doesn't break the specs because we keep the string representation stored,
+    // that way we can always give it back. There are also no sparql functions that alter a date.
+    // (So the representation initial representation always stays valid)
+    // https://github.com/comunica/sparqlee/pull/103#discussion_r688462368
+    const dateVal: Date = new Date(lit.value);
+    if (Number.isNaN(dateVal.getTime())) {
+      return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
+    }
+    return new E.DateTimeLiteral(new Date(lit.value), lit.value, lit.datatype);
+  }
+  if (typeCanBeProvidedTo(dataType, DT.XSD_BOOLEAN)) {
+    if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
+      return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
+    }
+    return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
+  }
+  if (typeCanBeProvidedTo(dataType, DT.XSD_DECIMAL)) {
+    const intVal: number = P.parseXSDDecimal(lit.value);
+    if (intVal === undefined) {
+      return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
+    }
+    return new E.NumericLiteral(intVal, lit.datatype, lit.value);
+  }
+  if (typeCanBeProvidedTo(dataType, DT.XSD_FLOAT) || typeCanBeProvidedTo(dataType, DT.XSD_DOUBLE)) {
+    const doubleVal: number = P.parseXSDFloat(lit.value);
+    if (doubleVal === undefined) {
+      return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
+    }
+    return new E.NumericLiteral(doubleVal, lit.datatype, lit.value);
+  }
+  return new E.Literal<string>(lit.value, lit.datatype, lit.value);
 }
 
 function transformOperator(expr: Alg.OperatorExpression, creatorConfig: FunctionCreatorConfig):
