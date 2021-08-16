@@ -66,26 +66,34 @@ export class BlankNode extends Term {
 }
 
 // Literals-- -----------------------------------------------------------------
+export function isLiteralTermExpression(expr: TermExpression): Literal<any> | undefined {
+  if (expr.termType === 'literal') {
+    return <Literal<any>> expr;
+  }
+  return undefined;
+}
 export class Literal<T> extends Term {
   public termType: 'literal' = 'literal';
-  // TODO: Ask for PR: do we still need this type? I keep it just for NonLexicalLiteral right now.
-  //  Do we need the TypeAlias.SPARQL_NON_LEXICAL? We might be able to just use typeURL.value?
-  public type: LiteralTypes;
 
+  /**
+   * @param typedValue internal representation of this literal's value
+   * @param dataType a string representing the datatype. Can be of type @see LiteralTypes or any URI
+   * @param strValue the string value of this literal. In other words, the string representing the RDF.literal value.
+   * @param language the language, mainly for language enabled strings like RDF_LANG_STRING
+   */
   public constructor(
     public typedValue: T,
-    public typeURL: RDF.NamedNode,
+    public dataType: string,
     public strValue?: string,
     public language?: string,
   ) {
     super();
-    this.type = C.type(typeURL.value);
   }
 
   public toRDF(): RDF.Term {
     return DF.literal(
       this.strValue || this.str(),
-      this.language || this.typeURL,
+      this.language || DF.namedNode(this.dataType),
     );
   }
 
@@ -95,21 +103,37 @@ export class Literal<T> extends Term {
   }
 }
 
-export class NumericLiteral extends Literal<number> {
+class TypeCheckedLiteral<T> extends Literal<T> {
+  public dataType: LiteralTypes;
   public constructor(
-    public typedValue: number,
-    public typeURL: RDF.NamedNode,
+    typeToCheck: LiteralTypes,
+    public typedValue: T,
+    dataType?: string,
     public strValue?: string,
     public language?: string,
   ) {
-    super(typedValue, typeURL, strValue, language);
-    if (!typeCanBeProvidedTo(<LiteralTypes> typeURL.value, TypeAlias.SPARQL_NUMERIC)) {
-      throw this.getTypeError();
+    super(typedValue, dataType || typeToCheck, strValue, language);
+    if (dataType && !typeCanBeProvidedTo(dataType, typeToCheck)) {
+      throw this.getTypeError(typeToCheck);
     }
+    this.dataType = <LiteralTypes> dataType || typeToCheck;
   }
 
-  private getTypeError(): Error {
-    return new Error(`TypeUrl '${this.type}' provided to NumericLiteral should implement ${TypeAlias.SPARQL_NUMERIC}`);
+  protected getTypeError(typeToImplement: string): Error {
+    return new Error(
+      `TypeUrl '${this.dataType}' provided to NumericLiteral should implement ${typeToImplement}`,
+    );
+  }
+}
+
+export class NumericLiteral extends TypeCheckedLiteral<number> {
+  public constructor(
+    public typedValue: number,
+    dataType: string,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(TypeAlias.SPARQL_NUMERIC, typedValue, dataType, strValue, language);
   }
 
   private specificFormatterCreator(type: LiteralTypes): ((val: number) => string) {
@@ -141,11 +165,9 @@ export class NumericLiteral extends Literal<number> {
       };
     }
     return () => {
-      throw this.getTypeError();
+      throw this.getTypeError(TypeAlias.SPARQL_NUMERIC);
     };
   }
-
-  public type: C.TypeURL;
 
   public coerceEBV(): boolean {
     return !!this.typedValue;
@@ -161,13 +183,13 @@ export class NumericLiteral extends Literal<number> {
 
   public str(): string {
     return this.strValue ||
-      this.specificFormatterCreator(this.type)(this.typedValue);
+      this.specificFormatterCreator(this.dataType)(this.typedValue);
   }
 }
 
-export class BooleanLiteral extends Literal<boolean> {
-  public constructor(public typedValue: boolean, public strValue?: string) {
-    super(typedValue, C.make(C.TypeURL.XSD_BOOLEAN), strValue);
+export class BooleanLiteral extends TypeCheckedLiteral<boolean> {
+  public constructor(public typedValue: boolean, public strValue?: string, dataType?: string) {
+    super(C.TypeURL.XSD_BOOLEAN, typedValue, dataType, strValue);
   }
 
   public coerceEBV(): boolean {
@@ -175,17 +197,17 @@ export class BooleanLiteral extends Literal<boolean> {
   }
 }
 
-export class DateTimeLiteral extends Literal<Date> {
+export class DateTimeLiteral extends TypeCheckedLiteral<Date> {
   // StrValue is mandatory here because toISOString will always add
   // milliseconds, even if they were not present.
-  public constructor(public typedValue: Date, public strValue: string, dataType?: RDF.NamedNode) {
-    super(typedValue, dataType || C.make(C.TypeURL.XSD_DATE_TIME), strValue);
+  public constructor(public typedValue: Date, public strValue: string, dataType?: string) {
+    super(C.TypeURL.XSD_DATE_TIME, typedValue, dataType, strValue);
   }
 }
 
-export class LangStringLiteral extends Literal<string> {
-  public constructor(public typedValue: string, public language: string) {
-    super(typedValue, C.make(C.TypeURL.RDF_LANG_STRING), typedValue, language);
+export class LangStringLiteral extends TypeCheckedLiteral<string> {
+  public constructor(public typedValue: string, public language: string, dataType?: string) {
+    super(C.TypeURL.RDF_LANG_STRING, typedValue, dataType, typedValue, language);
   }
 
   public coerceEBV(): boolean {
@@ -197,13 +219,13 @@ export class LangStringLiteral extends Literal<string> {
 // https://www.w3.org/TR/sparql11-query/#defn_SimpleLiteral
 // https://www.w3.org/TR/sparql11-query/#func-strings
 // This does not include language tagged literals
-export class StringLiteral extends Literal<string> {
+export class StringLiteral extends TypeCheckedLiteral<string> {
   /**
    * @param typedValue
    * @param dataType Should be type that implements XSD_STRING
    */
-  public constructor(public typedValue: string, dataType?: RDF.NamedNode) {
-    super(typedValue, dataType || C.make(C.TypeURL.XSD_STRING), typedValue);
+  public constructor(public typedValue: string, dataType?: string) {
+    super(C.TypeURL.XSD_STRING, typedValue, dataType, typedValue);
   }
 
   public coerceEBV(): boolean {
@@ -229,26 +251,35 @@ export class StringLiteral extends Literal<string> {
  *  - ... some other more precise thing i can't find...
  */
 export class NonLexicalLiteral extends Literal<undefined> {
-  private readonly shouldBeCategory: LiteralTypes;
   public constructor(
     typedValue: undefined,
-    typeURL: RDF.NamedNode,
+    public typeURL: string,
     strValue?: string,
     language?: string,
   ) {
     super(typedValue, typeURL, strValue, language);
     this.typedValue = undefined;
-    this.type = TypeAlias.SPARQL_NON_LEXICAL;
-    this.shouldBeCategory = C.type(typeURL.value);
+    this.dataType = TypeAlias.SPARQL_NON_LEXICAL;
   }
 
   public coerceEBV(): boolean {
     const isNumericOrBool =
-      typeCanBeProvidedTo(this.shouldBeCategory, TypeURL.XSD_BOOLEAN) ||
-      typeCanBeProvidedTo(this.shouldBeCategory, TypeAlias.SPARQL_NUMERIC);
+      typeCanBeProvidedTo(this.typeURL, TypeURL.XSD_BOOLEAN) ||
+      typeCanBeProvidedTo(this.typeURL, TypeAlias.SPARQL_NUMERIC);
     if (isNumericOrBool) {
       return false;
     }
     throw new Err.EBVCoercionError(this);
+  }
+
+  public toRDF(): RDF.Term {
+    return DF.literal(
+      this.str(),
+      this.language || DF.namedNode(this.typeURL),
+    );
+  }
+
+  public str(): string {
+    return this.strValue;
   }
 }

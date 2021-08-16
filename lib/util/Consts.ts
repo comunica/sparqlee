@@ -15,7 +15,6 @@ export enum TypeAlias {
    * Reasons for this are mentioned here: w3c/sparql-12#112
    */
   SPARQL_STRINGLY = 'SPARQL_STRINGLY',
-  SPARQL_OTHER = 'SPARQL_OTHER',
   SPARQL_NON_LEXICAL = 'SPARQL_NON_LEXICAL',
 }
 
@@ -73,16 +72,6 @@ export enum TypeURL {
 
 export function make(dt: LiteralTypes): RDF.NamedNode {
   return DF.namedNode(dt);
-}
-
-export function type(typeString: string): LiteralTypes {
-  if (Object.values(TypeURL).includes(<TypeURL> typeString)) {
-    return <TypeURL> typeString;
-  }
-  if ([ null, undefined, '' ].includes(typeString)) {
-    return TypeURL.XSD_STRING;
-  }
-  return TypeAlias.SPARQL_OTHER;
 }
 
 // ----------------------------------------------------------------------------

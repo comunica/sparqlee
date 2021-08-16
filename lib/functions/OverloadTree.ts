@@ -1,8 +1,9 @@
 import type * as E from '../expressions';
+import { isLiteralTermExpression } from '../expressions';
 import type { LiteralTypes } from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import type { OverrideType } from '../util/TypeHandling';
-import { extensionTable } from '../util/TypeHandling';
+import { extensionTable, isLiteralType } from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
 import { number, string } from './Helpers';
 
@@ -122,6 +123,7 @@ export class OverloadTree {
    */
   private getSubTreeWithArg(arg: E.TermExpression): SearchStack {
     const res: SearchStack = [];
+    const literalExpression = isLiteralTermExpression(arg);
     // These types refer to Type exported by lib/util/Consts.ts
     if (this.subTrees.term) {
       res.push(this.subTrees.term);
@@ -130,18 +132,20 @@ export class OverloadTree {
     if (this.subTrees[arg.termType]) {
       res.push(this.subTrees[arg.termType]);
     }
-    if (arg.termType === 'literal') {
+    if (literalExpression) {
       // Defending implementation. Mainly the scary sort.
       // This function has cost O(n) + O(m * log(m)) with n = amount of overloads and m = amount of matched overloads
       // We map over each of the overloads, filter only the once that can be used (this is normally 1 or 2).
       // The sort function on an array with 1 or 2 arguments will be negligible.
-      const concreteType = (<E.Literal<any>> arg).type;
-      const subExtention = extensionTable[concreteType];
-      const overLoads = <[OverrideType, OverloadTree][]> Object.entries(this.subTrees);
-      const matches: [number, OverloadTree][] = overLoads.filter(([ matchType, _ ]) => matchType in subExtention)
-        .map(([ matchType, tree ]) => [ subExtention[<LiteralTypes> matchType], tree ]);
-      matches.sort(([ prioA, matchTypeA ], [ prioB, matchTypeB ]) => prioA - prioB);
-      res.push(...matches.map(([ _, sortedType ]) => sortedType));
+      const concreteType = isLiteralType(literalExpression.dataType);
+      if (concreteType) {
+        const subExtensionTable = extensionTable[concreteType];
+        const overLoads = <[OverrideType, OverloadTree][]> Object.entries(this.subTrees);
+        const matches: [number, OverloadTree][] = overLoads.filter(([ matchType, _ ]) => matchType in subExtensionTable)
+          .map(([ matchType, tree ]) => [ subExtensionTable[<LiteralTypes> matchType], tree ]);
+        matches.sort(([ prioA, matchTypeA ], [ prioB, matchTypeB ]) => prioA - prioB);
+        res.push(...matches.map(([ _, sortedType ]) => sortedType));
+      }
     }
     return res;
   }

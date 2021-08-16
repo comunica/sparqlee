@@ -97,7 +97,7 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
   const dataType = lit.datatype.value;
 
   if (typeCanBeProvidedTo(dataType, TypeURL.XSD_STRING)) {
-    return new E.StringLiteral(lit.value, lit.datatype);
+    return new E.StringLiteral(lit.value, dataType);
   }
   if (typeCanBeProvidedTo(dataType, DT.RDF_LANG_STRING)) {
     return new E.LangStringLiteral(lit.value, lit.language);
@@ -111,31 +111,31 @@ export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
     // https://github.com/comunica/sparqlee/pull/103#discussion_r688462368
     const dateVal: Date = new Date(lit.value);
     if (Number.isNaN(dateVal.getTime())) {
-      return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
+      return new E.NonLexicalLiteral(undefined, dataType, lit.value);
     }
-    return new E.DateTimeLiteral(new Date(lit.value), lit.value, lit.datatype);
+    return new E.DateTimeLiteral(new Date(lit.value), lit.value, dataType);
   }
   if (typeCanBeProvidedTo(dataType, DT.XSD_BOOLEAN)) {
     if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
-      return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
+      return new E.NonLexicalLiteral(undefined, dataType, lit.value);
     }
     return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
   }
   if (typeCanBeProvidedTo(dataType, DT.XSD_DECIMAL)) {
     const intVal: number = P.parseXSDDecimal(lit.value);
     if (intVal === undefined) {
-      return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
+      return new E.NonLexicalLiteral(undefined, dataType, lit.value);
     }
-    return new E.NumericLiteral(intVal, lit.datatype, lit.value);
+    return new E.NumericLiteral(intVal, dataType, lit.value);
   }
   if (typeCanBeProvidedTo(dataType, DT.XSD_FLOAT) || typeCanBeProvidedTo(dataType, DT.XSD_DOUBLE)) {
     const doubleVal: number = P.parseXSDFloat(lit.value);
     if (doubleVal === undefined) {
-      return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
+      return new E.NonLexicalLiteral(undefined, dataType, lit.value);
     }
-    return new E.NumericLiteral(doubleVal, lit.datatype, lit.value);
+    return new E.NumericLiteral(doubleVal, dataType, lit.value);
   }
-  return new E.Literal<string>(lit.value, lit.datatype, lit.value);
+  return new E.Literal<string>(lit.value, dataType, lit.value);
 }
 
 function transformOperator(expr: Alg.OperatorExpression, creatorConfig: FunctionCreatorConfig):

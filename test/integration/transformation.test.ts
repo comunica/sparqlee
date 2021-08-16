@@ -31,14 +31,14 @@ describe('ordering literals', () => {
     expect(res.strValue).toEqual('11');
     expect(res.typedValue).toEqual(11);
     expect(res.language).toEqual(undefined);
-    expect(res.type).toEqual(DT.XSD_INTEGER);
+    expect(res.dataType).toEqual(DT.XSD_INTEGER);
     // No namednode but language is given
     num.language = 'en';
     const res2 = transformLiteral(num);
     expect(res2.strValue).toEqual('11');
     expect(res2.typedValue).toEqual(11);
     expect(res2.language).toEqual(undefined);
-    expect(res2.type).toEqual(DT.XSD_INTEGER);
+    expect(res2.dataType).toEqual(DT.XSD_INTEGER);
   });
 
   it('integers type transform', () => {
@@ -46,9 +46,8 @@ describe('ordering literals', () => {
     const res = transformLiteral(num);
     expect(res.strValue).toEqual('11');
     expect(res.termType).toEqual('literal');
-    expect(res.type).toEqual(DT.XSD_INTEGER);
+    expect(res.dataType).toEqual(DT.XSD_INTEGER);
     expect(res.typedValue).toEqual(11);
-    expect(res.typeURL.value).toEqual(DT.XSD_INTEGER);
     expect(res.expressionType).toEqual('term');
   });
 
@@ -57,9 +56,8 @@ describe('ordering literals', () => {
     const res = transformLiteral(num);
     expect(res.strValue).toEqual('11');
     expect(res.termType).toEqual('literal');
-    expect(res.type).toEqual(DT.XSD_DOUBLE);
+    expect(res.dataType).toEqual(DT.XSD_DOUBLE);
     expect(res.typedValue).toEqual(11);
-    expect(res.typeURL.value).toEqual(DT.XSD_DOUBLE);
     expect(res.expressionType).toEqual('term');
   });
   it('decimal type transform', () => {
@@ -67,9 +65,8 @@ describe('ordering literals', () => {
     const res = transformLiteral(num);
     expect(res.strValue).toEqual('11');
     expect(res.termType).toEqual('literal');
-    expect(res.type).toEqual(DT.XSD_DECIMAL);
+    expect(res.dataType).toEqual(DT.XSD_DECIMAL);
     expect(res.typedValue).toEqual(11);
-    expect(res.typeURL.value).toEqual(DT.XSD_DECIMAL);
     expect(res.expressionType).toEqual('term');
   });
 
@@ -78,9 +75,8 @@ describe('ordering literals', () => {
     const res = transformLiteral(num);
     expect(res.strValue).toEqual('11');
     expect(res.termType).toEqual('literal');
-    expect(res.type).toEqual(DT.XSD_FLOAT);
+    expect(res.dataType).toEqual(DT.XSD_FLOAT);
     expect(res.typedValue).toEqual(11);
-    expect(res.typeURL.value).toEqual(DT.XSD_FLOAT);
     expect(res.expressionType).toEqual('term');
   });
 
@@ -89,9 +85,8 @@ describe('ordering literals', () => {
     const res = transformLiteral(lit);
     expect(res.strValue).toEqual('ab');
     expect(res.termType).toEqual('literal');
-    expect(res.type).toEqual(DT.RDF_LANG_STRING);
+    expect(res.dataType).toEqual(DT.RDF_LANG_STRING);
     expect(res.typedValue).toEqual('ab');
-    expect(res.typeURL.value).toEqual(DT.RDF_LANG_STRING);
     expect(res.expressionType).toEqual('term');
   });
 
@@ -100,9 +95,8 @@ describe('ordering literals', () => {
     const res = transformLiteral(lit);
     expect(res.strValue).toEqual('ab');
     expect(res.termType).toEqual('literal');
-    expect(res.type).toEqual(DT.RDF_LANG_STRING);
+    expect(res.dataType).toEqual(DT.RDF_LANG_STRING);
     expect(res.typedValue).toEqual('ab');
-    expect(res.typeURL.value).toEqual(DT.RDF_LANG_STRING);
     expect(res.expressionType).toEqual('term');
     expect(res.language).toEqual('othertype');
   });

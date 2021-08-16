@@ -8,7 +8,7 @@ import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 
-import { arithmeticWidening, extensionTable } from '../util/TypeHandling';
+import { arithmeticWidening, extensionTable, isLiteralType } from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
 import { OverloadTree } from './OverloadTree';
 
@@ -154,7 +154,7 @@ export class Builder {
    */
   public arithmetic(op: (left: number, right: number) => number): Builder {
     return this.numeric(([ left, right ]: E.NumericLiteral[]) => {
-      const resultType = arithmeticWidening(left.type, right.type);
+      const resultType = arithmeticWidening(left.dataType, right.dataType);
       return number(op(left.typedValue, right.typedValue), resultType);
     });
   }
@@ -228,12 +228,12 @@ export function bool(val: boolean): E.BooleanLiteral {
 }
 
 export function number(num: number, dt?: C.LiteralTypes): E.NumericLiteral {
-  return new E.NumericLiteral(num, C.make(dt || TypeURL.XSD_FLOAT), undefined);
+  return new E.NumericLiteral(num, dt || TypeURL.XSD_FLOAT, undefined);
 }
 
 export function numberFromString(str: string, dt?: C.TypeURL): E.NumericLiteral {
   const num = Number(str);
-  return new E.NumericLiteral(num, C.make(dt || TypeURL.XSD_FLOAT), undefined);
+  return new E.NumericLiteral(num, dt || TypeURL.XSD_FLOAT, undefined);
 }
 
 export function string(str: string): E.StringLiteral {
@@ -264,7 +264,8 @@ export function typeCheckLit<T>(
 
   const lit = <E.Literal<any>> term;
 
-  if (!(extensionTable[lit.type] && extensionTable[lit.type][allowed])) {
+  const type = isLiteralType(lit.dataType);
+  if (!(type && extensionTable[type][allowed])) {
     throw new Err.InvalidArgumentTypes(args, op);
   }
 

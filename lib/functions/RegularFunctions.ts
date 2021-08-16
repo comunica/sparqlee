@@ -6,7 +6,7 @@ import * as uuid from 'uuid';
 
 import * as E from '../expressions';
 import { transformLiteral } from '../Transformation';
-import * as C from '../util/Consts';
+import type * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
@@ -38,14 +38,14 @@ const not = {
 const unaryPlus = {
   arity: 1,
   overloads: declare()
-    .onNumeric1(val => number(val.typedValue, <TypeURL> val.typeURL.value))
+    .onNumeric1(val => number(val.typedValue, <TypeURL> val.dataType))
     .collect(),
 };
 
 const unaryMinus = {
   arity: 1,
   overloads: declare()
-    .onNumeric1(val => number(-val.typedValue, <TypeURL> val.typeURL.value))
+    .onNumeric1(val => number(-val.typedValue, <TypeURL> val.dataType))
     .collect(),
 };
 
@@ -239,7 +239,7 @@ const lang = {
 const datatype = {
   arity: 1,
   overloads: declare()
-    .onLiteral1(lit => new E.NamedNode(lit.typeURL.value))
+    .onLiteral1(lit => new E.NamedNode(lit.dataType))
     .collect(),
 };
 
@@ -580,7 +580,7 @@ const abs = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.abs(num.typedValue), <C.TypeURL> num.typeURL.value),
+      num => number(Math.abs(num.typedValue), <C.TypeURL> num.dataType),
     )
     .collect(),
 };
@@ -592,7 +592,7 @@ const round = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.round(num.typedValue), <C.TypeURL> num.typeURL.value),
+      num => number(Math.round(num.typedValue), <C.TypeURL> num.dataType),
     )
     .collect(),
 };
@@ -604,7 +604,7 @@ const ceil = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.ceil(num.typedValue), <C.TypeURL> num.typeURL.value),
+      num => number(Math.ceil(num.typedValue), <C.TypeURL> num.dataType),
     )
     .collect(),
 };
@@ -616,7 +616,7 @@ const floor = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.floor(num.typedValue), <C.TypeURL> num.typeURL.value),
+      num => number(Math.floor(num.typedValue), <C.TypeURL> num.dataType),
     )
     .collect(),
 };
@@ -727,7 +727,7 @@ const timezone = {
         if (!duration) {
           throw new Err.InvalidTimezoneCall(date.strValue);
         }
-        return new E.Literal(duration, C.make(TypeURL.XSD_DAYTIME_DURATION), duration);
+        return new E.Literal(duration, TypeURL.XSD_DAYTIME_DURATION, duration);
       },
     )
     .collect(),

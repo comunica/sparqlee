@@ -16,7 +16,6 @@ export const extensionTableInput: Record<LiteralTypes, OverrideType> = {
   [TypeURL.XSD_DURATION]: 'term',
   [TypeAlias.SPARQL_NUMERIC]: 'term',
   [TypeAlias.SPARQL_STRINGLY]: 'term',
-  [TypeAlias.SPARQL_OTHER]: 'term',
   [TypeAlias.SPARQL_NON_LEXICAL]: 'term',
 
   // Read https://www.w3.org/TR/xpath-31/#promotion \ne https://www.w3.org/TR/xpath-31/#dt-subtype-substitution
@@ -107,8 +106,15 @@ function extensionTableBuilderInitKey(key: LiteralTypes, value: OverrideType, re
   res[key] = { ...res[value], [key]: res[value].depth + 1, depth: res[value].depth + 1 };
 }
 
+export function isLiteralType(type: string): LiteralTypes | undefined {
+  if (type in extensionTable) {
+    return <LiteralTypes> type;
+  }
+  return undefined;
+}
+
 export function isOverrideType(type: string): OverrideType | undefined {
-  if (type in extensionTable || type === 'term') {
+  if (isLiteralType(type) || type === 'term') {
     return <OverrideType> type;
   }
   return undefined;
@@ -165,15 +171,14 @@ export function typeWidening(...args: LiteralTypes[]): OverrideType {
  * > input arguments. In JS everything is a double, but in SPARQL it is not.
  * > {@link https://www.w3.org/TR/sparql11-query/#OperatorMapping}
  * > {@link https://www.w3.org/TR/xpath-functions/#op.numeric}
- * TODO: is nu opgelost door promotion?
+ * TODO: is nu opgelost door promotion? Nee? heeft te maken met return type?
  * @param args
  */
 export function arithmeticWidening(...args: LiteralTypes[]): LiteralTypes {
-  const _widened = typeWidening(...args);
-  if (![ ...Object.values(TypeAlias), ...Object.values(TypeURL) ].includes(<LiteralTypes>_widened)) {
+  const widened = isLiteralType(typeWidening(...args));
+  if (!widened) {
     throw new Error('should never happen');
   }
-  const widened = <LiteralTypes>_widened;
   if (widened !== TypeAlias.SPARQL_NUMERIC) {
     return widened;
   }

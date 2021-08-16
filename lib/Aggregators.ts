@@ -62,12 +62,12 @@ class Sum extends BaseAggregator<SumState> {
 
   public init(start: RDF.Term): SumState {
     const { value, type } = extractNumericValueAndTypeOrError(start);
-    return new E.NumericLiteral(value, DF.namedNode(type));
+    return new E.NumericLiteral(value, type);
   }
 
   public put(state: SumState, term: RDF.Term): SumState {
     const { value, type } = extractNumericValueAndTypeOrError(term);
-    const internalTerm = new E.NumericLiteral(value, DF.namedNode(type));
+    const internalTerm = new E.NumericLiteral(value, type);
     const sum = <E.NumericLiteral> this.summer.apply([ state, internalTerm ]);
     return sum;
   }
@@ -143,13 +143,13 @@ class Average extends BaseAggregator<IAverageState> {
 
   public init(start: RDF.Term): IAverageState {
     const { value, type } = extractNumericValueAndTypeOrError(start);
-    const sum = new E.NumericLiteral(value, DF.namedNode(type));
+    const sum = new E.NumericLiteral(value, type);
     return { sum, count: 1 };
   }
 
   public put(state: IAverageState, term: RDF.Term): IAverageState {
     const { value, type } = extractNumericValueAndTypeOrError(term);
-    const internalTerm = new E.NumericLiteral(value, DF.namedNode(type));
+    const internalTerm = new E.NumericLiteral(value, type);
     const sum = <E.NumericLiteral> this.summer.apply([ state.sum, internalTerm ]);
     return {
       sum,
@@ -158,7 +158,7 @@ class Average extends BaseAggregator<IAverageState> {
   }
 
   public result(state: IAverageState): RDF.Term {
-    const count = new E.NumericLiteral(state.count, DF.namedNode(C.TypeURL.XSD_INTEGER));
+    const count = new E.NumericLiteral(state.count, C.TypeURL.XSD_INTEGER);
     const result = this.divider.apply([ state.sum, count ]);
     return result.toRDF();
   }
@@ -232,5 +232,5 @@ function extractValue(extremeTerm: RDF.Literal, term: RDF.Term): { value: any; t
   }
 
   const transformedLit = transformLiteral(term);
-  return { type: transformedLit.typeURL.value, value: transformedLit.typedValue };
+  return { type: transformedLit.dataType, value: transformedLit.typedValue };
 }
