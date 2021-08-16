@@ -1123,13 +1123,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/rdf-js@^4.0.2":
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/@types/rdf-js/-/rdf-js-4.0.2.tgz#a7eb0ff009915db2c980df97533d3ba7acad0c4b"
-  integrity sha512-soR/+RMogGiDU1lrpuQl5ZL55/L1eq/JlR2dWx052Uh/RYs9okh3XZHFlIJXHZqjqyjEn4WdbOMfBj7vvc2WVQ==
-  dependencies:
-    rdf-js "*"
-
 "@types/spark-md5@^3.0.2":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@types/spark-md5/-/spark-md5-3.0.2.tgz#da2e8a778a20335fc4f40b6471c4b0d86b70da55"
@@ -1513,10 +1506,10 @@ astral-regex@^2.0.0:
   resolved "https://registry.yarnpkg.com/astral-regex/-/astral-regex-2.0.0.tgz#483143c567aeed4785759c0865786dc77d7d2e31"
   integrity sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==
 
-asynciterator@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/asynciterator/-/asynciterator-3.0.1.tgz#44e2bda435488d7ff42cf020f4892f92e04d1a95"
-  integrity sha512-i63IZ/CLbSwT+9+jezA8BFnMmmOylNN+2/yNqMSr37IdzjPLnYMfEvTOFt46hDA+san7k9CZN6gEzCgCTTfAWA==
+asynciterator@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/asynciterator/-/asynciterator-3.2.0.tgz#a3ec3a0f76ef474c39dab571381ba47dc9bd5150"
+  integrity sha512-gVrDh9bNDA0TJPTKNFqb0A1je+VBBeS6D18oR92volMcLYN0qizAfOZXH3lmun5XNUim4oIlXWkGoR8mDZlwdg==
 
 asynckit@^0.4.0:
   version "0.4.0"
@@ -4423,50 +4416,53 @@ ramda@^0.27.1:
   resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.27.1.tgz#66fc2df3ef873874ffc2da6aa8984658abacf5c9"
   integrity sha512-PgIdVpn5y5Yns8vqb8FzBUEYn98V3xcPgawAkkgj0YJ0qDsnHCiNmZYfOGMgOvoB0eWFLpYbhxUR3mxfDIMvpw==
 
-rdf-data-factory@^1.0.0, rdf-data-factory@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/rdf-data-factory/-/rdf-data-factory-1.0.3.tgz#1fb45aebd71c0318843e090f262571b91d68052e"
-  integrity sha512-Fm0E5JiGZl4vRK2qlMmmI/CEZeN/NgEWHyBmTmtFCyp/tAfb5veDfdB1ZqNRqR16pNHzDiPeKZmE7qCK3IehWA==
-  dependencies:
-    "@types/rdf-js" "^4.0.0"
-
-rdf-data-factory@^1.0.1, rdf-data-factory@^1.0.4:
+rdf-data-factory@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/rdf-data-factory/-/rdf-data-factory-1.0.4.tgz#4e22fc462620fbca650eb2d26c4a13a103edd777"
   integrity sha512-ZIIwEkLcV7cTc+atvQFzAETFVRHz1BRe/MhdkZqYse8vxskErj8/bF/Ittc3B5c0GTyw6O3jVF2V7xBRGyRoSQ==
   dependencies:
     "@types/rdf-js" "^4.0.0"
 
-rdf-isomorphic@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/rdf-isomorphic/-/rdf-isomorphic-1.2.1.tgz#071f0d05671e3e6c9bdae75ff4cbe50308f2fc75"
-  integrity sha512-kIKlQYoizNqp8zhbca1zV3mYngisoD/KNt/xBRjagp7R3F8niI3b1vxvqcWlSkNXgPD6MsXpP2E/uXZ8oGTIcA==
+rdf-data-factory@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/rdf-data-factory/-/rdf-data-factory-1.1.0.tgz#d0510b9f100dd79e94f29559a12d4a5a585054d6"
+  integrity sha512-g8feOVZ/KL1OK2Pco/jDBDFh4m29QDsOOD+rWloG9qFvIzRFchGy2CviLUX491E0ByewXxMpaq/A3zsWHQA16A==
   dependencies:
-    hash.js "^1.1.7"
-    rdf-string "^1.5.0"
-    rdf-terms "^1.6.2"
+    "@rdfjs/types" "*"
 
-rdf-js@*, rdf-js@^4.0.2:
+rdf-isomorphic@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/rdf-isomorphic/-/rdf-isomorphic-1.3.0.tgz#6a1ad38b27c5ebed8a5f752b15f81988f48f8e22"
+  integrity sha512-3BRwUwCNHHR8//bqmVH+knTFVbVfkp7CWyQk7qPHHA8JriXBYxrab21OomjJx/2KF21w8bWz344mgNYEaQABYQ==
+  dependencies:
+    "@rdfjs/types" "*"
+    hash.js "^1.1.7"
+    rdf-string "^1.6.0"
+    rdf-terms "^1.7.0"
+
+rdf-js@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/rdf-js/-/rdf-js-4.0.2.tgz#f01510528bbfc6e004012b71a8a533896c4c4c10"
   integrity sha512-ApvlFa/WsQh8LpPK/6hctQwG06Z9ztQQGWVtrcrf9L6+sejHNXLPOqL+w7q3hF+iL0C4sv3AX1PUtGkLNzyZ0Q==
   dependencies:
     "@rdfjs/types" "*"
 
-rdf-string@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/rdf-string/-/rdf-string-1.5.0.tgz#5d0118f8788fe509f06d8cefc181fd979d712412"
-  integrity sha512-3TEJuDIKUADgZrfcZG+zAN4GfVA1Ei2sKA7Z7QVHkAE36wWoRGPJbGihPQMldgzvy9lG2nzZU+CXz+6oGSQNsQ==
+rdf-string@^1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/rdf-string/-/rdf-string-1.6.0.tgz#571436284274b532af72329ff5168da876a4dc32"
+  integrity sha512-6vQVlEobIHralPtx8V9vtgxA+fwnzZjZv6lRz8dfymILZF6Fl3QJwyRaOAvYaUQc1JMmshGI/wlYlaxin2AldQ==
   dependencies:
-    rdf-data-factory "^1.0.0"
+    "@rdfjs/types" "*"
+    rdf-data-factory "^1.1.0"
 
-rdf-terms@^1.6.2:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/rdf-terms/-/rdf-terms-1.6.2.tgz#e31ad9023e0ee163dafa3dd847410c61556d0d57"
-  integrity sha512-dASpdYHYLEwzN9iSymJie1WUj6VHXy1By8Am4g2rJlhTfVvNitsJpDY+A3X2QehlGhCaWjHMzXS4q/JKNPI80A==
+rdf-terms@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/rdf-terms/-/rdf-terms-1.7.0.tgz#2e6cd86346c5ec1640f4661f04dad03596b48beb"
+  integrity sha512-K83ACD+MuWFS3mNxwCRNYQAmc/Z9iK7PgqJq9N4VP8sUVlP7ioB2pPNQHKHy0IQh4RTkEq6fg4R4q7YlweLBZQ==
   dependencies:
+    "@rdfjs/types" "*"
     lodash.uniqwith "^4.5.0"
-    rdf-data-factory "^1.0.1"
+    rdf-data-factory "^1.1.0"
 
 react-is@^16.8.1:
   version "16.13.1"
@@ -4819,20 +4815,20 @@ spark-md5@^3.0.1:
   resolved "https://registry.yarnpkg.com/spark-md5/-/spark-md5-3.0.1.tgz#83a0e255734f2ab4e5c466e5a2cfc9ba2aa2124d"
   integrity sha512-0tF3AGSD1ppQeuffsLDIOWlKUd3lS92tFxcsrh5Pe3ZphhnoK+oXIBTzOAThZCiuINZLvpiLH/1VS1/ANEJVig==
 
-sparqlalgebrajs@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/sparqlalgebrajs/-/sparqlalgebrajs-3.0.1.tgz#3e42ca55622b6d12f9a22e47b985409576b345b3"
-  integrity sha512-smQQ0ZHvMYTD1OeFKCBETICI/oj6clVhxBYLLqjP9i/kR9XMgJPt0JKUhocfiS8TmXIm9CKS8Gaul0SExQG3XA==
+sparqlalgebrajs@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/sparqlalgebrajs/-/sparqlalgebrajs-3.0.2.tgz#87c4e09169e635cbeb236cae1f0d8ba4480e484e"
+  integrity sha512-aPsgHu3oZ4/XCWpLZ8aSWYW1h220FrDtlVO7FEOQLX5/pImOA/7+T7L9UPq7v05cu3slK90qQj8hlMab3dclHw==
   dependencies:
+    "@rdfjs/types" "*"
     "@types/minimist" "^1.2.1"
     "@types/node" "^15.12.2"
-    "@types/rdf-js" "^4.0.2"
     "@types/sparqljs" "^3.1.2"
     fast-deep-equal "^3.1.3"
     minimist "^1.2.5"
-    rdf-data-factory "^1.0.4"
-    rdf-isomorphic "^1.2.1"
-    rdf-string "^1.5.0"
+    rdf-data-factory "^1.1.0"
+    rdf-isomorphic "^1.3.0"
+    rdf-string "^1.6.0"
     sparqljs "^3.4.2"
 
 sparqljs@^3.4.2:
