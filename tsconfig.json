@@ -23,6 +23,7 @@
     "bin/**/*.ts",
     "util/**/*.ts",
     "typings/**/*.d.ts",
+    "benchmark/**/*ts",
   ],
   "exclude": [
     "**/dist",
