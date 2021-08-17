@@ -113,6 +113,7 @@ export const numeric: AliasMap = {
   '3i': '"3"^^xsd:integer',
   '4i': '"4"^^xsd:integer',
   '6i': '"6"^^xsd:integer',
+  '-6i': '"-6"^^xsd:integer',
   '12i': '"12"^^xsd:integer',
   '-5i': '"-5"^^xsd:integer',
 

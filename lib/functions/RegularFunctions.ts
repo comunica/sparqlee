@@ -6,8 +6,8 @@ import * as uuid from 'uuid';
 
 import * as E from '../expressions';
 import { transformLiteral } from '../Transformation';
-import * as C from '../util/Consts';
-import { TypeURL } from '../util/Consts';
+import type * as C from '../util/Consts';
+import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { bool, declare, langString, number, string } from './Helpers';
@@ -38,14 +38,14 @@ const not = {
 const unaryPlus = {
   arity: 1,
   overloads: declare()
-    .onNumeric1(val => number(val.typedValue, <TypeURL> val.typeURL.value))
+    .onNumeric1(val => number(val.typedValue, val.dataType))
     .collect(),
 };
 
 const unaryMinus = {
   arity: 1,
   overloads: declare()
-    .onNumeric1(val => number(-val.typedValue, <TypeURL> val.typeURL.value))
+    .onNumeric1(val => number(-val.typedValue, val.dataType))
     .collect(),
 };
 
@@ -61,7 +61,7 @@ const division = {
   overloads: declare()
     .arithmetic((left, right) => Decimal.div(left, right).toNumber())
     .onBinaryTyped(
-      [ 'integer', 'integer' ],
+      [ TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
       (left: number, right: number) => {
         if (right === 0) {
           throw new Err.ExpressionError('Integer division by 0');
@@ -170,6 +170,9 @@ const greaterThanEqual = {
 // https://www.w3.org/TR/sparql11-query/#func-rdfTerms
 // ----------------------------------------------------------------------------
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-isIRI
+ */
 const isIRI = {
   arity: 1,
   overloads: declare()
@@ -177,6 +180,9 @@ const isIRI = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-isBlank
+ */
 const isBlank = {
   arity: 1,
   overloads: declare()
@@ -184,6 +190,9 @@ const isBlank = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-isLiteral
+ */
 const isLiteral = {
   arity: 1,
   overloads: declare()
@@ -191,6 +200,9 @@ const isLiteral = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-isNumeric
+ */
 const isNumeric = {
   arity: 1,
   overloads: declare()
@@ -199,6 +211,9 @@ const isNumeric = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-str
+ */
 const STR = {
   arity: 1,
   overloads: declare()
@@ -206,6 +221,9 @@ const STR = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-lang
+ */
 const lang = {
   arity: 1,
   overloads: declare()
@@ -213,10 +231,13 @@ const lang = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-datatype
+ */
 const datatype = {
   arity: 1,
   overloads: declare()
-    .onLiteral1(lit => new E.NamedNode(lit.typeURL.value))
+    .onLiteral1(lit => new E.NamedNode(lit.dataType))
     .collect(),
 };
 
@@ -226,11 +247,14 @@ const datatype = {
 // See special functions
 // const BNODE = {};
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strdt
+ */
 const STRDT = {
   arity: 2,
   overloads: declare()
     .onBinary(
-      [ 'string', 'namedNode' ],
+      [ TypeURL.XSD_STRING, 'namedNode' ],
       (str: E.StringLiteral, iri: E.NamedNode) => {
         const lit = DF.literal(str.typedValue, DF.namedNode(iri.value));
         return transformLiteral(lit);
@@ -238,17 +262,22 @@ const STRDT = {
     )
     .collect(),
 };
-
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strlang
+ */
 const STRLANG = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (val: string, language: string) => new E.LangStringLiteral(val, language.toLowerCase()),
     )
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-uuid
+ */
 const UUID = {
   arity: 0,
   overloads: declare()
@@ -256,6 +285,9 @@ const UUID = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-struuid
+ */
 const STRUUID = {
   arity: 0,
   overloads: declare()
@@ -268,6 +300,9 @@ const STRUUID = {
 // https://www.w3.org/TR/sparql11-query/#func-forms
 // ----------------------------------------------------------------------------
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strlen
+ */
 const STRLEN = {
   arity: 1,
   overloads: declare()
@@ -275,24 +310,27 @@ const STRLEN = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-substr
+ */
 const SUBSTR = {
   arity: [ 2, 3 ],
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'integer' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_INTEGER ],
       (source: string, startingLoc: number) => string([ ...source ].slice(startingLoc - 1).join('')),
     )
     .onBinary(
-      [ 'langString', 'integer' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_INTEGER ],
       (source: E.LangStringLiteral, startingLoc: E.NumericLiteral) => {
         const sub = [ ...source.typedValue ].slice(startingLoc.typedValue - 1).join('');
         return langString(sub, source.language);
       },
     )
-    .onTernaryTyped([ 'string', 'integer', 'integer' ],
+    .onTernaryTyped([ TypeURL.XSD_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
       (source: string, startingLoc: number, length: number) =>
         string([ ...source ].slice(startingLoc - 1, length).join('')))
-    .onTernary([ 'langString', 'integer', 'integer' ],
+    .onTernary([ TypeURL.RDF_LANG_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
       (source: E.LangStringLiteral, startingLoc: E.NumericLiteral, length: E.NumericLiteral) => {
         const sub = [ ...source.typedValue ].slice(startingLoc.typedValue - 1, length.typedValue).join('');
         return langString(sub, source.language);
@@ -300,6 +338,9 @@ const SUBSTR = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-ucase
+ */
 const UCASE = {
   arity: 1,
   overloads: declare()
@@ -308,6 +349,9 @@ const UCASE = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-lcase
+ */
 const LCASE = {
   arity: 1,
   overloads: declare()
@@ -316,19 +360,20 @@ const LCASE = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strstarts
+ * for this and the following functions you'll see (string, langstring) is not allowed. This behaviour is defined in:
+ * https://www.w3.org/TR/sparql11-query/#func-arg-compatibility
+ */
 const STRSTARTS = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
-      (arg1: string, arg2: string) => bool(arg1.startsWith(arg2)),
-    )
-    .onBinaryTyped(
-      [ 'langString', 'string' ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => bool(arg1.startsWith(arg2)),
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -339,19 +384,18 @@ const STRSTARTS = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strends
+ */
 const STRENDS = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
-      (arg1: string, arg2: string) => bool(arg1.endsWith(arg2)),
-    )
-    .onBinaryTyped(
-      [ 'langString', 'string' ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => bool(arg1.endsWith(arg2)),
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -362,19 +406,18 @@ const STRENDS = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-contains
+ */
 const CONTAINS = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
-      (arg1: string, arg2: string) => bool(arg1.includes(arg2)),
-    )
-    .onBinaryTyped(
-      [ 'langString', 'string' ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => bool(arg1.includes(arg2)),
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -385,15 +428,18 @@ const CONTAINS = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strbefore
+ */
 const STRBEFORE = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => string(arg1.slice(0, Math.max(0, arg1.indexOf(arg2)))),
     )
     .onBinary(
-      [ 'langString', 'string' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
         const sub = arg1.typedValue.slice(0, Math.max(0, a1.indexOf(a2)));
@@ -401,7 +447,7 @@ const STRBEFORE = {
       },
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -414,15 +460,18 @@ const STRBEFORE = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-strafter
+ */
 const STRAFTER = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (arg1: string, arg2: string) => string(arg1.slice(arg1.indexOf(arg2)).slice(arg2.length)),
     )
     .onBinary(
-      [ 'langString', 'string' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
         const sub = a1.slice(a1.indexOf(a2)).slice(a2.length);
@@ -430,7 +479,7 @@ const STRAFTER = {
       },
     )
     .onBinary(
-      [ 'langString', 'langString' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
       (arg1: E.LangStringLiteral, arg2: E.LangStringLiteral) => {
         if (arg1.language !== arg2.language) {
           throw new Err.IncompatibleLanguageOperation(arg1, arg2);
@@ -443,6 +492,9 @@ const STRAFTER = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-encode
+ */
 const ENCODE_FOR_URI = {
   arity: 1,
   overloads: declare()
@@ -452,11 +504,14 @@ const ENCODE_FOR_URI = {
 // See special operators
 // const CONCAT = {}
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-langMatches
+ */
 const langmatches = {
   arity: 2,
   overloads: declare()
     .onBinaryTyped(
-      [ 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (tag: string, range: string) => bool(X.langMatches(tag, range)),
     ).collect(),
 };
@@ -465,38 +520,43 @@ const regex2: (text: string, pattern: string) => E.BooleanLiteral =
   (text: string, pattern: string) => bool(X.matches(text, pattern));
 const regex3: (text: string, pattern: string, flags: string) => E.BooleanLiteral =
   (text: string, pattern: string, flags: string) => bool(X.matches(text, pattern, flags));
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-regex
+ */
 const REGEX = {
   arity: [ 2, 3 ],
   overloads: declare()
-    .onBinaryTyped([ 'string', 'string' ], regex2)
-    .onBinaryTyped([ 'langString', 'string' ], regex2)
-    .onTernaryTyped([ 'string', 'string', 'string' ], regex3)
-    .onTernaryTyped([ 'langString', 'string', 'string' ], regex3)
+    .onBinaryTyped([ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ], regex2)
+    .onTernaryTyped([ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING, TypeURL.XSD_STRING ], regex3)
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-replace
+ */
 const REPLACE = {
   arity: [ 3, 4 ],
   overloads: declare()
     .onTernaryTyped(
-      [ 'string', 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (arg: string, pattern: string, replacement: string) =>
         string(X.replace(arg, pattern, replacement)),
     )
     .set(
-      [ 'langString', 'string', 'string' ],
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       ([ arg, pattern, replacement ]: [E.LangStringLiteral, E.StringLiteral, E.StringLiteral]) => {
         const result = X.replace(arg.typedValue, pattern.typedValue, replacement.typedValue);
         return langString(result, arg.language);
       },
     )
     .onQuaternaryTyped(
-      [ 'string', 'string', 'string', 'string' ],
+      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       (arg: string, pattern: string, replacement: string, flags: string) =>
         string(X.replace(arg, pattern, replacement, flags)),
     )
     .set(
-      [ 'langString', 'string', 'string', 'string' ], ([ arg, pattern, replacement, flags ]:
+      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
+      ([ arg, pattern, replacement, flags ]:
       [E.LangStringLiteral, E.StringLiteral, E.StringLiteral, E.StringLiteral]) => {
         const result = X.replace(arg.typedValue, pattern.typedValue, replacement.typedValue, flags.typedValue);
         return langString(result, arg.language);
@@ -510,42 +570,57 @@ const REPLACE = {
 // https://www.w3.org/TR/sparql11-query/#func-numerics
 // ----------------------------------------------------------------------------
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-abs
+ */
 const abs = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.abs(num.typedValue), <C.TypeURL> num.typeURL.value),
+      num => number(Math.abs(num.typedValue), num.dataType),
     )
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-round
+ */
 const round = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.round(num.typedValue), <C.TypeURL> num.typeURL.value),
+      num => number(Math.round(num.typedValue), num.dataType),
     )
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-ceil
+ */
 const ceil = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.ceil(num.typedValue), <C.TypeURL> num.typeURL.value),
+      num => number(Math.ceil(num.typedValue), num.dataType),
     )
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-floor
+ */
 const floor = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.floor(num.typedValue), <C.TypeURL> num.typeURL.value),
+      num => number(Math.floor(num.typedValue), num.dataType),
     )
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#idp2130040
+ */
 const rand = {
   arity: 0,
   overloads: declare()
@@ -565,6 +640,9 @@ function parseDate(dateLit: E.DateTimeLiteral): P.ISplittedDate {
 // See special operators
 // const now = {};
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-year
+ */
 const year = {
   arity: 1,
   overloads: declare()
@@ -574,6 +652,9 @@ const year = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-month
+ */
 const month = {
   arity: 1,
   overloads: declare()
@@ -583,6 +664,9 @@ const month = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-day
+ */
 const day = {
   arity: 1,
   overloads: declare()
@@ -592,6 +676,9 @@ const day = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-hours
+ */
 const hours = {
   arity: 1,
   overloads: declare()
@@ -601,6 +688,9 @@ const hours = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-minutes
+ */
 const minutes = {
   arity: 1,
   overloads: declare()
@@ -610,6 +700,9 @@ const minutes = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-seconds
+ */
 const seconds = {
   arity: 1,
   overloads: declare()
@@ -619,6 +712,9 @@ const seconds = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-timezone
+ */
 const timezone = {
   arity: 1,
   overloads: declare()
@@ -628,12 +724,15 @@ const timezone = {
         if (!duration) {
           throw new Err.InvalidTimezoneCall(date.strValue);
         }
-        return new E.Literal(duration, C.make(TypeURL.XSD_DAYTIME_DURATION), duration);
+        return new E.Literal(duration, TypeURL.XSD_DAYTIME_DURATION, duration);
       },
     )
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-tz
+ */
 const tz = {
   arity: 1,
   overloads: declare()
@@ -648,6 +747,9 @@ const tz = {
 // https://www.w3.org/TR/sparql11-query/#func-hash
 // ----------------------------------------------------------------------------
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-md5
+ */
 const MD5 = {
   arity: 1,
   overloads: declare()
@@ -655,6 +757,9 @@ const MD5 = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-sha1
+ */
 const SHA1 = {
   arity: 1,
   overloads: declare()
@@ -662,6 +767,9 @@ const SHA1 = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-sha256
+ */
 const SHA256 = {
   arity: 1,
   overloads: declare()
@@ -669,6 +777,9 @@ const SHA256 = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-sha384
+ */
 const SHA384 = {
   arity: 1,
   overloads: declare()
@@ -676,6 +787,9 @@ const SHA384 = {
     .collect(),
 };
 
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-sha512
+ */
 const SHA512 = {
   arity: 1,
   overloads: declare()

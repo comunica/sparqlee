@@ -1,13 +1,9 @@
 import type * as E from '../expressions';
 import type * as C from '../util/Consts';
-import { TypeURL } from '../util/Consts';
+import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 
-import {
-  parseXSDDecimal,
-  parseXSDFloat,
-  parseXSDInteger,
-} from '../util/Parsing';
+import { parseXSDDecimal, parseXSDFloat, parseXSDInteger } from '../util/Parsing';
 
 import { bool, dateTime, declare, number, string } from './Helpers';
 import type { OverloadTree } from './OverloadTree';
@@ -39,14 +35,14 @@ const xsdToFloat = {
   overloads: declare()
     .onNumeric1((val: E.NumericLiteral) => number(val.typedValue))
     .onBoolean1Typed(val => number(val ? 1 : 0))
-    .onUnary('string', (val: E.StringLiteral) => {
+    .onUnary(TypeURL.XSD_STRING, (val: E.StringLiteral) => {
       const result = parseXSDFloat(val.str());
       if (result === undefined) {
         throw new Err.CastError(val, TypeURL.XSD_FLOAT);
       }
       return number(result);
     })
-    .copy({ from: [ 'string' ], to: [ 'nonlexical' ]})
+    .copy({ from: [ TypeURL.XSD_STRING ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
     .collect(),
 };
 
@@ -55,14 +51,14 @@ const xsdToDouble = {
   overloads: declare()
     .onNumeric1((val: E.NumericLiteral) => number(val.typedValue, TypeURL.XSD_DOUBLE))
     .onBoolean1Typed(val => number(val ? 1 : 0, TypeURL.XSD_DOUBLE))
-    .onUnary('string', (val: E.Term) => {
+    .onUnary(TypeURL.XSD_STRING, (val: E.Term) => {
       const result = parseXSDFloat(val.str());
       if (result === undefined) {
         throw new Err.CastError(val, TypeURL.XSD_DOUBLE);
       }
       return number(result, TypeURL.XSD_DOUBLE);
     })
-    .copy({ from: [ 'string' ], to: [ 'nonlexical' ]})
+    .copy({ from: [ TypeURL.XSD_STRING ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
     .collect(),
 };
 
@@ -84,7 +80,7 @@ const xsdToDecimal = {
       }
       return number(result, TypeURL.XSD_DECIMAL);
     })
-    .copy({ from: [ 'string' ], to: [ 'nonlexical' ]})
+    .copy({ from: [ TypeURL.XSD_STRING ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
     .onBoolean1Typed(val => number(val ? 1 : 0, TypeURL.XSD_DECIMAL))
     .collect(),
 };
@@ -108,22 +104,22 @@ const xsdToInteger = {
       }
       return number(result, TypeURL.XSD_INTEGER);
     })
-    .copy({ from: [ 'integer' ], to: [ 'nonlexical' ]})
+    .copy({ from: [ TypeAlias.SPARQL_NUMERIC ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
     .collect(),
 };
 
 const xsdToDatetime = {
   arity: 1,
   overloads: declare()
-    .onUnary('date', (val: E.DateTimeLiteral) => val)
-    .onUnary('string', (val: Term) => {
+    .onUnary(TypeURL.XSD_DATE_TIME, (val: E.DateTimeLiteral) => val)
+    .onUnary(TypeURL.XSD_STRING, (val: Term) => {
       const date = new Date(val.str());
       if (Number.isNaN(date.getTime())) {
         throw new Err.CastError(val, TypeURL.XSD_DATE_TIME);
       }
       return dateTime(date, val.str());
     })
-    .copy({ from: [ 'string' ], to: [ 'nonlexical' ]})
+    .copy({ from: [ TypeURL.XSD_STRING ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
     .collect(),
 };
 
@@ -131,8 +127,8 @@ const xsdToBoolean = {
   arity: 1,
   overloads: declare()
     .onNumeric1((val: E.NumericLiteral) => bool(val.coerceEBV()))
-    .onUnary('boolean', (val: Term) => bool(val.coerceEBV()))
-    .onUnary('string', (val: Term) => {
+    .onUnary(TypeURL.XSD_BOOLEAN, (val: Term) => bool(val.coerceEBV()))
+    .onUnary(TypeURL.XSD_STRING, (val: Term) => {
       switch (val.str()) {
         case 'true':
           return bool(true);
@@ -146,7 +142,7 @@ const xsdToBoolean = {
           throw new Err.CastError(val, TypeURL.XSD_BOOLEAN);
       }
     })
-    .copy({ from: [ 'string' ], to: [ 'nonlexical' ]})
+    .copy({ from: [ TypeURL.XSD_STRING ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
     .collect(),
 };
 

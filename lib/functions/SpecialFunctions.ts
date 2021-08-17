@@ -6,7 +6,8 @@ import type { Bindings } from '../Types';
 import * as C from '../util/Consts';
 import * as Err from '../util/Errors';
 
-import { bool, langString, string, typeCheckLit } from './Helpers';
+import { bool, declare, langString, string } from './Helpers';
+import type { OverloadTree } from '.';
 import { regularFunctions, specialFunctions } from '.';
 
 type Term = E.TermExpression;
@@ -16,7 +17,23 @@ type PTerm = Promise<E.TermExpression>;
 // Functional forms
 // ----------------------------------------------------------------------------
 
-function _bound({ args, mapping }: { args: E.Expression[]; mapping: Bindings }): E.BooleanLiteral {
+// BOUND ----------------------------------------------------------------------
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-bound
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
+ */
+const bound: ISpecialDefinition = {
+  arity: 1,
+  async applyAsync({ args, mapping }: E.EvalContextAsync): PTerm {
+    return bound_({ args, mapping });
+  },
+  applySync({ args, mapping }: E.EvalContextSync): Term {
+    return bound_({ args, mapping });
+  },
+};
+
+function bound_({ args, mapping }: { args: E.Expression[]; mapping: Bindings }): E.BooleanLiteral {
   const variable = <E.VariableExpression> args[0];
   if (variable.expressionType !== E.ExpressionType.Variable) {
     throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.BOUND);
@@ -25,19 +42,13 @@ function _bound({ args, mapping }: { args: E.Expression[]; mapping: Bindings }):
   return bool(val);
 }
 
-// BOUND ----------------------------------------------------------------------
-const bound = {
-  arity: 1,
-  async applyAsync({ args, mapping }: E.EvalContextAsync): PTerm {
-    return _bound({ args, mapping });
-  },
-  applySync({ args, mapping }: E.EvalContextSync): Term {
-    return _bound({ args, mapping });
-  },
-};
-
 // IF -------------------------------------------------------------------------
-const ifSPARQL = {
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-if
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
+ */
+const ifSPARQL: ISpecialDefinition = {
   arity: 3,
   async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
     const valFirst = await evaluate(args[0], mapping);
@@ -56,7 +67,12 @@ const ifSPARQL = {
 };
 
 // COALESCE -------------------------------------------------------------------
-const coalesce = {
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-coalesce
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
+ */
+const coalesce: ISpecialDefinition = {
   arity: Number.POSITIVE_INFINITY,
   async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
     const errors: Error[] = [];
@@ -83,8 +99,12 @@ const coalesce = {
 };
 
 // Logical-or (||) ------------------------------------------------------------
-// https://www.w3.org/TR/sparql11-query/#func-logical-or
-const logicalOr = {
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-logical-or
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
+ */
+const logicalOr: ISpecialDefinition = {
   arity: 2,
   async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
     const [ leftExpr, rightExpr ] = args;
@@ -129,8 +149,12 @@ const logicalOr = {
 };
 
 // Logical-and (&&) -----------------------------------------------------------
-// https://www.w3.org/TR/sparql11-query/#func-logical-and
-const logicalAnd = {
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-logical-and
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
+ */
+const logicalAnd: ISpecialDefinition = {
   arity: 2,
   async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
     const [ leftExpr, rightExpr ] = args;
@@ -175,12 +199,16 @@ const logicalAnd = {
 };
 
 // SameTerm -------------------------------------------------------------------
-const sameTerm = {
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-sameTerm
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
+ */
+const sameTerm: ISpecialDefinition = {
   arity: 2,
   async applyAsync({ args, mapping, evaluate }: E.EvalContextAsync): PTerm {
     const [ leftExpr, rightExpr ] = args.map(arg => evaluate(arg, mapping));
-    const left = await leftExpr;
-    const right = await rightExpr;
+    const [ left, right ] = await Promise.all([ leftExpr, rightExpr ]);
     return bool(left.toRDF().equals(right.toRDF()));
   },
   applySync({ args, mapping, evaluate }: E.EvalContextSync): Term {
@@ -190,7 +218,12 @@ const sameTerm = {
 };
 
 // IN -------------------------------------------------------------------------
-const inSPARQL = {
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-in
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
+ */
+const inSPARQL: ISpecialDefinition = {
   arity: Number.POSITIVE_INFINITY,
   checkArity(args: E.Expression[]) {
     return args.length > 0;
@@ -255,7 +288,12 @@ function inRecursiveSync(
 }
 
 // NOT IN ---------------------------------------------------------------------
-const notInSPARQL = {
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-not-in
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
+ */
+const notInSPARQL: ISpecialDefinition = {
   arity: Number.POSITIVE_INFINITY,
   checkArity(args: E.Expression[]) {
     return args.length > 0;
@@ -276,14 +314,28 @@ const notInSPARQL = {
 // Annoying functions
 // ----------------------------------------------------------------------------
 
-// CONCAT
-const concat = {
+// CONCAT ---------------------------------------------------------------------
+
+/**
+ * This OverloadTree with the constant function will handle both type promotion and subtype-substitution
+ */
+const concatTree: OverloadTree = declare().onStringly1(expr => expr).collect();
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-concat
+ */
+const concat: ISpecialDefinition = {
   arity: Number.POSITIVE_INFINITY,
   async applyAsync({ args, evaluate, mapping }: E.EvalContextAsync): PTerm {
-    const pLits = args
+    const pLits: Promise<E.Literal<string>>[] = args
       .map(async expr => evaluate(expr, mapping))
-      .map(async pTerm =>
-        typeCheckLit<string>(await pTerm, [ 'string', 'langString' ], args, C.SpecialOperator.CONCAT));
+      .map(async pTerm => {
+        const operation = concatTree.search([ await pTerm ]);
+        if (!operation) {
+          throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.CONCAT);
+        }
+        return <E.Literal<string>> operation([ await pTerm ]);
+      });
     const lits = await Promise.all(pLits);
     const strings = lits.map(lit => lit.typedValue);
     const joined = strings.join('');
@@ -294,7 +346,13 @@ const concat = {
   applySync({ args, evaluate, mapping }: E.EvalContextSync): Term {
     const lits = args
       .map(expr => evaluate(expr, mapping))
-      .map(pTerm => typeCheckLit<string>(pTerm, [ 'string', 'langString' ], args, C.SpecialOperator.CONCAT));
+      .map(pTerm => {
+        const operation = concatTree.search([ pTerm ]);
+        if (!operation) {
+          throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.CONCAT);
+        }
+        return <E.Literal<string>> operation([ pTerm ]);
+      });
     const strings = lits.map(lit => lit.typedValue);
     const joined = strings.join('');
     const lang = langAllEqual(lits) ? lits[0].language : undefined;
@@ -310,7 +368,13 @@ function langAllEqual(lits: E.Literal<string>[]): boolean {
 // Context dependant functions
 // ----------------------------------------------------------------------------
 
-const now = {
+// NOW ------------------------------------------------------------------------
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-now
+ * This function doesn't require type promotion or subtype-substitution
+ */
+const now: ISpecialDefinition = {
   arity: 0,
   async applyAsync({ context }: E.EvalContextAsync): PTerm {
     return new E.DateTimeLiteral(context.now, context.now.toISOString());
@@ -320,8 +384,17 @@ const now = {
   },
 };
 
-// https://www.w3.org/TR/sparql11-query/#func-iri
-const IRI = {
+// IRI -------------------------------------------------------------------------
+
+/**
+ * This OverloadTree with the constant function will handle both type promotion and subtype-substitution
+ */
+const iriTree = declare().onString1(arg => arg).collect();
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-iri
+ */
+const IRI: ISpecialDefinition = {
   arity: 1,
   async applyAsync({ args, evaluate, mapping, context }: E.EvalContextAsync): PTerm {
     const input = await evaluate(args[0], mapping);
@@ -334,17 +407,33 @@ const IRI = {
 };
 
 function IRI_(input: Term, baseIRI: string | undefined, args: E.Expression[]): Term {
-  const lit = input.termType !== 'namedNode' ?
-    typeCheckLit<string>(input, [ 'string' ], args, C.SpecialOperator.IRI) :
-    <E.NamedNode> input;
+  let lit: E.Literal<string> | E.NamedNode;
+  if (input.termType === 'namedNode') {
+    lit = <E.NamedNode> input;
+  } else {
+    const operation = iriTree.search([ input ]);
+    if (!operation) {
+      throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.IRI);
+    }
+    lit = <E.Literal<string>> operation([ input ]);
+  }
 
   const iri = resolveRelativeIri(lit.str(), baseIRI || '');
   return new E.NamedNode(iri);
 }
 
-// https://www.w3.org/TR/sparql11-query/#func-bnode
-// id has to be distinct over all id's in dataset
-const BNODE = {
+// BNODE ---------------------------------------------------------------------
+
+/**
+ * This OverloadTree with the constant function will handle both type promotion and subtype-substitution
+ */
+const bnodeTree = declare().onString1(arg => arg).collect();
+
+/**
+ * https://www.w3.org/TR/sparql11-query/#func-bnode
+ * id has to be distinct over all id's in dataset
+ */
+const BNODE: ISpecialDefinition = {
   arity: Number.POSITIVE_INFINITY,
   checkArity(args: E.Expression[]) {
     return args.length === 0 || args.length === 1;
@@ -354,9 +443,15 @@ const BNODE = {
       await evaluate(args[0], mapping) :
       undefined;
 
-    const strInput = input ?
-      typeCheckLit(input, [ 'string' ], args, C.SpecialOperator.BNODE).str() :
-      undefined;
+    let strInput: string | undefined;
+    if (input) {
+      const operation = bnodeTree.search([ input ]);
+      if (!operation) {
+        throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.BNODE);
+      }
+      // eslint-disable-next-line prefer-const
+      strInput = operation([ input ]).str();
+    }
 
     if (context.bnode) {
       const bnode = await context.bnode(strInput);
@@ -370,9 +465,15 @@ const BNODE = {
       evaluate(args[0], mapping) :
       undefined;
 
-    const strInput = input ?
-      typeCheckLit(input, [ 'string' ], args, C.SpecialOperator.BNODE).str() :
-      undefined;
+    let strInput: string | undefined;
+    if (input) {
+      const operation = bnodeTree.search([ input ]);
+      if (!operation) {
+        throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.BNODE);
+      }
+      // eslint-disable-next-line prefer-const
+      strInput = operation([ input ]).str();
+    }
 
     if (context.bnode) {
       const bnode = context.bnode(strInput);

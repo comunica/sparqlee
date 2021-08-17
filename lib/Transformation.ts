@@ -4,14 +4,15 @@ import { Algebra as Alg } from 'sparqlalgebrajs';
 
 import type { AsyncExtensionFunction, AsyncExtensionFunctionCreator } from './evaluators/AsyncEvaluator';
 import type { SyncExtensionFunction, SyncExtensionFunctionCreator } from './evaluators/SyncEvaluator';
-import * as E from './expressions';
 import type { AsyncExtensionApplication, SimpleApplication } from './expressions';
+import * as E from './expressions';
 import { namedFunctions, regularFunctions, specialFunctions } from './functions';
 import * as C from './util/Consts';
-import { TypeURL as DT } from './util/Consts';
+import { TypeURL, TypeURL as DT } from './util/Consts';
 import * as Err from './util/Errors';
 import { ExtensionFunctionError } from './util/Errors';
 import * as P from './util/Parsing';
+import { isSubTypeOf } from './util/TypeHandling';
 
 type FunctionCreatorConfig = { type: 'sync'; creator: SyncExtensionFunctionCreator } |
 { type: 'async'; creator: AsyncExtensionFunctionCreator };
@@ -75,74 +76,61 @@ function transformWildcard(term: Alg.WildcardExpression): E.Expression {
   return new E.NamedNode(term.wildcard.value);
 }
 
-// TODO: Maybe do this with a map?
+/**
+ * @param lit the rdf literal we want to transform to an internal Literal expression.
+ */
 export function transformLiteral(lit: RDF.Literal): E.Literal<any> {
-  if (!lit.datatype) {
+  // Both here and within the switch we transform to LangStringLiteral or StringLiteral.
+  // We do this when we detect a simple literal being used.
+  // Original issue regarding this behaviour: https://github.com/w3c/sparql-12/issues/112
+  if (!lit.datatype || [ null, undefined, '' ].includes(lit.datatype.value)) {
     return lit.language ?
       new E.LangStringLiteral(lit.value, lit.language) :
       new E.StringLiteral(lit.value);
   }
 
-  switch (lit.datatype.value) {
-    case null:
-    case undefined:
-    case '': {
-      return lit.language ?
-        new E.LangStringLiteral(lit.value, lit.language) :
-        new E.StringLiteral(lit.value);
-    }
+  const dataType = lit.datatype.value;
 
-    case DT.XSD_STRING:
-      return new E.StringLiteral(lit.value);
-    case DT.RDF_LANG_STRING:
-      return new E.LangStringLiteral(lit.value, lit.language);
-
-    case DT.XSD_DATE_TIME:
-    case DT.XSD_DATE: {
-      const dateVal: Date = new Date(lit.value);
-      if (Number.isNaN(dateVal.getTime())) {
-        return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
-      }
-      return new E.DateTimeLiteral(new Date(lit.value), lit.value);
-    }
-
-    case DT.XSD_BOOLEAN: {
-      if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
-        return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
-      }
-      return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
-    }
-
-    case DT.XSD_INTEGER:
-    case DT.XSD_DECIMAL:
-    case DT.XSD_NEGATIVE_INTEGER:
-    case DT.XSD_NON_NEGATIVE_INTEGER:
-    case DT.XSD_NON_POSITIVE_INTEGER:
-    case DT.XSD_POSITIVE_INTEGER:
-    case DT.XSD_LONG:
-    case DT.XSD_SHORT:
-    case DT.XSD_BYTE:
-    case DT.XSD_UNSIGNED_LONG:
-    case DT.XSD_UNSIGNED_INT:
-    case DT.XSD_UNSIGNED_SHORT:
-    case DT.XSD_UNSIGNED_BYTE:
-    case DT.XSD_INT: {
-      const intVal: number = P.parseXSDDecimal(lit.value);
-      if (intVal === undefined) {
-        return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
-      }
-      return new E.NumericLiteral(intVal, lit.datatype, lit.value);
-    }
-    case DT.XSD_FLOAT:
-    case DT.XSD_DOUBLE: {
-      const doubleVal: number = P.parseXSDFloat(lit.value);
-      if (doubleVal === undefined) {
-        return new E.NonLexicalLiteral(undefined, lit.datatype, lit.value);
-      }
-      return new E.NumericLiteral(doubleVal, lit.datatype, lit.value);
-    }
-    default: return new E.Literal<string>(lit.value, lit.datatype, lit.value);
+  if (isSubTypeOf(dataType, TypeURL.XSD_STRING)) {
+    return new E.StringLiteral(lit.value, dataType);
   }
+  if (isSubTypeOf(dataType, DT.RDF_LANG_STRING)) {
+    return new E.LangStringLiteral(lit.value, lit.language);
+  }
+  if (isSubTypeOf(dataType, DT.XSD_DATE_TIME)) {
+    // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
+    // This is because sparql functions don't care about the timezone.
+    // It's also doesn't break the specs because we keep the string representation stored,
+    // that way we can always give it back. There are also no sparql functions that alter a date.
+    // (So the representation initial representation always stays valid)
+    // https://github.com/comunica/sparqlee/pull/103#discussion_r688462368
+    const dateVal: Date = new Date(lit.value);
+    if (Number.isNaN(dateVal.getTime())) {
+      return new E.NonLexicalLiteral(undefined, dataType, lit.value);
+    }
+    return new E.DateTimeLiteral(new Date(lit.value), lit.value, dataType);
+  }
+  if (isSubTypeOf(dataType, DT.XSD_BOOLEAN)) {
+    if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
+      return new E.NonLexicalLiteral(undefined, dataType, lit.value);
+    }
+    return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
+  }
+  if (isSubTypeOf(dataType, DT.XSD_DECIMAL)) {
+    const intVal: number = P.parseXSDDecimal(lit.value);
+    if (intVal === undefined) {
+      return new E.NonLexicalLiteral(undefined, dataType, lit.value);
+    }
+    return new E.NumericLiteral(intVal, dataType, lit.value);
+  }
+  if (isSubTypeOf(dataType, DT.XSD_FLOAT) || isSubTypeOf(dataType, DT.XSD_DOUBLE)) {
+    const doubleVal: number = P.parseXSDFloat(lit.value);
+    if (doubleVal === undefined) {
+      return new E.NonLexicalLiteral(undefined, dataType, lit.value);
+    }
+    return new E.NumericLiteral(doubleVal, dataType, lit.value);
+  }
+  return new E.Literal<string>(lit.value, dataType, lit.value);
 }
 
 function transformOperator(expr: Alg.OperatorExpression, creatorConfig: FunctionCreatorConfig):

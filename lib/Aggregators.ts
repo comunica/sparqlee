@@ -5,10 +5,11 @@ import * as E from './expressions';
 import { regularFunctions } from './functions';
 import { number, string } from './functions/Helpers';
 import { transformLiteral } from './Transformation';
-import type { SetFunction } from './util/Consts';
+import type { LiteralTypes, SetFunction } from './util/Consts';
 import * as C from './util/Consts';
-import { TypeURL } from './util/Consts';
+import { TypeAlias, TypeURL } from './util/Consts';
 import { parseXSDFloat } from './util/Parsing';
+import { isSubTypeOf } from './util/TypeHandling';
 
 const DF = new DataFactory();
 
@@ -61,12 +62,12 @@ class Sum extends BaseAggregator<SumState> {
 
   public init(start: RDF.Term): SumState {
     const { value, type } = extractNumericValueAndTypeOrError(start);
-    return new E.NumericLiteral(value, DF.namedNode(type));
+    return new E.NumericLiteral(value, type);
   }
 
   public put(state: SumState, term: RDF.Term): SumState {
     const { value, type } = extractNumericValueAndTypeOrError(term);
-    const internalTerm = new E.NumericLiteral(value, DF.namedNode(type));
+    const internalTerm = new E.NumericLiteral(value, type);
     const sum = <E.NumericLiteral> this.summer.apply([ state, internalTerm ]);
     return sum;
   }
@@ -142,13 +143,13 @@ class Average extends BaseAggregator<IAverageState> {
 
   public init(start: RDF.Term): IAverageState {
     const { value, type } = extractNumericValueAndTypeOrError(start);
-    const sum = new E.NumericLiteral(value, DF.namedNode(type));
+    const sum = new E.NumericLiteral(value, type);
     return { sum, count: 1 };
   }
 
   public put(state: IAverageState, term: RDF.Term): IAverageState {
     const { value, type } = extractNumericValueAndTypeOrError(term);
-    const internalTerm = new E.NumericLiteral(value, DF.namedNode(type));
+    const internalTerm = new E.NumericLiteral(value, type);
     const sum = <E.NumericLiteral> this.summer.apply([ state.sum, internalTerm ]);
     return {
       sum,
@@ -157,7 +158,7 @@ class Average extends BaseAggregator<IAverageState> {
   }
 
   public result(state: IAverageState): RDF.Term {
-    const count = new E.NumericLiteral(state.count, DF.namedNode(C.TypeURL.XSD_INTEGER));
+    const count = new E.NumericLiteral(state.count, C.TypeURL.XSD_INTEGER);
     const result = this.divider.apply([ state.sum, count ]);
     return result.toRDF();
   }
@@ -212,15 +213,15 @@ export const aggregators: Readonly<{[key in SetFunction]: IAggregatorClass }> = 
   sample: Sample,
 };
 
-function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number; type: C.NumericTypeURL } {
+function extractNumericValueAndTypeOrError(term: RDF.Term): { value: number; type: LiteralTypes } {
   // TODO: Check behaviour
   if (term.termType !== 'Literal') {
     throw new Error(`Term with value ${term.value} has type ${term.termType} and is not a numeric literal`);
-  } else if (!C.NumericTypeURLs.has(term.datatype.value)) {
+  } else if (!isSubTypeOf(term.datatype.value, TypeAlias.SPARQL_NUMERIC)) {
     throw new Error(`Term datatype ${term.datatype.value} with value ${term.value} has type ${term.termType} and is not a numeric literal`);
   }
 
-  const type: C.NumericTypeURL = <C.NumericTypeURL> term.datatype.value;
+  const type: LiteralTypes = <LiteralTypes> term.datatype.value;
   const value = parseXSDFloat(term.value);
   return { type, value };
 }
@@ -231,5 +232,5 @@ function extractValue(extremeTerm: RDF.Literal, term: RDF.Term): { value: any; t
   }
 
   const transformedLit = transformLiteral(term);
-  return { type: transformedLit.typeURL.value, value: transformedLit.typedValue };
+  return { type: transformedLit.dataType, value: transformedLit.typedValue };
 }

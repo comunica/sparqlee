@@ -1,18 +1,42 @@
 import type * as E from '../expressions';
+import { isLiteralTermExpression } from '../expressions';
+import type { LiteralTypes } from '../util/Consts';
+import { TypeURL } from '../util/Consts';
+import type { OverrideType } from '../util/TypeHandling';
+import { extensionTable, isLiteralType } from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
+import { number, string } from './Helpers';
 
 export type SearchStack = OverloadTree[];
 
 /**
  * Maps argument types on their specific implementation in a tree like structure.
+ * When adding any functionality to this class, make sure you add it to SpecialFunctions as well.
  */
 export class OverloadTree {
   private implementation?: E.SimpleApplication | undefined;
-  private readonly subTrees: Record<string, OverloadTree>;
+  private readonly subTrees: Record<ArgumentType, OverloadTree>;
+  private readonly depth: number;
 
-  public constructor() {
+  public constructor(depth?: number) {
     this.implementation = undefined;
-    this.subTrees = {};
+    this.subTrees = Object.create(null);
+    this.depth = depth || 0;
+  }
+
+  /**
+   * Get the implementation for the types that exactly match @param args .
+   */
+  public getImplementationExact(args: ArgumentType[]): E.SimpleApplication | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias,consistent-this
+    let node: OverloadTree = this;
+    for (const expression of args) {
+      node = node.subTrees[expression];
+      if (!node) {
+        return undefined;
+      }
+    }
+    return node.implementation;
   }
 
   /**
@@ -34,13 +58,17 @@ export class OverloadTree {
       ({ node, index: startIndex + 1 })));
     while (searchStack.length > 0) {
       const { index, node } = <{ node: OverloadTree; index: number }>searchStack.pop();
-      if (index === args.length) {
+      // We check the implementation because it would be possible a path is created but not implemented.
+      // ex: f(double, double, double) and f(term, term). and calling f(double, double).
+      if (index === args.length && node.implementation) {
         return node.implementation;
       }
       searchStack.push(...node.getSubTreeWithArg(args[index]).map(item =>
         ({ node: item, index: index + 1 })));
     }
-    return this.implementation;
+    // Calling a function with one argument but finding no implementation should return no implementation.
+    // Not even the one with no arguments.
+    return undefined;
   }
 
   /**
@@ -54,15 +82,44 @@ export class OverloadTree {
   }
 
   private _addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication): void {
-    const argumentType = argumentTypes.shift();
+    const [ argumentType, ..._argumentTypes ] = argumentTypes;
     if (!argumentType) {
       this.implementation = func;
       return;
     }
     if (!this.subTrees[argumentType]) {
-      this.subTrees[argumentType] = new OverloadTree();
+      this.subTrees[argumentType] = new OverloadTree(this.depth + 1);
     }
-    this.subTrees[argumentType]._addOverload(argumentTypes, func);
+    this.subTrees[argumentType]._addOverload(_argumentTypes, func);
+    // Defined by https://www.w3.org/TR/xpath-31/#promotion .
+    // e.g. When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
+    // TODO: When promoting decimal type a cast needs to be preformed.
+    if (argumentType === TypeURL.XSD_STRING) {
+      this.addPromotedOverload(TypeURL.XSD_ANY_URI, func, arg => string(arg.str()), _argumentTypes);
+    }
+    // TODO: in case of decimal a round needs to happen.
+    if (argumentType === TypeURL.XSD_DOUBLE) {
+      this.addPromotedOverload(TypeURL.XSD_FLOAT, func, arg =>
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
+      this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
+    }
+    if (argumentType === TypeURL.XSD_FLOAT) {
+      this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_FLOAT), _argumentTypes);
+    }
+  }
+
+  private addPromotedOverload(typeToPromote: ArgumentType, func: E.SimpleApplication,
+    conversionFunction: (arg: E.TermExpression) => E.TermExpression, argumentTypes: ArgumentType[]): void {
+    if (!this.subTrees[typeToPromote]) {
+      this.subTrees[typeToPromote] = new OverloadTree(this.depth + 1);
+    }
+    this.subTrees[typeToPromote]._addOverload(argumentTypes, args => func([
+      ...args.slice(0, this.depth),
+      conversionFunction(args[this.depth]),
+      ...args.slice(this.depth + 1, args.length),
+    ]));
   }
 
   /**
@@ -70,8 +127,8 @@ export class OverloadTree {
    * @returns SearchStack a stack with top element the next node that should be asked for implementation or overload.
    */
   private getSubTreeWithArg(arg: E.TermExpression): SearchStack {
-    const match: OverloadTree = this.subTrees[(<any>arg).type];
     const res: SearchStack = [];
+    const literalExpression = isLiteralTermExpression(arg);
     // These types refer to Type exported by lib/util/Consts.ts
     if (this.subTrees.term) {
       res.push(this.subTrees.term);
@@ -80,9 +137,22 @@ export class OverloadTree {
     if (this.subTrees[arg.termType]) {
       res.push(this.subTrees[arg.termType]);
     }
-    if (match) {
-      res.push(match);
+    if (literalExpression) {
+      // Defending implementation. Mainly the scary sort.
+      // This function has cost O(n) + O(m * log(m)) with n = amount of overloads and m = amount of matched overloads
+      // We map over each of the overloads, filter only the once that can be used (this is normally 1 or 2).
+      // The sort function on an array with 1 or 2 arguments will be negligible.
+      const concreteType = isLiteralType(literalExpression.dataType);
+      if (concreteType) {
+        const subExtensionTable = extensionTable[concreteType];
+        const overLoads = <[OverrideType, OverloadTree][]> Object.entries(this.subTrees);
+        const matches: [number, OverloadTree][] = overLoads.filter(([ matchType, _ ]) => matchType in subExtensionTable)
+          .map(([ matchType, tree ]) => [ subExtensionTable[<LiteralTypes> matchType], tree ]);
+        matches.sort(([ prioA, matchTypeA ], [ prioB, matchTypeB ]) => prioA - prioB);
+        res.push(...matches.map(([ _, sortedType ]) => sortedType));
+      }
     }
     return res;
   }
 }
+
