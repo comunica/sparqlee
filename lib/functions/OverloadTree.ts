@@ -66,6 +66,8 @@ export class OverloadTree {
       searchStack.push(...node.getSubTreeWithArg(args[index]).map(item =>
         ({ node: item, index: index + 1 })));
     }
+    // Calling a function with one argument but finding no implementation should return no implementation.
+    // Not even the one with no arguments.
     return undefined;
   }
 

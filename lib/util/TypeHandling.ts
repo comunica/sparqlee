@@ -5,6 +5,9 @@ export type OverrideType = LiteralTypes | 'term';
 
 /**
  * Types that are not mentioned just map to 'term'.
+ * When editing this, make sure type promotion and substituion don't start interfering.
+ * e.g. when saying something like string -> stringly -> anyUri -> term.
+ * This would make substitution on types that promote to each other possible. We and the specs don't want that!
  * A DAG will be created based on this. Make sure it doesn't have any cycles!
  */
 export const extensionTableInput: Record<LiteralTypes, OverrideType> = {
@@ -101,6 +104,22 @@ function extensionTableBuilderInitKey(key: LiteralTypes, value: OverrideType, re
   res[key] = { ...res[value], [key]: res[value].depth + 1, depth: res[value].depth + 1 };
 }
 
+export let typeAliasCheck: Record<TypeAlias, boolean>;
+function initTypeAliasCheck(): void {
+  typeAliasCheck = Object.create(null);
+  for (const val of Object.values(TypeAlias)) {
+    typeAliasCheck[val] = true;
+  }
+}
+initTypeAliasCheck();
+
+export function isTypeAlias(type: string): TypeAlias | undefined {
+  if (type in typeAliasCheck) {
+    return <TypeAlias> type;
+  }
+  return undefined;
+}
+
 export function isLiteralType(type: string): LiteralTypes | undefined {
   if (type in extensionTable) {
     return <LiteralTypes> type;
@@ -161,7 +180,6 @@ export function typeWidening(...args: LiteralTypes[]): OverrideType {
 }
 
 /**
- * TODO: @wsschella, could you provde some documentation on these rules?
  * Some weird casting rules. I took them over from the previous implementation, that implementation said:
  * > Arithmetic operators take 2 numeric arguments, and return a single numerical
  * > value. The type of the return value is heavily dependant on the types of the
@@ -170,24 +188,21 @@ export function typeWidening(...args: LiteralTypes[]): OverrideType {
  * > {@link https://www.w3.org/TR/xpath-functions/#op.numeric}
  * @param args
  */
-export function arithmeticWidening(...args: LiteralTypes[]): LiteralTypes {
+export function arithmeticWidening(...args: TypeURL[]): TypeURL {
   const widened = isLiteralType(typeWidening(...args));
   if (!widened) {
     throw new Error('Non arithmetic types where provided');
   }
-  if (widened !== TypeAlias.SPARQL_NUMERIC) {
-    return widened;
+  const widenedTypeAlias = isTypeAlias(widened);
+  const widenedTypeUrl = <TypeURL> widened;
+  if (!widenedTypeAlias) {
+    return widenedTypeUrl;
   }
-  let res: LiteralTypes = TypeURL.XSD_DECIMAL;
-  // This follows some rule of importantness: most important to least impotent: double, float, decimal, integer
-  for (const concreteType of args) {
-    if (concreteType === TypeAlias.SPARQL_NUMERIC) {
-      res = concreteType;
-    } else if (concreteType === TypeURL.XSD_DOUBLE && res !== TypeAlias.SPARQL_NUMERIC) {
-      res = concreteType;
-    } else if (concreteType === TypeURL.XSD_FLOAT && res === TypeURL.XSD_DECIMAL) {
-      res = concreteType;
-    }
+  // This follows some rule of importance: most important to least impotent: double, float, decimal, integer
+  // Getting here, we know args contains 2 different from list: decimal, float, double.
+  // We thus know res is at least a float and might need to be a double
+  if (args.includes(TypeURL.XSD_DOUBLE)) {
+    return TypeURL.XSD_DOUBLE;
   }
-  return res;
+  return TypeURL.XSD_FLOAT;
 }

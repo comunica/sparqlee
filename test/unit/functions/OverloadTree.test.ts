@@ -58,6 +58,16 @@ describe('OverloadTree', () => {
     });
   });
 
+  it('can handle both substitution and promotion at once', () => {
+    tree.addOverload([ TypeURL.XSD_DOUBLE ], ([ arg ]) => arg);
+
+    const arg = new Literal<number>(0, TypeURL.XSD_SHORT);
+    const res = isLiteralTermExpression(tree.search([ arg ])([ arg ]));
+    expect(res).toBeTruthy();
+    expect(res.dataType).toEqual(TypeURL.XSD_DOUBLE);
+    expect(res.typedValue).toEqual(0);
+  });
+
   it('can handle unknown literal dataType', () => {
     tree.addOverload([ 'term' ], ([ arg ]) => arg);
     const dataType = 'www.example.com#weird-string';

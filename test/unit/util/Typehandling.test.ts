@@ -64,10 +64,10 @@ describe('TypeHandling', () => {
     });
 
     it('Has weird widening rules', () => {
-      expect(arithmeticWidening(TypeAlias.SPARQL_NUMERIC, TypeURL.XSD_DOUBLE)).toEqual(TypeAlias.SPARQL_NUMERIC);
       expect(arithmeticWidening(TypeURL.XSD_DOUBLE, TypeURL.XSD_FLOAT)).toEqual(TypeURL.XSD_DOUBLE);
       expect(arithmeticWidening(TypeURL.XSD_FLOAT, TypeURL.XSD_DECIMAL)).toEqual(TypeURL.XSD_FLOAT);
       expect(arithmeticWidening(TypeURL.XSD_INTEGER, TypeURL.XSD_DECIMAL)).toEqual(TypeURL.XSD_DECIMAL);
+      expect(arithmeticWidening(TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER)).toEqual(TypeURL.XSD_INTEGER);
     });
   });
 });

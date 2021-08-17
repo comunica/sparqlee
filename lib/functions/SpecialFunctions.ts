@@ -21,7 +21,7 @@ type PTerm = Promise<E.TermExpression>;
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-bound
- * This function doesn't require type promotion or subtype-substitution
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
  */
 const bound: ISpecialDefinition = {
   arity: 1,
@@ -46,7 +46,7 @@ function bound_({ args, mapping }: { args: E.Expression[]; mapping: Bindings }):
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-if
- * This function doesn't require type promotion or subtype-substitution
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
  */
 const ifSPARQL: ISpecialDefinition = {
   arity: 3,
@@ -70,7 +70,7 @@ const ifSPARQL: ISpecialDefinition = {
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-coalesce
- * This function doesn't require type promotion or subtype-substitution
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
  */
 const coalesce: ISpecialDefinition = {
   arity: Number.POSITIVE_INFINITY,
@@ -102,7 +102,7 @@ const coalesce: ISpecialDefinition = {
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-logical-or
- * This function doesn't require type promotion or subtype-substitution
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
  */
 const logicalOr: ISpecialDefinition = {
   arity: 2,
@@ -152,7 +152,7 @@ const logicalOr: ISpecialDefinition = {
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-logical-and
- * This function doesn't require OverloadTree functionality.
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
  */
 const logicalAnd: ISpecialDefinition = {
   arity: 2,
@@ -202,7 +202,7 @@ const logicalAnd: ISpecialDefinition = {
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-sameTerm
- * This function doesn't require type promotion or subtype-substitution
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
  */
 const sameTerm: ISpecialDefinition = {
   arity: 2,
@@ -221,7 +221,7 @@ const sameTerm: ISpecialDefinition = {
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-in
- * This function doesn't require type promotion or subtype-substitution
+ * This function doesn't require type promotion or subtype-substitution, everything works on TermExpression
  */
 const inSPARQL: ISpecialDefinition = {
   arity: Number.POSITIVE_INFINITY,

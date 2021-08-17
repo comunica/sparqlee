@@ -308,7 +308,8 @@ To be fully spec compliant, the IRI/URI functions should take into account base 
 
 ### Adding or fixing functions
 
-Functions are defined in the [functions directory](lib/functions/), and you can add or fix them there. All definitions are defined using a builder model defined in [Helpers.test.ts](lib/functions/Helpers.ts).
+Functions are defined in the [functions directory](lib/functions/), and you can add or fix them there.
+All definitions are defined using a builder model defined in [Helpers.ts](lib/functions/Helpers.ts).
 
 Three kinds exists:
 

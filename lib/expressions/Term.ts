@@ -5,7 +5,7 @@ import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import { isSubTypeOf } from '../util/TypeHandling';
+import { isSubTypeOf, isTypeAlias } from '../util/TypeHandling';
 import type { TermExpression, TermType } from './Expressions';
 import { ExpressionType } from './Expressions';
 
@@ -90,7 +90,7 @@ export class Literal<T> extends Term {
     super();
   }
 
-  public toRDF(): RDF.Term {
+  public toRDF(): RDF.Literal {
     return DF.literal(
       this.strValue || this.str(),
       this.language || DF.namedNode(this.dataType),
@@ -103,8 +103,11 @@ export class Literal<T> extends Term {
   }
 }
 
+/**
+ * This class will reject types in the TypeAlias because types of typeAlias are semantic and not representable.
+ */
 class TypeCheckedLiteral<T> extends Literal<T> {
-  public dataType: LiteralTypes;
+  public dataType: TypeURL;
   public constructor(
     typeToCheck: LiteralTypes,
     public typedValue: T,
@@ -113,15 +116,16 @@ class TypeCheckedLiteral<T> extends Literal<T> {
     public language?: string,
   ) {
     super(typedValue, dataType || typeToCheck, strValue, language);
-    if (dataType && !isSubTypeOf(dataType, typeToCheck)) {
-      throw this.getTypeError(typeToCheck);
+    const existingType = dataType || typeToCheck;
+    if (isTypeAlias(existingType) || !isSubTypeOf(existingType, typeToCheck)) {
+      throw this.getTypeError(typeToCheck, typeToCheck);
     }
-    this.dataType = <LiteralTypes> dataType || typeToCheck;
+    this.dataType = <TypeURL> existingType;
   }
 
-  protected getTypeError(typeToImplement: string): Error {
+  protected getTypeError(dataType: string, typeToCheck: LiteralTypes): Error {
     return new Error(
-      `TypeUrl '${this.dataType}' provided but expected a type implementing ${typeToImplement}`,
+      `TypeUrl '${dataType}' provided but expected a type implementing ${typeToCheck}.`,
     );
   }
 }
@@ -136,7 +140,7 @@ export class NumericLiteral extends TypeCheckedLiteral<number> {
     super(TypeAlias.SPARQL_NUMERIC, typedValue, dataType, strValue, language);
   }
 
-  private specificFormatterCreator(type: LiteralTypes): ((val: number) => string) {
+  private static specificFormatterCreator(type: LiteralTypes): ((val: number) => string) {
     if (isSubTypeOf(type, TypeURL.XSD_INTEGER)) {
       return value => value.toFixed(0);
     }
@@ -146,7 +150,8 @@ export class NumericLiteral extends TypeCheckedLiteral<number> {
     if (isSubTypeOf(type, TypeURL.XSD_FLOAT)) {
       return value => value.toString();
     }
-    // Since we checked on construction on this being a TypeAlias.SPARQL_NUMERIC. This can only be an TypeURL.XSD_DOUBLE
+    // Since we checked on this being a TypeAlias.SPARQL_NUMERIC in the constructor,
+    // this can only be a TypeURL.XSD_DOUBLE.
     // https://www.w3.org/TR/xmlschema-2/#double
     return value => {
       const jsExponential = value.toExponential();
@@ -169,7 +174,7 @@ export class NumericLiteral extends TypeCheckedLiteral<number> {
     return !!this.typedValue;
   }
 
-  public toRDF(): RDF.Term {
+  public toRDF(): RDF.Literal {
     const term = super.toRDF();
     if (!Number.isFinite(this.typedValue)) {
       term.value = term.value.replace('Infinity', 'INF');
@@ -179,7 +184,7 @@ export class NumericLiteral extends TypeCheckedLiteral<number> {
 
   public str(): string {
     return this.strValue ||
-      this.specificFormatterCreator(this.dataType)(this.typedValue);
+      NumericLiteral.specificFormatterCreator(this.dataType)(this.typedValue);
   }
 }
 
@@ -268,7 +273,7 @@ export class NonLexicalLiteral extends Literal<undefined> {
     throw new Err.EBVCoercionError(this);
   }
 
-  public toRDF(): RDF.Term {
+  public toRDF(): RDF.Literal {
     return DF.literal(
       this.str(),
       this.language || DF.namedNode(this.typeURL),

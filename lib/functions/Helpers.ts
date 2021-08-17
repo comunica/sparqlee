@@ -230,7 +230,7 @@ export function number(num: number, dt?: C.LiteralTypes): E.NumericLiteral {
   return new E.NumericLiteral(num, dt || TypeURL.XSD_FLOAT, undefined);
 }
 
-export function numberFromString(str: string, dt?: C.TypeURL): E.NumericLiteral {
+export function numberFromString(str: string, dt?: C.LiteralTypes): E.NumericLiteral {
   const num = Number(str);
   return new E.NumericLiteral(num, dt || TypeURL.XSD_FLOAT, undefined);
 }

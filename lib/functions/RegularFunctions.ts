@@ -38,14 +38,14 @@ const not = {
 const unaryPlus = {
   arity: 1,
   overloads: declare()
-    .onNumeric1(val => number(val.typedValue, <TypeURL> val.dataType))
+    .onNumeric1(val => number(val.typedValue, val.dataType))
     .collect(),
 };
 
 const unaryMinus = {
   arity: 1,
   overloads: declare()
-    .onNumeric1(val => number(-val.typedValue, <TypeURL> val.dataType))
+    .onNumeric1(val => number(-val.typedValue, val.dataType))
     .collect(),
 };
 
@@ -264,7 +264,6 @@ const STRDT = {
 };
 /**
  * https://www.w3.org/TR/sparql11-query/#func-strlang
- * This indeed expects a string as second argument and not an XSD_LANGUAGE.
  */
 const STRLANG = {
   arity: 2,
@@ -578,7 +577,7 @@ const abs = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.abs(num.typedValue), <C.TypeURL> num.dataType),
+      num => number(Math.abs(num.typedValue), num.dataType),
     )
     .collect(),
 };
@@ -590,7 +589,7 @@ const round = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.round(num.typedValue), <C.TypeURL> num.dataType),
+      num => number(Math.round(num.typedValue), num.dataType),
     )
     .collect(),
 };
@@ -602,7 +601,7 @@ const ceil = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.ceil(num.typedValue), <C.TypeURL> num.dataType),
+      num => number(Math.ceil(num.typedValue), num.dataType),
     )
     .collect(),
 };
@@ -614,7 +613,7 @@ const floor = {
   arity: 1,
   overloads: declare()
     .onNumeric1(
-      num => number(Math.floor(num.typedValue), <C.TypeURL> num.dataType),
+      num => number(Math.floor(num.typedValue), num.dataType),
     )
     .collect(),
 };
