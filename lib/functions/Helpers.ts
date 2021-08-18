@@ -141,7 +141,7 @@ export class Builder {
   }
 
   /**
-   * !!! Be aware when using this function, it will create different overloads with diffrent return types !!!
+   * !!! Be aware when using this function, it will create different overloads with different return types !!!
    * Arithmetic operators take 2 numeric arguments, and return a single numerical
    * value. The type of the return value is heavily dependant on the types of the
    * input arguments. In JS everything is a double, but in SPARQL it is not.
