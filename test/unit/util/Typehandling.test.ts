@@ -1,19 +1,33 @@
 import type { LiteralTypes } from '../../../lib/util/Consts';
 import { TypeAlias, TypeURL } from '../../../lib/util/Consts';
 import {
-  arithmeticWidening,
   isLiteralType,
   isOverrideType,
-  isSubTypeOf,
-  typeWidening,
+  isSubTypeOf, isTypeAlias,
 } from '../../../lib/util/TypeHandling';
 
 describe('TypeHandling', () => {
+  describe('has isTypeAlias function', () => {
+    it('can say yes', () => {
+      expect(
+        [ TypeAlias.SPARQL_NON_LEXICAL, TypeAlias.SPARQL_NUMERIC, TypeAlias.SPARQL_STRINGLY ]
+          .every(type => isTypeAlias(type)),
+      ).toBeTruthy();
+    });
+    it('can say no', () => {
+      expect(
+        [
+          '', 'apple', 'not a literal type', 'pear', 'term', TypeURL.XSD_INTEGER, TypeURL.XSD_DECIMAL,
+          TypeURL.XSD_BOOLEAN, TypeURL.XSD_DATE_TIME, TypeURL.XSD_DOUBLE, TypeURL.XSD_STRING,
+        ].every(type => !isTypeAlias(type)),
+      ).toBeTruthy();
+    });
+  });
   describe('has isLiteralType function', () => {
     it('can say yes', () => {
-      [ TypeURL.XSD_DECIMAL, TypeURL.XSD_DOUBLE, TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.RDF_LANG_STRING,
+      expect([ TypeURL.XSD_DECIMAL, TypeURL.XSD_DOUBLE, TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.RDF_LANG_STRING,
         TypeAlias.SPARQL_NUMERIC, TypeAlias.SPARQL_NON_LEXICAL, TypeAlias.SPARQL_NON_LEXICAL ]
-        .every(type => isLiteralType(type));
+        .every(type => isLiteralType(type))).toBeTruthy();
     });
     it('can say no', () => {
       [ '', 'apple', 'not a literal type', 'pear', 'term' ].every(type => !isLiteralType(type));
@@ -21,12 +35,12 @@ describe('TypeHandling', () => {
   });
   describe('has isOverrideType function', () => {
     it('can say yes', () => {
-      [ TypeURL.XSD_DECIMAL, TypeURL.XSD_DOUBLE, TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.RDF_LANG_STRING,
+      expect([ TypeURL.XSD_DECIMAL, TypeURL.XSD_DOUBLE, TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.RDF_LANG_STRING,
         TypeAlias.SPARQL_NUMERIC, TypeAlias.SPARQL_NON_LEXICAL, TypeAlias.SPARQL_NON_LEXICAL, 'term' ]
-        .every(type => isOverrideType(type));
+        .every(type => isOverrideType(type))).toBeTruthy();
     });
     it('can say no', () => {
-      [ '', 'apple', 'not a literal type', 'pear' ].every(type => !isOverrideType(type));
+      expect([ '', 'apple', 'not a literal type', 'pear' ].every(type => !isOverrideType(type))).toBeTruthy();
     });
   });
 
@@ -35,39 +49,14 @@ describe('TypeHandling', () => {
       const testArray: [string, LiteralTypes][] = [
         [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ], [ TypeURL.XSD_SHORT, TypeURL.XSD_INT ],
       ];
-      testArray.every(([ baseType, argumentType ]) => isSubTypeOf(baseType, argumentType));
+      expect(testArray.every(([ baseType, argumentType ]) => isSubTypeOf(baseType, argumentType))).toBeTruthy();
     });
     it('can say no', () => {
       const testArray: [string, LiteralTypes][] = [
         [ 'term', TypeAlias.SPARQL_NON_LEXICAL ], [ 'term', TypeURL.XSD_STRING ], [ 'banana', TypeURL.XSD_DOUBLE ],
         [ TypeURL.XSD_FLOAT, TypeURL.XSD_DOUBLE ],
       ];
-      testArray.every(([ baseType, argumentType ]) => !isSubTypeOf(baseType, argumentType));
-    });
-  });
-
-  describe('has typeWidening function', () => {
-    it('Throws error when not provided sufficient arguments', () => {
-      expect(() => typeWidening()).toThrow('at least 1 arg');
-    });
-
-    it('Doesnt widen when provided one arg', () => {
-      const type = TypeURL.XSD_STRING;
-      expect(typeWidening(type)).toEqual(type);
-    });
-  });
-
-  describe('has arithmeticWidening function', () => {
-    it('Throws error when provided wrong arguments', () => {
-      expect(() => arithmeticWidening(TypeURL.XSD_DATE_TIME, TypeURL.XSD_DOUBLE))
-        .toThrow('Non arithmetic types where provided');
-    });
-
-    it('Has weird widening rules', () => {
-      expect(arithmeticWidening(TypeURL.XSD_DOUBLE, TypeURL.XSD_FLOAT)).toEqual(TypeURL.XSD_DOUBLE);
-      expect(arithmeticWidening(TypeURL.XSD_FLOAT, TypeURL.XSD_DECIMAL)).toEqual(TypeURL.XSD_FLOAT);
-      expect(arithmeticWidening(TypeURL.XSD_INTEGER, TypeURL.XSD_DECIMAL)).toEqual(TypeURL.XSD_DECIMAL);
-      expect(arithmeticWidening(TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER)).toEqual(TypeURL.XSD_INTEGER);
+      expect(testArray.every(([ baseType, argumentType ]) => !isSubTypeOf(baseType, argumentType))).toBeTruthy();
     });
   });
 });

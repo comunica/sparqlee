@@ -15,6 +15,9 @@ export type SearchStack = OverloadTree[];
  */
 export class OverloadTree {
   private implementation?: E.SimpleApplication | undefined;
+  // We need this field. e.g. decimal decimal should be kept even when double double is added.
+  // We use promotion count to check priority.
+  private promotionCount?: number | undefined;
   private readonly subTrees: Record<ArgumentType, OverloadTree>;
   private readonly depth: number;
 
@@ -22,6 +25,7 @@ export class OverloadTree {
     this.implementation = undefined;
     this.subTrees = Object.create(null);
     this.depth = depth || 0;
+    this.promotionCount = undefined;
   }
 
   /**
@@ -78,40 +82,45 @@ export class OverloadTree {
    * @param func the implementation for this overload.
    */
   public addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication): void {
-    this._addOverload([ ...argumentTypes ], func);
+    this._addOverload([ ...argumentTypes ], func, 0);
   }
 
-  private _addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication): void {
+  private _addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication, promotionCount: number): void {
     const [ argumentType, ..._argumentTypes ] = argumentTypes;
     if (!argumentType) {
-      this.implementation = func;
+      if (this.promotionCount === undefined || promotionCount <= this.promotionCount) {
+        this.promotionCount = promotionCount;
+        this.implementation = func;
+      }
       return;
     }
     if (!this.subTrees[argumentType]) {
       this.subTrees[argumentType] = new OverloadTree(this.depth + 1);
     }
-    this.subTrees[argumentType]._addOverload(_argumentTypes, func);
+    this.subTrees[argumentType]._addOverload(_argumentTypes, func, promotionCount);
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
     // e.g. When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
     // TODO: When promoting decimal type a cast needs to be preformed.
     if (argumentType === TypeURL.XSD_STRING) {
-      this.addPromotedOverload(TypeURL.XSD_ANY_URI, func, arg => string(arg.str()), _argumentTypes);
+      this.addPromotedOverload(TypeURL.XSD_ANY_URI, func, arg =>
+        string(arg.str()), _argumentTypes, promotionCount);
     }
     // TODO: in case of decimal a round needs to happen.
     if (argumentType === TypeURL.XSD_DOUBLE) {
       this.addPromotedOverload(TypeURL.XSD_FLOAT, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes, promotionCount);
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes);
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes, promotionCount);
     }
     if (argumentType === TypeURL.XSD_FLOAT) {
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_FLOAT), _argumentTypes);
+        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_FLOAT), _argumentTypes, promotionCount);
     }
   }
 
   private addPromotedOverload(typeToPromote: ArgumentType, func: E.SimpleApplication,
-    conversionFunction: (arg: E.TermExpression) => E.TermExpression, argumentTypes: ArgumentType[]): void {
+    conversionFunction: (arg: E.TermExpression) => E.TermExpression, argumentTypes: ArgumentType[],
+    promotionCount: number): void {
     if (!this.subTrees[typeToPromote]) {
       this.subTrees[typeToPromote] = new OverloadTree(this.depth + 1);
     }
@@ -119,7 +128,7 @@ export class OverloadTree {
       ...args.slice(0, this.depth),
       conversionFunction(args[this.depth]),
       ...args.slice(this.depth + 1, args.length),
-    ]));
+    ]), promotionCount + 1);
   }
 
   /**
