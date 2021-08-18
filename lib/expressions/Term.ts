@@ -98,7 +98,7 @@ export class Literal<T> extends Term {
   }
 
   public str(): string {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+    // @ts-expect-error TS2339
     return this.strValue || this.typedValue.toString();
   }
 }
@@ -229,7 +229,7 @@ export class LangStringLiteral extends Literal<string> {
   }
 
   public coerceEBV(): boolean {
-    return this.strValue.length > 0;
+    return this.str().length > 0;
   }
 }
 
@@ -247,7 +247,7 @@ export class StringLiteral extends Literal<string> {
   }
 
   public coerceEBV(): boolean {
-    return this.strValue.length > 0;
+    return this.str().length > 0;
   }
 }
 
@@ -299,7 +299,7 @@ export class NonLexicalLiteral extends Literal<undefined> {
   }
 
   public str(): string {
-    return this.strValue;
+    return this.strValue || '';
   }
 }
 

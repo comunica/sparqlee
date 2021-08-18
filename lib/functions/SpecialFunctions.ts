@@ -253,7 +253,11 @@ async function inRecursiveAsync(
   }
 
   try {
-    const next = await evaluate(args.shift(), mapping);
+    const nextExpression = args.shift();
+    if (!nextExpression) {
+      throw new Error('Create to catch');
+    }
+    const next = await evaluate(nextExpression, mapping);
     const isEqual = regularFunctions[C.RegularOperator.EQUAL];
     if ((<E.BooleanLiteral> isEqual.apply([ needle, next ], context)).typedValue) {
       return bool(true);
@@ -279,7 +283,11 @@ function inRecursiveSync(
   }
 
   try {
-    const next = evaluate(args.shift(), mapping);
+    const nextExpression = args.shift();
+    if (!nextExpression) {
+      throw new Error('Create to catch');
+    }
+    const next = evaluate(nextExpression, mapping);
     const isEqual = regularFunctions[C.RegularOperator.EQUAL];
     if ((<E.BooleanLiteral> isEqual.apply([ needle, next ], context)).typedValue) {
       return bool(true);

@@ -46,7 +46,7 @@ async function testCase({ expr, input, throwError, evalTogether }: TestCaseArgs)
     }
     throw new Error(message);
   }
-  return results[0];
+  return results[0]!;
 }
 
 function makeAggregate(aggregator: string, distinct = false, separator?: string):

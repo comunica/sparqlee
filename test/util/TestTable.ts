@@ -189,7 +189,9 @@ abstract class TableParser<RowType extends Row> {
   public readonly errorTable: RowType[];
 
   public constructor(table?: string, errTable?: string) {
-    this.table = table ? this.splitTable(table).map(row => this.parseRow(row)) : [];
+    this.table = table ?
+      this.splitTable(table).map(row => this.parseRow(row)) :
+      [];
     this.errorTable = (errTable) ?
       this.splitTable(errTable).map(r => this.parseRow(r)) :
       [];
@@ -207,16 +209,24 @@ abstract class TableParser<RowType extends Row> {
 class VariableTableParser extends TableParser<string[]> {
   protected parseRow(row: string): string[] {
     row = row.trim().replace(/ +/ug, ' ');
-    return row.match(/([^\s']+|'[^']*')+/ug).filter(str => str !== '=')
-      .map(i => i.replace(/'([^']*)'/u, '$1'));
+    const match = row.match(/([^\s']+|'[^']*')+/ug)?.filter(str => str !== '=')
+      ?.map(i => i.replace(/'([^']*)'/u, '$1'));
+    if (match === undefined) {
+      throw new Error(`Could not parse row: ${row}.`);
+    }
+    return match;
   }
 }
 
 class BinaryTableParser extends TableParser<[string, string, string]> {
   protected parseRow(row: string): [string, string, string] {
     row = row.trim().replace(/ +/ug, ' ');
-    const [ left, right, _, result ] = row.match(/([^\s']+|'[^']*')+/ug)
-      .map(i => i.replace(/'([^']*)'/u, '$1'));
+    const matched = row.match(/([^\s']+|'[^']*')+/ug)
+      ?.map(i => i.replace(/'([^']*)'/u, '$1'));
+    if (matched === undefined) {
+      throw new Error(`Could not parse row: ${row}.`);
+    }
+    const [ left, right, _, result ] = matched;
     return [ left, right, result ];
   }
 }
@@ -225,8 +235,12 @@ class UnaryTableParser extends TableParser<[string, string]> {
   protected parseRow(row: string): [string, string] {
     // Trim whitespace and remove double spaces
     row = row.trim().replace(/ +/ug, ' ');
-    const [ arg, _, result ] = row.match(/([^\s']+|'[^']*')+/ug)
-      .map(i => i.replace(/'([^']*)'/u, '$1'));
+    const matched = row.match(/([^\s']+|'[^']*')+/ug)
+      ?.map(i => i.replace(/'([^']*)'/u, '$1'));
+    if (matched === undefined) {
+      throw new Error(`Could not parse row: ${row}.`);
+    }
+    const [ arg, _, result ] = matched;
     return [ arg, result ];
   }
 }
