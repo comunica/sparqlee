@@ -1,11 +1,12 @@
 import type * as RDF from '@rdfjs/types';
+import * as LRUCache from 'lru-cache';
 import type { Algebra as Alg } from 'sparqlalgebrajs';
 
 import type * as E from '../expressions/Expressions';
 
 import { transformAlgebra } from '../Transformation';
 import type { Bindings, IExpressionEvaluator } from '../Types';
-
+import type { IOpenWorldTyping } from '../util/TypeHandling';
 import { AsyncRecursiveEvaluator } from './RecursiveExpressionEvaluator';
 
 type Expression = E.Expression;
@@ -22,7 +23,15 @@ export interface IAsyncEvaluatorConfig {
   aggregate?: (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
   bnode?: (input?: string) => Promise<RDF.BlankNode>;
   extensionFunctionCreator?: AsyncExtensionFunctionCreator;
+  overloadCache?: LRUCache<string, string>;
+  typeCache?: LRUCache<string, string>;
+  typeDiscoveryCallback?: (unknownType: string) => string;
 }
+const baseCacheOptions: LRUCache.Options<string, string> = {
+  length(value: string, key?: string): number {
+    return value.length;
+  },
+};
 
 export type AsyncEvaluatorContext = IAsyncEvaluatorConfig & {
   now: Date;
@@ -44,7 +53,12 @@ export class AsyncEvaluator {
     const extensionFunctionCreator: AsyncExtensionFunctionCreator =
       // eslint-disable-next-line unicorn/no-useless-undefined
       config.extensionFunctionCreator || (() => undefined);
-    this.expr = transformAlgebra(algExpr, { type: 'async', creator: extensionFunctionCreator });
+    const overloadCache = config.overloadCache || new LRUCache(baseCacheOptions);
+    const openWorldTyping: IOpenWorldTyping = {
+      cache: config.typeCache || new LRUCache(baseCacheOptions),
+      discoverer: config.typeDiscoveryCallback || (() => 'term'),
+    };
+    this.expr = transformAlgebra(algExpr, { type: 'async', creator: extensionFunctionCreator }, openWorldTyping);
 
     this.evaluator = new AsyncRecursiveEvaluator(context);
   }

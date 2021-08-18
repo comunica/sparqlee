@@ -1,12 +1,14 @@
 import type * as RDF from '@rdfjs/types';
 import type * as T from '../expressions/Term';
 import { transformLiteral } from '../Transformation';
+import {IOpenWorldTyping} from "./TypeHandling";
 
 // Determine the relative numerical order of the two given terms.
-export function orderTypes(litA: RDF.Term | undefined, litB: RDF.Term | undefined, isAscending: boolean): -1 | 0 | 1 {
+export function orderTypes(litA: RDF.Term | undefined, litB: RDF.Term | undefined, isAscending: boolean,
+  openWorldType: IOpenWorldTyping): -1 | 0 | 1 {
   if (litA && litA.termType === 'Literal' && litB && litB.termType === 'Literal') {
-    const myLitA = transformLiteral(litA);
-    const myLitB = transformLiteral(litB);
+    const myLitA = transformLiteral(litA, openWorldType);
+    const myLitB = transformLiteral(litB, openWorldType);
     return order(myLitA, myLitB, isAscending);
   }
   return 0;

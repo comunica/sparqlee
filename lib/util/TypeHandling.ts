@@ -1,5 +1,6 @@
-import type { LiteralTypes } from './Consts';
-import { TypeAlias, TypeURL } from './Consts';
+import type {LiteralTypes} from './Consts';
+import {TypeAlias, TypeURL} from './Consts';
+import * as LRUCache from "lru-cache";
 
 export type OverrideType = LiteralTypes | 'term';
 
@@ -134,13 +135,20 @@ export function isOverrideType(type: string): OverrideType | undefined {
   return undefined;
 }
 
+export interface IOpenWorldTyping {
+  cache: LRUCache<string, string>;
+  // Super type discoverer
+  discoverer: (unknownType: string) => string;
+}
+
 /**
  * This function needs do be O(1) at all times! The execution time of this function is vital!
  * We define typeA isSubtypeOf typeA as true.
  * @param baseType type you want to provide.
  * @param argumentType type you want to provide @param baseType to.
+ * @param openWorldType
  */
-export function isSubTypeOf(baseType: string, argumentType: LiteralTypes): boolean {
+export function isSubTypeOf(baseType: string, argumentType: LiteralTypes, openWorldType: IOpenWorldTyping): boolean {
   const type: OverrideType | undefined = isOverrideType(baseType);
   if (!type) {
     return false;

@@ -249,18 +249,22 @@ const datatype = {
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-strdt
+ * TODO: kan dit anders?
  */
 const STRDT = {
   arity: 2,
-  overloads: declare()
-    .onBinary(
-      [ TypeURL.XSD_STRING, 'namedNode' ],
-      (str: E.StringLiteral, iri: E.NamedNode) => {
-        const lit = DF.literal(str.typedValue, DF.namedNode(iri.value));
-        return transformLiteral(lit);
-      },
-    )
-    .collect(),
+  overloads: (() => {
+    const builder = declare();
+    return builder
+      .onBinary(
+        [ TypeURL.XSD_STRING, 'namedNode' ],
+        (str: E.StringLiteral, iri: E.NamedNode) => {
+          const lit = DF.literal(str.typedValue, DF.namedNode(iri.value));
+          return transformLiteral(lit, builder.getOpenWorldTypeCallBack()());
+        },
+      )
+      .collect();
+  })(),
 };
 /**
  * https://www.w3.org/TR/sparql11-query/#func-strlang

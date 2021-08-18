@@ -5,7 +5,7 @@ import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import { isSubTypeOf, isTypeAlias } from '../util/TypeHandling';
+import {IOpenWorldTyping, isSubTypeOf, isTypeAlias} from '../util/TypeHandling';
 import type { TermExpression, TermType } from './Expressions';
 import { ExpressionType } from './Expressions';
 
@@ -80,10 +80,12 @@ export class Literal<T> extends Term {
    * @param dataType a string representing the datatype. Can be of type @see LiteralTypes or any URI
    * @param strValue the string value of this literal. In other words, the string representing the RDF.literal value.
    * @param language the language, mainly for language enabled strings like RDF_LANG_STRING
+   * @param openWorldType
    */
   public constructor(
     public typedValue: T,
     public dataType: string,
+    protected openWorldType: IOpenWorldTyping,
     public strValue?: string,
     public language?: string,
   ) {
@@ -111,13 +113,14 @@ class TypeCheckedLiteral<T> extends Literal<T> {
   public constructor(
     typeToCheck: LiteralTypes,
     public typedValue: T,
+    protected openWorldType: IOpenWorldTyping,
     dataType?: string,
     public strValue?: string,
     public language?: string,
   ) {
-    super(typedValue, dataType || typeToCheck, strValue, language);
+    super(typedValue, dataType || typeToCheck, openWorldType, strValue, language);
     const existingType = dataType || typeToCheck;
-    if (isTypeAlias(existingType) || !isSubTypeOf(existingType, typeToCheck)) {
+    if (isTypeAlias(existingType) || !isSubTypeOf(existingType, typeToCheck, openWorldType)) {
       throw this.getTypeError(typeToCheck, typeToCheck);
     }
     this.dataType = <TypeURL> existingType;
@@ -134,20 +137,21 @@ export class NumericLiteral extends TypeCheckedLiteral<number> {
   public constructor(
     public typedValue: number,
     dataType: string,
+    protected openWorldType: IOpenWorldTyping,
     public strValue?: string,
     public language?: string,
   ) {
-    super(TypeAlias.SPARQL_NUMERIC, typedValue, dataType, strValue, language);
+    super(TypeAlias.SPARQL_NUMERIC, typedValue, openWorldType, dataType, strValue, language);
   }
 
-  private static specificFormatterCreator(type: LiteralTypes): ((val: number) => string) {
-    if (isSubTypeOf(type, TypeURL.XSD_INTEGER)) {
+  private specificFormatterCreator(type: LiteralTypes): ((val: number) => string) {
+    if (isSubTypeOf(type, TypeURL.XSD_INTEGER, this.openWorldType)) {
       return value => value.toFixed(0);
     }
-    if (isSubTypeOf(type, TypeURL.XSD_DECIMAL)) {
+    if (isSubTypeOf(type, TypeURL.XSD_DECIMAL, this.openWorldType)) {
       return value => value.toString();
     }
-    if (isSubTypeOf(type, TypeURL.XSD_FLOAT)) {
+    if (isSubTypeOf(type, TypeURL.XSD_FLOAT, this.openWorldType)) {
       return value => value.toString();
     }
     // Since we checked on this being a TypeAlias.SPARQL_NUMERIC in the constructor,
@@ -184,13 +188,14 @@ export class NumericLiteral extends TypeCheckedLiteral<number> {
 
   public str(): string {
     return this.strValue ||
-      NumericLiteral.specificFormatterCreator(this.dataType)(this.typedValue);
+      this.specificFormatterCreator(this.dataType)(this.typedValue);
   }
 }
 
 export class BooleanLiteral extends TypeCheckedLiteral<boolean> {
-  public constructor(public typedValue: boolean, public strValue?: string, dataType?: string) {
-    super(C.TypeURL.XSD_BOOLEAN, typedValue, dataType, strValue);
+  public constructor(public typedValue: boolean, protected openWorldType: IOpenWorldTyping,
+    public strValue?: string, dataType?: string) {
+    super(C.TypeURL.XSD_BOOLEAN, typedValue, openWorldType, dataType, strValue);
   }
 
   public coerceEBV(): boolean {
@@ -201,14 +206,16 @@ export class BooleanLiteral extends TypeCheckedLiteral<boolean> {
 export class DateTimeLiteral extends TypeCheckedLiteral<Date> {
   // StrValue is mandatory here because toISOString will always add
   // milliseconds, even if they were not present.
-  public constructor(public typedValue: Date, public strValue: string, dataType?: string) {
-    super(C.TypeURL.XSD_DATE_TIME, typedValue, dataType, strValue);
+  public constructor(public typedValue: Date, public strValue: string, protected openWorldType: IOpenWorldTyping,
+    dataType?: string) {
+    super(C.TypeURL.XSD_DATE_TIME, typedValue, openWorldType, dataType, strValue);
   }
 }
 
 export class LangStringLiteral extends TypeCheckedLiteral<string> {
-  public constructor(public typedValue: string, public language: string, dataType?: string) {
-    super(C.TypeURL.RDF_LANG_STRING, typedValue, dataType, typedValue, language);
+  public constructor(public typedValue: string, public language: string, protected openWorldType: IOpenWorldTyping,
+    dataType?: string) {
+    super(C.TypeURL.RDF_LANG_STRING, typedValue, openWorldType, dataType, typedValue, language);
   }
 
   public coerceEBV(): boolean {
@@ -265,8 +272,8 @@ export class NonLexicalLiteral extends Literal<undefined> {
 
   public coerceEBV(): boolean {
     const isNumericOrBool =
-      isSubTypeOf(this.typeURL, TypeURL.XSD_BOOLEAN) ||
-      isSubTypeOf(this.typeURL, TypeAlias.SPARQL_NUMERIC);
+      isSubTypeOf(this.typeURL, TypeURL.XSD_BOOLEAN, openWorldType) ||
+      isSubTypeOf(this.typeURL, TypeAlias.SPARQL_NUMERIC, openWorldType);
     if (isNumericOrBool) {
       return false;
     }

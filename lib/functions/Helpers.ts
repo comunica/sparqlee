@@ -9,6 +9,7 @@ import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import type { ArgumentType } from './Core';
 import { OverloadTree } from './OverloadTree';
+import {IOpenWorldTyping} from "../util/TypeHandling";
 
 type Term = E.TermExpression;
 
@@ -23,6 +24,10 @@ export class Builder {
   public constructor() {
     this.overloadTree = new OverloadTree();
     this.collected = false;
+  }
+
+  public getOpenWorldTypeCallBack(): () => IOpenWorldTyping {
+    return this.overloadTree.getOpenWorldTypeCallBack();
   }
 
   public collect(): OverloadTree {

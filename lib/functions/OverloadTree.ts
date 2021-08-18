@@ -2,10 +2,11 @@ import type * as E from '../expressions';
 import { isLiteralTermExpression } from '../expressions';
 import type { LiteralTypes } from '../util/Consts';
 import { TypeURL } from '../util/Consts';
-import type { OverrideType } from '../util/TypeHandling';
+import type {IOpenWorldTyping, OverrideType} from '../util/TypeHandling';
 import { extensionTable, isLiteralType } from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
 import { number, string } from './Helpers';
+import * as LRUCache from "lru-cache";
 
 export type SearchStack = OverloadTree[];
 
@@ -28,6 +29,10 @@ export class OverloadTree {
     this.promotionCount = undefined;
   }
 
+  public getOpenWorldTypeCallBack(): () => IOpenWorldTyping {
+    return undefined;
+  }
+
   /**
    * Get the implementation for the types that exactly match @param args .
    */
@@ -45,9 +50,14 @@ export class OverloadTree {
 
   /**
    * Searches in a depth first way for the best matching overload. considering this a the tree's root.
-   * @param args
+   * @param args:
+   * @param overloadCache
+   * @param typeCache
+   * @param typeDiscoveryCallback
    */
-  public search(args: E.TermExpression[]): E.SimpleApplication | undefined {
+  public search(args: E.TermExpression[], overloadCache?: LRUCache<string, string>,
+    typeCache?: LRUCache<string, string>, typeDiscoveryCallback?: (unknownType: string) => string):
+    E.SimpleApplication | undefined {
     // SearchStack is a stack of all node's that need to be checked for implementation.
     // It provides an easy way to keep order in our search.
     const searchStack: { node: OverloadTree; index: number }[] = [];
