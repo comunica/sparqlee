@@ -3,11 +3,10 @@
  * definitions for the SPARQL functions.
  */
 import * as E from '../expressions';
+import type { Literal } from '../expressions';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-
-import { arithmeticWidening } from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
 import { OverloadTree } from './OverloadTree';
 
@@ -142,20 +141,27 @@ export class Builder {
   }
 
   /**
+   * !!! Be aware when using this function, it will create different overloads with diffrent return types !!!
    * Arithmetic operators take 2 numeric arguments, and return a single numerical
    * value. The type of the return value is heavily dependant on the types of the
    * input arguments. In JS everything is a double, but in SPARQL it is not.
    *
-   * {@link https://www.w3.org/TR/sparql11-query/#OperatorMapping}
-   * {@link https://www.w3.org/TR/xpath-functions/#op.numeric}
-   *
-   * @param op the (simple) binary mathematical operator that
+   * The different arguments are handled by type promotion and subtype substitution.
+   * The way numeric function arguments work is described here:
+   * https://www.w3.org/TR/xpath20/#mapping
+   * Above url is referenced in the sparql spec: https://www.w3.org/TR/sparql11-query/#OperatorMapping
    */
   public arithmetic(op: (left: number, right: number) => number): Builder {
-    return this.numeric(([ left, right ]: E.NumericLiteral[]) => {
-      const resultType = arithmeticWidening(left.dataType, right.dataType);
-      return number(op(left.typedValue, right.typedValue), resultType);
-    });
+    const evalHelper = (left: Term, right: Term): number =>
+      op((<Literal<number>>left).typedValue, (<Literal<number>>right).typedValue);
+    return this.onBinary([ TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ], (left, right) =>
+      number(evalHelper(left, right), TypeURL.XSD_INTEGER))
+      .onBinary([ TypeURL.XSD_DECIMAL, TypeURL.XSD_DECIMAL ], (left, right) =>
+        number(evalHelper(left, right), TypeURL.XSD_DECIMAL))
+      .onBinary([ TypeURL.XSD_FLOAT, TypeURL.XSD_FLOAT ], (left, right) =>
+        number(evalHelper(left, right), TypeURL.XSD_FLOAT))
+      .onBinary([ TypeURL.XSD_DOUBLE, TypeURL.XSD_DOUBLE ], (left, right) =>
+        number(evalHelper(left, right), TypeURL.XSD_DOUBLE));
   }
 
   public numberTest(test: (left: number, right: number) => boolean): Builder {
