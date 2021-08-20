@@ -59,7 +59,7 @@ export function runTestTable(arg: TestTableConfig): void {
 export function getDefaultFunctionContext(): IFunctionContext {
   return {
     now: new Date(),
-    openWorldType: {
+    openWorldEnabler: {
       cache: new LRUCache(),
       discoverer: () => 'term',
     },

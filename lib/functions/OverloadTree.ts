@@ -3,7 +3,7 @@ import type * as E from '../expressions';
 import { isLiteralTermExpression } from '../expressions';
 import type { KnownLiteralTypes } from '../util/Consts';
 import { TypeURL } from '../util/Consts';
-import type { IOpenWorldTyping, OverrideType,
+import type { IOpenWorldEnabler, OverrideType,
   GeneralSubExtensionTable } from '../util/TypeHandling';
 import {
   extensionTable,
@@ -63,7 +63,7 @@ export class OverloadTree {
    * @param overloadCache
    * @param openWorldType
    */
-  public search(args: E.TermExpression[], openWorldType: IOpenWorldTyping,
+  public search(args: E.TermExpression[], openWorldType: IOpenWorldEnabler,
     overloadCache?: OverLoadCache): ImplementationFunction | undefined {
     const identifier = this.getOverloadCacheIdentifier(args);
     if (overloadCache?.has(identifier)) {
@@ -158,7 +158,7 @@ export class OverloadTree {
    * @param arg term to try and match to possible overloads of this node.
    * @returns SearchStack a stack with top element the next node that should be asked for implementation or overload.
    */
-  private getSubTreeWithArg(arg: E.TermExpression, openWorldType: IOpenWorldTyping): SearchStack {
+  private getSubTreeWithArg(arg: E.TermExpression, openWorldType: IOpenWorldEnabler): SearchStack {
     const res: SearchStack = [];
     const literalExpression = isLiteralTermExpression(arg);
     // These types refer to Type exported by lib/util/Consts.ts

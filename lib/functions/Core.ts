@@ -3,11 +3,11 @@ import type * as E from '../expressions';
 import type { Bindings } from '../Types';
 import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
-import type { IOpenWorldTyping } from '../util/TypeHandling';
+import type { IOpenWorldEnabler } from '../util/TypeHandling';
 import type { ImplementationFunction, OverLoadCache, OverloadTree } from './OverloadTree';
 
 export interface IFunctionContext {
-  openWorldType: IOpenWorldTyping;
+  openWorldEnabler: IOpenWorldEnabler;
   now: Date;
   baseIRI?: string;
 }
@@ -76,7 +76,7 @@ export abstract class BaseFunction<Operator> {
   private monomorph(args: E.TermExpression[], applyConfig: IApplyFunctionContext): ImplementationFunction | undefined {
     return this.overloads.search(
       args,
-      applyConfig.functionContext.openWorldType,
+      applyConfig.functionContext.openWorldEnabler,
       applyConfig.overloadCache,
     );
   }

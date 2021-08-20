@@ -28,7 +28,7 @@ export class SyncEvaluator {
       baseIRI: config.baseIRI || undefined,
       overloadCache: config.overloadCache,
       typeCache: config.typeCache || new LRUCache(),
-      typeDiscoveryCallback: config.typeDiscoveryCallback || (() => 'term'),
+      superTypeDiscoverCallback: config.superTypeDiscoverCallback || (() => 'term'),
       exists: config.exists,
       aggregate: config.aggregate,
       bnode: config.bnode,

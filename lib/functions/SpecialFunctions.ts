@@ -334,7 +334,7 @@ const concat: ISpecialDefinition = {
     const pLits: Promise<E.Literal<string>>[] = args
       .map(async expr => evaluate(expr, mapping))
       .map(async pTerm => {
-        const operation = concatTree.search([ await pTerm ], functionContext.openWorldType, overloadCache);
+        const operation = concatTree.search([ await pTerm ], functionContext.openWorldEnabler, overloadCache);
         if (!operation) {
           throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.CONCAT);
         }
@@ -352,7 +352,7 @@ const concat: ISpecialDefinition = {
     const lits = args
       .map(expr => evaluate(expr, mapping))
       .map(pTerm => {
-        const operation = concatTree.search([ pTerm ], functionContext.openWorldType, overloadCache);
+        const operation = concatTree.search([ pTerm ], functionContext.openWorldEnabler, overloadCache);
         if (!operation) {
           throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.CONCAT);
         }
@@ -397,7 +397,7 @@ const BNODE: ISpecialDefinition = {
 
     let strInput: string | undefined;
     if (input) {
-      const operation = bnodeTree.search([ input ], functionContext.openWorldType, overloadCache);
+      const operation = bnodeTree.search([ input ], functionContext.openWorldEnabler, overloadCache);
       if (!operation) {
         throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.BNODE);
       }
@@ -420,7 +420,7 @@ const BNODE: ISpecialDefinition = {
 
     let strInput: string | undefined;
     if (input) {
-      const operation = bnodeTree.search([ input ], functionContext.openWorldType, overloadCache);
+      const operation = bnodeTree.search([ input ], functionContext.openWorldEnabler, overloadCache);
       if (!operation) {
         throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.BNODE);
       }

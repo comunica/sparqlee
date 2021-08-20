@@ -10,14 +10,14 @@ export class AggregateEvaluator extends BaseAggregateEvaluator {
   private readonly evaluator: SyncEvaluator;
 
   private static getApplyFunctionConfig(config: ISyncEvaluatorConfig): IApplyFunctionContext {
-    const { now, baseIRI, overloadCache, typeCache, typeDiscoveryCallback } =
+    const { now, baseIRI, overloadCache, typeCache, superTypeDiscoverCallback } =
       SyncEvaluator.setDefaultsFromConfig(config);
     return {
       functionContext: {
         now,
         baseIRI,
-        openWorldType: { cache: typeCache,
-          discoverer: typeDiscoveryCallback },
+        openWorldEnabler: { cache: typeCache,
+          discoverer: superTypeDiscoverCallback },
       },
       overloadCache,
     };

@@ -73,7 +73,7 @@ type ExtensionTable = Record<KnownLiteralTypes, SubExtensionTable>;
 export type GeneralSubExtensionTable = Record<string, number> & { __depth: number };
 export let extensionTable: ExtensionTable;
 
-export function getOpenWorldSubExtension(type: string, openWorldType: IOpenWorldTyping): GeneralSubExtensionTable {
+export function getOpenWorldSubExtension(type: string, openWorldType: IOpenWorldEnabler): GeneralSubExtensionTable {
   const cached = openWorldType.cache.get(type);
   if (cached) {
     return cached;
@@ -159,9 +159,8 @@ export function isOverrideType(type: string): OverrideType | undefined {
 
 export type TypeCache = LRUCache<string, GeneralSubExtensionTable>;
 export type SuperTypeDiscoverCallback = (unknownType: string) => string;
-export interface IOpenWorldTyping {
+export interface IOpenWorldEnabler {
   cache: TypeCache;
-  // Super type discoverer
   discoverer: SuperTypeDiscoverCallback;
 }
 
@@ -178,7 +177,7 @@ export function internalIsSubType(baseType: OverrideType, argumentType: KnownLit
  * @param openWorldType
  */
 export function isSubTypeOf(baseType: string, argumentType: KnownLiteralTypes,
-  openWorldType: IOpenWorldTyping): boolean {
+  openWorldType: IOpenWorldEnabler): boolean {
   const concreteType: OverrideType | undefined = isOverrideType(baseType);
   let subExtensionTable: GeneralSubExtensionTable;
   if (concreteType === 'term' || baseType === 'term') {

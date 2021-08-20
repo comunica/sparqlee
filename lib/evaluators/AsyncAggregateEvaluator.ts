@@ -10,14 +10,14 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator {
   private errorOccurred: boolean;
 
   private static getApplyFunctionConfig(config: IAsyncEvaluatorConfig): IApplyFunctionContext {
-    const { now, baseIRI, overloadCache, typeCache, typeDiscoveryCallback } =
+    const { now, baseIRI, overloadCache, typeCache, superTypeDiscoverCallback } =
       AsyncEvaluator.setDefaultsFromConfig(config);
     return {
       functionContext: {
         now,
         baseIRI,
-        openWorldType: { cache: typeCache,
-          discoverer: typeDiscoveryCallback },
+        openWorldEnabler: { cache: typeCache,
+          discoverer: superTypeDiscoverCallback },
       },
       overloadCache,
     };

@@ -28,9 +28,9 @@ export class AlgebraTransformer extends TermTransformer implements IAlgebraTrans
   private readonly overloadCache: OverLoadCache;
   private readonly applyContext: IApplyFunctionContext;
   public constructor(algebraConfig: AlgebraTransformConfig) {
-    super({ discoverer: algebraConfig.typeDiscoveryCallback, cache: algebraConfig.typeCache });
+    super({ discoverer: algebraConfig.superTypeDiscoverCallback, cache: algebraConfig.typeCache });
     this.funcContext = {
-      openWorldType: this.openWorldType,
+      openWorldEnabler: this.openWorldType,
       baseIRI: algebraConfig.baseIRI,
       now: algebraConfig.now,
     };

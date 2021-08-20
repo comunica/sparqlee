@@ -270,9 +270,9 @@ const STRDT = {
   arity: 2,
   overloads: declare(C.RegularOperator.STRDT).set(
     [ TypeURL.XSD_STRING, 'namedNode' ],
-    ({ openWorldType }) => ([ str, iri ]: [E.StringLiteral, E.NamedNode]) => {
+    ({ openWorldEnabler }) => ([ str, iri ]: [E.StringLiteral, E.NamedNode]) => {
       const lit = DF.literal(str.typedValue, DF.namedNode(iri.value));
-      return new TermTransformer(openWorldType).transformLiteral(lit);
+      return new TermTransformer(openWorldEnabler).transformLiteral(lit);
     },
   ).collect(),
 };

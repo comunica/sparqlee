@@ -7,7 +7,7 @@ import type { ITermTransformer } from '../../transformers/TermTransformer';
 import { TermTransformer } from '../../transformers/TermTransformer';
 import type { Bindings, IExpressionEvaluator } from '../../Types';
 import * as Err from '../../util/Errors';
-import type { IOpenWorldTyping } from '../../util/TypeHandling';
+import type { IOpenWorldEnabler } from '../../util/TypeHandling';
 import type { AsyncExtensionFunctionCreator } from '../AsyncEvaluator';
 import { BaseExpressionEvaluator } from './BaseExpressionEvaluator';
 import type { ICompleteSharedConfig } from './BaseExpressionEvaluator';
@@ -21,7 +21,7 @@ export interface ICompleteAsyncEvaluatorConfig extends ICompleteSharedConfig {
 
 export class AsyncRecursiveEvaluator extends BaseExpressionEvaluator
   implements IExpressionEvaluator<E.Expression, Promise<E.Term>> {
-  protected openWorldType: IOpenWorldTyping;
+  protected openWorldType: IOpenWorldEnabler;
   private readonly subEvaluators: Record<string, (expr: E.Expression, mapping: Bindings) =>
   Promise<E.Term> | E.Term> = {
     // Shared
@@ -39,11 +39,11 @@ export class AsyncRecursiveEvaluator extends BaseExpressionEvaluator
 
   public constructor(private readonly context: ICompleteAsyncEvaluatorConfig, termTransformer?: ITermTransformer) {
     super(termTransformer || new TermTransformer({
-      discoverer: context.typeDiscoveryCallback,
+      discoverer: context.superTypeDiscoverCallback,
       cache: context.typeCache,
     }));
     this.openWorldType = {
-      discoverer: context.typeDiscoveryCallback,
+      discoverer: context.superTypeDiscoverCallback,
       cache: context.typeCache,
     };
   }
@@ -71,7 +71,7 @@ export class AsyncRecursiveEvaluator extends BaseExpressionEvaluator
       functionContext: {
         now: this.context.now,
         baseIRI: this.context.baseIRI,
-        openWorldType: this.openWorldType,
+        openWorldEnabler: this.openWorldType,
       },
       bnode: this.context.bnode,
       overloadCache: this.context.overloadCache,

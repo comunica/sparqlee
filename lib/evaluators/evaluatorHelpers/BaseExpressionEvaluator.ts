@@ -10,7 +10,7 @@ export interface ISharedConfig {
   baseIRI?: string;
   overloadCache?: OverLoadCache;
   typeCache?: TypeCache;
-  typeDiscoveryCallback?: SuperTypeDiscoverCallback;
+  superTypeDiscoverCallback?: SuperTypeDiscoverCallback;
 }
 
 export interface ICompleteSharedConfig {
@@ -18,7 +18,7 @@ export interface ICompleteSharedConfig {
   baseIRI?: string;
   overloadCache?: OverLoadCache;
   typeCache: TypeCache;
-  typeDiscoveryCallback: SuperTypeDiscoverCallback;
+  superTypeDiscoverCallback: SuperTypeDiscoverCallback;
 }
 
 export class BaseExpressionEvaluator {

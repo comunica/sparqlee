@@ -6,7 +6,7 @@ import { TypeURL as DT, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { isSubTypeOf } from '../util/TypeHandling';
-import type { IOpenWorldTyping } from '../util/TypeHandling';
+import type { IOpenWorldEnabler } from '../util/TypeHandling';
 
 export interface ITermTransformer {
   transformRDFTermUnsafe: (term: RDF.Term) => E.Term;
@@ -14,7 +14,7 @@ export interface ITermTransformer {
 }
 
 export class TermTransformer implements ITermTransformer {
-  public constructor(protected readonly openWorldType: IOpenWorldTyping) {
+  public constructor(protected readonly openWorldType: IOpenWorldEnabler) {
   }
 
   /**

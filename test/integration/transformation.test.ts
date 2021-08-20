@@ -28,7 +28,7 @@ const DF = new DataFactory();
 describe('transformations', () => {
   let termTransformer: ITermTransformer;
   beforeEach(() => {
-    termTransformer = new TermTransformer(getDefaultFunctionContext().openWorldType);
+    termTransformer = new TermTransformer(getDefaultFunctionContext().openWorldEnabler);
   });
 
   function simpleLiteralCreator(value: string, dataType?: string, language?: string): RDF.Literal {

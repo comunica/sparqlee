@@ -29,14 +29,14 @@ describe('The function helper file', () => {
       const func = fn();
       const args = [ bool(true) ];
       builder.onUnaryTyped(TypeURL.XSD_BOOLEAN, () => func).collect()
-        .search(args, functionConfig.openWorldType)(functionConfig)(args);
+        .search(args, functionConfig.openWorldEnabler)(functionConfig)(args);
       expect(func).toBeCalledTimes(1);
     });
 
     it('defines a function onBoolean1', () => {
       const func = fn();
       const args = [ bool(true) ];
-      builder.onBoolean1(() => func).collect().search(args, functionConfig.openWorldType)(functionConfig)(args);
+      builder.onBoolean1(() => func).collect().search(args, functionConfig.openWorldEnabler)(functionConfig)(args);
       expect(func).toBeCalledTimes(1);
     });
   });

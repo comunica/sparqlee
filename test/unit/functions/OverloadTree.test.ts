@@ -19,7 +19,8 @@ describe('OverloadTree', () => {
     value: T, valueToEqual?: T) {
     tree.addOverload([ promoteTo ], () => ([ arg ]) => arg);
     const arg = new Literal<T>(value, promoteFrom);
-    const res = isLiteralTermExpression(tree.search([ arg ], functionContext.openWorldType)(functionContext)([ arg ]));
+    const res = isLiteralTermExpression(tree
+      .search([ arg ], functionContext.openWorldEnabler)(functionContext)([ arg ]));
     expect(res).toBeTruthy();
     expect(res.dataType).toEqual(promoteTo);
     expect(res.typedValue).toEqual(valueToEqual || value);
@@ -29,7 +30,8 @@ describe('OverloadTree', () => {
     expectedType: KnownLiteralTypes, value: T) {
     tree.addOverload([ expectedType ], () => ([ arg ]) => arg);
     const arg = new Literal<T>(value, argumentType);
-    const res = isLiteralTermExpression(tree.search([ arg ], functionContext.openWorldType)(functionContext)([ arg ]));
+    const res = isLiteralTermExpression(tree
+      .search([ arg ], functionContext.openWorldEnabler)(functionContext)([ arg ]));
     expect(res).toBeTruthy();
     expect(res.dataType).toEqual(argumentType);
     expect(res.typedValue).toEqual(value);
@@ -68,7 +70,7 @@ describe('OverloadTree', () => {
 
     const arg = new Literal<number>(0, TypeURL.XSD_SHORT);
     const res = isLiteralTermExpression(emptyTree
-      .search([ arg ], functionContext.openWorldType)(functionContext)([ arg ]));
+      .search([ arg ], functionContext.openWorldEnabler)(functionContext)([ arg ]));
     expect(res).toBeTruthy();
     expect(res.dataType).toEqual(TypeURL.XSD_DOUBLE);
     expect(res.typedValue).toEqual(0);
@@ -80,7 +82,7 @@ describe('OverloadTree', () => {
     const litValue = 'weird';
     const arg = new Literal<string>(litValue, dataType);
     const res = isLiteralTermExpression(emptyTree
-      .search([ arg ], functionContext.openWorldType)(functionContext)([ arg ]));
+      .search([ arg ], functionContext.openWorldEnabler)(functionContext)([ arg ]));
     expect(res).toBeTruthy();
     expect(res.dataType).toEqual(dataType);
     expect(res.typedValue).toEqual(litValue);
@@ -90,9 +92,9 @@ describe('OverloadTree', () => {
     const cache: OverLoadCache = new LRUCache();
     const spy = jest.spyOn(cache, 'get');
     const args = [ new StringLiteral('some str') ];
-    emptyTree.search(args, functionContext.openWorldType, cache);
+    emptyTree.search(args, functionContext.openWorldEnabler, cache);
     expect(spy).toBeCalledTimes(0);
-    emptyTree.search(args, functionContext.openWorldType, cache);
+    emptyTree.search(args, functionContext.openWorldEnabler, cache);
     expect(spy).toBeCalledTimes(1);
   });
 });

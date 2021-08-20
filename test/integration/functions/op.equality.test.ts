@@ -18,7 +18,7 @@ describe('evaluation of \'=\'', () => {
       config: {
         type: 'sync',
         config: {
-          typeDiscoveryCallback: unknownType => TypeURL.XSD_INTEGER,
+          superTypeDiscoverCallback: unknownType => TypeURL.XSD_INTEGER,
         },
       },
       testTable: `
