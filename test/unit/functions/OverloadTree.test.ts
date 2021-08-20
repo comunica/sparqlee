@@ -1,7 +1,9 @@
-import { isLiteralTermExpression, Literal } from '../../../lib/expressions';
+import * as LRUCache from 'lru-cache';
+import { isLiteralTermExpression, Literal, StringLiteral } from '../../../lib/expressions';
 import type { IFunctionContext } from '../../../lib/functions';
 import { OverloadTree } from '../../../lib/functions';
-import type { LiteralTypes } from '../../../lib/util/Consts';
+import type { OverLoadCache } from '../../../lib/functions/OverloadTree';
+import type { KnownLiteralTypes } from '../../../lib/util/Consts';
 import { TypeURL } from '../../../lib/util/Consts';
 import { getDefaultFunctionContext } from '../../util/utils';
 
@@ -9,11 +11,11 @@ describe('OverloadTree', () => {
   let emptyTree: OverloadTree;
   let functionContext: IFunctionContext;
   beforeEach(() => {
-    emptyTree = new OverloadTree();
+    emptyTree = new OverloadTree('Non cacheable');
     functionContext = getDefaultFunctionContext();
   });
 
-  function typePromotionTest<T>(tree: OverloadTree, promoteFrom: LiteralTypes, promoteTo: LiteralTypes,
+  function typePromotionTest<T>(tree: OverloadTree, promoteFrom: KnownLiteralTypes, promoteTo: KnownLiteralTypes,
     value: T, valueToEqual?: T) {
     tree.addOverload([ promoteTo ], () => ([ arg ]) => arg);
     const arg = new Literal<T>(value, promoteFrom);
@@ -23,8 +25,8 @@ describe('OverloadTree', () => {
     expect(res.typedValue).toEqual(valueToEqual || value);
   }
 
-  function subtypeSubstitutionTest<T>(tree: OverloadTree, argumentType: LiteralTypes, expectedType: LiteralTypes,
-    value: T) {
+  function subtypeSubstitutionTest<T>(tree: OverloadTree, argumentType: KnownLiteralTypes,
+    expectedType: KnownLiteralTypes, value: T) {
     tree.addOverload([ expectedType ], () => ([ arg ]) => arg);
     const arg = new Literal<T>(value, argumentType);
     const res = isLiteralTermExpression(tree.search([ arg ], functionContext.openWorldType)(functionContext)([ arg ]));
@@ -82,5 +84,15 @@ describe('OverloadTree', () => {
     expect(res).toBeTruthy();
     expect(res.dataType).toEqual(dataType);
     expect(res.typedValue).toEqual(litValue);
+  });
+
+  it('will cache an undefined function', () => {
+    const cache: OverLoadCache = new LRUCache();
+    const spy = jest.spyOn(cache, 'get');
+    const args = [ new StringLiteral('some str') ];
+    emptyTree.search(args, functionContext.openWorldType, cache);
+    expect(spy).toBeCalledTimes(0);
+    emptyTree.search(args, functionContext.openWorldType, cache);
+    expect(spy).toBeCalledTimes(1);
   });
 });

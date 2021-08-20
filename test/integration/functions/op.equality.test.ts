@@ -1,3 +1,4 @@
+import { TypeURL } from '../../../lib/util/Consts';
 import { bool, dateTime, merge, numeric, str } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import type { ITestTableConfigBase } from '../../util/utils';
@@ -14,6 +15,12 @@ describe('evaluation of \'=\'', () => {
   describe('with numeric operands like', () => {
     runTestTable({
       ...config,
+      config: {
+        type: 'sync',
+        config: {
+          typeDiscoveryCallback: unknownType => TypeURL.XSD_INTEGER,
+        },
+      },
       testTable: `
         3i 3i = true
         3d 3d = true
@@ -36,6 +43,9 @@ describe('evaluation of \'=\'', () => {
          NaN  NaN = false
          NaN  3f  = false
          3f   NaN = false
+         
+         "2"^^example:int "2"^^example:int = true
+         "2"^^example:int "3"^^example:int = false
       `,
     });
   });

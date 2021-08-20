@@ -1,15 +1,12 @@
-import * as LRUCache from 'lru-cache';
 import { IntegerLiteral, isNonLexicalLiteral, NonLexicalLiteral } from '../../../lib/expressions';
 import { TypeURL } from '../../../lib/util/Consts';
 import type { IOpenWorldTyping } from '../../../lib/util/TypeHandling';
+import { getDefaultFunctionContext } from '../../util/utils';
 
 describe('Term', () => {
   describe('has isNonLexicalLiteral function', () => {
     it('detects nonLexicalLiterals', () => {
-      const openWorldType: IOpenWorldTyping = {
-        discoverer: () => 'term',
-        cache: new LRUCache<string, string>(),
-      };
+      const openWorldType: IOpenWorldTyping = getDefaultFunctionContext().openWorldType;
       expect(isNonLexicalLiteral(new NonLexicalLiteral(undefined, TypeURL.XSD_DECIMAL, undefined, '1')))
         .toBeTruthy();
     });

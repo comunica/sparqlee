@@ -1,11 +1,10 @@
 import type * as RDF from '@rdfjs/types';
-import type * as LRUCache from 'lru-cache';
 import type * as E from '../expressions';
 import type { Bindings } from '../Types';
 import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
 import type { IOpenWorldTyping } from '../util/TypeHandling';
-import type { ImplementationFunction, OverloadTree } from './OverloadTree';
+import type { ImplementationFunction, OverLoadCache, OverloadTree } from './OverloadTree';
 
 export interface IFunctionContext {
   openWorldType: IOpenWorldTyping;
@@ -14,7 +13,7 @@ export interface IFunctionContext {
 }
 export interface IApplyFunctionContext {
   functionContext: IFunctionContext;
-  overloadCache?: LRUCache<string, string>;
+  overloadCache?: OverLoadCache;
 }
 export interface IEvalSharedContext extends IApplyFunctionContext{
   args: E.Expression[];

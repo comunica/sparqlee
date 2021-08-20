@@ -1,4 +1,5 @@
-import { merge, numeric } from '../../util/Aliases';
+import { TypeURL } from '../../../lib/util/Consts';
+import { decimal, merge, numeric } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
@@ -15,6 +16,12 @@ describe('evaluation of \'/\' like', () => {
     operation: '/',
     aliases: numeric,
     notation: Notation.Infix,
+    config: {
+      type: 'sync',
+      config: {
+        typeDiscoveryCallback: unknownType => TypeURL.XSD_INTEGER,
+      },
+    },
     testTable: `
       0i   1i  = 0d
       2i   1i  = 2d
@@ -35,10 +42,13 @@ describe('evaluation of \'/\' like', () => {
       NaN    NaN    = NaN
       NaN    anyNum = NaN
       anyNum NaN    = NaN
+      
+      "2"^^example:int "2"^^example:int = ${decimal('1')}
     `,
     errorTable: `
       0i 0i = 'Integer division by 0'
       3i 0i = 'Integer division by 0'
-    `,
+      "2"^^example:int "0"^^example:int = 'Integer division by 0'
+          `,
   });
 });

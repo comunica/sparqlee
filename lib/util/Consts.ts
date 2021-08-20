@@ -1,4 +1,4 @@
-export type LiteralTypes = TypeAlias | TypeURL;
+export type KnownLiteralTypes = TypeAlias | TypeURL;
 
 export enum TypeAlias {
   // Numeric is everything defined in https://www.w3.org/TR/sparql11-query/#operandDataTypes

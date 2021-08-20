@@ -1,23 +1,24 @@
-import type * as LRUCache from 'lru-cache';
 import type * as E from '../../expressions';
+import type { OverLoadCache } from '../../functions/OverloadTree';
 import type { ITermTransformer } from '../../transformers/TermTransformer';
 import type { Bindings } from '../../Types';
 import * as Err from '../../util/Errors';
+import type { SuperTypeDiscoverCallback, TypeCache } from '../../util/TypeHandling';
 
 export interface ISharedConfig {
   now?: Date;
   baseIRI?: string;
-  overloadCache?: LRUCache<string, string>;
-  typeCache?: LRUCache<string, string>;
-  typeDiscoveryCallback?: (unknownType: string) => string;
+  overloadCache?: OverLoadCache;
+  typeCache?: TypeCache;
+  typeDiscoveryCallback?: SuperTypeDiscoverCallback;
 }
 
 export interface ICompleteSharedConfig {
   now: Date;
   baseIRI?: string;
-  overloadCache?: LRUCache<string, string>;
-  typeCache: LRUCache<string, string>;
-  typeDiscoveryCallback: (unknownType: string) => string;
+  overloadCache?: OverLoadCache;
+  typeCache: TypeCache;
+  typeDiscoveryCallback: SuperTypeDiscoverCallback;
 }
 
 export class BaseExpressionEvaluator {

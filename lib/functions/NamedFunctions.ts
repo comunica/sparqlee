@@ -26,7 +26,7 @@ type Term = E.TermExpression;
  */
 const xsdToString = {
   arity: 1,
-  overloads: declare()
+  overloads: declare(TypeURL.XSD_STRING)
     .onNumeric1(() => (val: E.NumericLiteral) => string(float(val.typedValue).str()))
     .onBoolean1Typed(() => val => string(bool(val).str()))
     .onTerm1(() => (val: E.StringLiteral) => string(val.str()))
@@ -35,7 +35,7 @@ const xsdToString = {
 
 const xsdToFloat = {
   arity: 1,
-  overloads: declare()
+  overloads: declare(TypeURL.XSD_FLOAT)
     .onNumeric1(() => (val: E.NumericLiteral) => float(val.typedValue))
     .onBoolean1Typed(() => val => float(val ? 1 : 0))
     .onUnary(TypeURL.XSD_STRING, () => (val: E.StringLiteral) => {
@@ -51,7 +51,7 @@ const xsdToFloat = {
 
 const xsdToDouble = {
   arity: 1,
-  overloads: declare()
+  overloads: declare(TypeURL.XSD_DOUBLE)
     .onNumeric1(() => (val: E.NumericLiteral) => double(val.typedValue))
     .onBoolean1Typed(() => val => double(val ? 1 : 0))
     .onUnary(TypeURL.XSD_STRING, () => (val: E.Term) => {
@@ -67,7 +67,7 @@ const xsdToDouble = {
 
 const xsdToDecimal = {
   arity: 1,
-  overloads: declare()
+  overloads: declare(TypeURL.XSD_DECIMAL)
     .onNumeric1(() => (val: E.Term) => {
       const result = parseXSDDecimal(val.str());
       if (result === undefined) {
@@ -90,7 +90,7 @@ const xsdToDecimal = {
 
 const xsdToInteger = {
   arity: 1,
-  overloads: declare()
+  overloads: declare(TypeURL.XSD_INTEGER)
     .onBoolean1Typed(() => val => integer(val ? 1 : 0))
     .onNumeric1(() => (val: E.Term) => {
       const result = parseXSDInteger(val.str());
@@ -113,7 +113,7 @@ const xsdToInteger = {
 
 const xsdToDatetime = {
   arity: 1,
-  overloads: declare()
+  overloads: declare(TypeURL.XSD_DATE_TIME)
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: E.DateTimeLiteral) => val)
     .onUnary(TypeURL.XSD_STRING, () => (val: Term) => {
       const date = new Date(val.str());
@@ -128,7 +128,7 @@ const xsdToDatetime = {
 
 const xsdToBoolean = {
   arity: 1,
-  overloads: declare()
+  overloads: declare(TypeURL.XSD_BOOLEAN)
     .onNumeric1(() => (val: E.NumericLiteral) => bool(val.coerceEBV()))
     .onUnary(TypeURL.XSD_BOOLEAN, () => (val: Term) => bool(val.coerceEBV()))
     .onUnary(TypeURL.XSD_STRING, () => (val: Term) => {

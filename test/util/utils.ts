@@ -60,7 +60,7 @@ export function getDefaultFunctionContext(): IFunctionContext {
   return {
     now: new Date(),
     openWorldType: {
-      cache: new LRUCache<string, string>(),
+      cache: new LRUCache(),
       discoverer: () => 'term',
     },
   };

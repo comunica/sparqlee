@@ -4,13 +4,14 @@ import { bool, declare } from '../../../lib/functions/Helpers';
 import { TypeURL } from '../../../lib/util/Consts';
 import { getDefaultFunctionContext } from '../../util/utils';
 import fn = jest.fn;
+import mock = jest.mock;
 
 describe('The function helper file', () => {
   describe('has a builder', () => {
     let builder: Builder;
     let functionConfig: IFunctionContext;
     beforeEach(() => {
-      builder = declare();
+      builder = declare('non cacheable');
       functionConfig = getDefaultFunctionContext();
     });
 

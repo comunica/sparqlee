@@ -48,6 +48,9 @@ describe('evaluation of \'>\'', () => {
         NaN 3f  = false
         3f  NaN = false
       `,
+      errorTable: `
+        "2"^^example:int "0"^^example:int = 'Argument types not valid for operator'
+      `,
     });
   });
 

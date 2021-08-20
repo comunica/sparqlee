@@ -1,3 +1,5 @@
+import * as LRUCache from 'lru-cache';
+import { TypeURL } from '../../../lib/util/Consts';
 import { bool, int, numeric } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
@@ -9,12 +11,26 @@ describe('string functions', () => {
       operation: 'strlen',
       notation: Notation.Function,
       aliases: numeric,
+      config: {
+        type: 'sync',
+        config: {
+          typeDiscoveryCallback(unknownType) {
+            if (unknownType.includes('specialString')) {
+              return 'https://example.org/string';
+            }
+            return TypeURL.XSD_STRING;
+          },
+          overloadCache: new LRUCache(),
+        },
+      },
       testTable: `
       "aaa" = 3i
       "aaaa"@en = 4i
       "aa"^^xsd:string = 2i
       "👪"^^xsd:string = 1i
       "👨‍👩‍👧‍👦"^^xsd:string = ${int('7')}
+      '"custom type"^^example:string' = ${int('11')}
+      "apple"^^example:specialString = ${int('5')}
       `,
     });
   });
@@ -46,6 +62,12 @@ describe('string functions', () => {
       arity: 'vary',
       operation: 'substr',
       notation: Notation.Function,
+      config: {
+        type: 'sync',
+        config: {
+          typeDiscoveryCallback: unknownType => TypeURL.XSD_STRING,
+        },
+      },
       testTable: `
       "bar" 1 1 = "b"
       "bar" 2 = "ar"
@@ -60,6 +82,7 @@ describe('string functions', () => {
       "👪"@en 1 1 = "👪"@en
       "👨‍👩‍👧‍👦"@en 1 1 = "👨"@en
       '"type promotion"^^xsd:anyURI' 2 4 = "ype"
+      '"custom type"^^example:string' 3 15 = '"stom type"'
       `,
     });
   });

@@ -1,4 +1,3 @@
-import type * as LRUCache from 'lru-cache';
 import { Algebra as Alg } from 'sparqlalgebrajs';
 import type { AsyncExtensionFunction, AsyncExtensionFunctionCreator } from '../evaluators/AsyncEvaluator';
 import type { ICompleteSharedConfig } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
@@ -7,6 +6,7 @@ import * as E from '../expressions';
 import type { AsyncExtensionApplication, SimpleApplication } from '../expressions';
 import type { IApplyFunctionContext, IFunctionContext } from '../functions';
 import { namedFunctions, regularFunctions, specialFunctions } from '../functions';
+import type { OverLoadCache } from '../functions/OverloadTree';
 import * as C from '../util/Consts';
 import * as Err from '../util/Errors';
 import { ExtensionFunctionError } from '../util/Errors';
@@ -25,7 +25,7 @@ export interface IAlgebraTransformer extends ITermTransformer{
 export class AlgebraTransformer extends TermTransformer implements IAlgebraTransformer {
   private readonly funcContext: IFunctionContext;
   private readonly creatorConfig: FunctionCreatorConfig;
-  private readonly overloadCache: LRUCache<string, string>;
+  private readonly overloadCache: OverLoadCache;
   private readonly applyContext: IApplyFunctionContext;
   public constructor(algebraConfig: AlgebraTransformConfig) {
     super({ discoverer: algebraConfig.typeDiscoveryCallback, cache: algebraConfig.typeCache });

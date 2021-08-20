@@ -14,16 +14,16 @@ import { OverloadTree } from './OverloadTree';
 
 type Term = E.TermExpression;
 
-export function declare(): Builder {
-  return new Builder();
+export function declare(identifier: string): Builder {
+  return new Builder(identifier);
 }
 
 export class Builder {
   private readonly overloadTree: OverloadTree;
   private collected: boolean;
 
-  public constructor() {
-    this.overloadTree = new OverloadTree();
+  public constructor(identifier: string) {
+    this.overloadTree = new OverloadTree(identifier);
     this.collected = false;
   }
 
@@ -260,28 +260,28 @@ export function bool(val: boolean): E.BooleanLiteral {
   return new E.BooleanLiteral(val);
 }
 
-export function integer(num: number, dt?: C.LiteralTypes): E.IntegerLiteral {
+export function integer(num: number, dt?: C.KnownLiteralTypes): E.IntegerLiteral {
   if (dt && !internalIsSubType(dt, TypeURL.XSD_INTEGER)) {
     throw new Error('apple');
   }
   return new E.IntegerLiteral(num, dt || TypeURL.XSD_INTEGER);
 }
 
-export function decimal(num: number, dt?: C.LiteralTypes): E.DecimalLiteral {
+export function decimal(num: number, dt?: C.KnownLiteralTypes): E.DecimalLiteral {
   if (dt && !internalIsSubType(dt, TypeURL.XSD_DECIMAL)) {
     throw new Error('apple');
   }
   return new E.DecimalLiteral(num, dt || TypeURL.XSD_DECIMAL);
 }
 
-export function float(num: number, dt?: C.LiteralTypes): E.FloatLiteral {
+export function float(num: number, dt?: C.KnownLiteralTypes): E.FloatLiteral {
   if (dt && !internalIsSubType(dt, TypeURL.XSD_FLOAT)) {
     throw new Error('apple');
   }
   return new E.FloatLiteral(num, dt || TypeURL.XSD_FLOAT);
 }
 
-export function double(num: number, dt?: C.LiteralTypes): E.DoubleLiteral {
+export function double(num: number, dt?: C.KnownLiteralTypes): E.DoubleLiteral {
   if (dt && !internalIsSubType(dt, TypeURL.XSD_DOUBLE)) {
     throw new Error('apple');
   }

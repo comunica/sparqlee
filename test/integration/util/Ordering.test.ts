@@ -1,29 +1,31 @@
 import type * as RDF from '@rdfjs/types';
+import * as LRUCache from 'lru-cache';
 import { DataFactory } from 'rdf-data-factory';
 
-import { TypeURL as DT } from '../../../lib/util/Consts';
+import { TypeURL, TypeURL as DT } from '../../../lib/util/Consts';
 import { orderTypes } from '../../../lib/util/Ordering';
+import type { SuperTypeDiscoverCallback, TypeCache } from '../../../lib/util/TypeHandling';
 
 const DF = new DataFactory();
 
-function int(value: string): RDF.Literal {
-  return DF.literal(value, DF.namedNode(DT.XSD_INTEGER));
+function int(value: string, dt?: string): RDF.Literal {
+  return DF.literal(value, DF.namedNode(dt || DT.XSD_INTEGER));
 }
 
-function float(value: string): RDF.Literal {
-  return DF.literal(value, DF.namedNode(DT.XSD_FLOAT));
+function float(value: string, dt?: string): RDF.Literal {
+  return DF.literal(value, DF.namedNode(dt || DT.XSD_FLOAT));
 }
 
-function decimal(value: string): RDF.Literal {
-  return DF.literal(value, DF.namedNode(DT.XSD_DECIMAL));
+function decimal(value: string, dt?: string): RDF.Literal {
+  return DF.literal(value, DF.namedNode(dt || DT.XSD_DECIMAL));
 }
 
-function double(value: string): RDF.Literal {
-  return DF.literal(value, DF.namedNode(DT.XSD_DOUBLE));
+function double(value: string, dt?: string): RDF.Literal {
+  return DF.literal(value, DF.namedNode(dt || DT.XSD_DOUBLE));
 }
 
-function string(value: string): RDF.Literal {
-  return DF.literal(value, DF.namedNode(DT.XSD_STRING));
+function string(value: string, dt?: string): RDF.Literal {
+  return DF.literal(value, DF.namedNode(dt || DT.XSD_STRING));
 }
 
 describe('ordering literals', () => {
@@ -90,5 +92,28 @@ describe('ordering literals', () => {
     expect(orderTypes(numA, numB, true)).toEqual(1);
     expect(orderTypes(numB, numA, true)).toEqual(-1);
     expect(orderTypes(numA, numD, true)).toEqual(-1);
+  });
+
+  it('handles unknown extended types as basic literals', () => {
+    const cache: TypeCache = new LRUCache();
+    const someType = 'https://example.org/some-decimal';
+    const numA = decimal('11', someType);
+    const numB = decimal('2', someType);
+    expect(orderTypes(numA, numB, true, undefined, cache)).toEqual(-1);
+    expect(orderTypes(numB, numA, true, undefined, cache)).toEqual(1);
+    expect(orderTypes(numA, numB, false, undefined, cache)).toEqual(1);
+    expect(orderTypes(numB, numA, false, undefined, cache)).toEqual(-1);
+  });
+
+  it('handles extended types', () => {
+    const discover: SuperTypeDiscoverCallback = unknownType => TypeURL.XSD_DECIMAL;
+    const cache: TypeCache = new LRUCache();
+    const someType = 'https://example.org/some-decimal';
+    const numA = decimal('11', someType);
+    const numB = decimal('2', someType);
+    expect(orderTypes(numA, numB, true, discover, cache)).toEqual(1);
+    expect(orderTypes(numB, numA, true, discover, cache)).toEqual(-1);
+    expect(orderTypes(numA, numB, false, discover, cache)).toEqual(-1);
+    expect(orderTypes(numB, numA, false, discover, cache)).toEqual(1);
   });
 });

@@ -18,12 +18,6 @@ export interface IAsyncEvaluatorConfig extends ISharedConfig {
   extensionFunctionCreator?: AsyncExtensionFunctionCreator;
 }
 
-const baseCacheOptions: LRUCache.Options<string, string> = {
-  length(value: string, key?: string): number {
-    return value.length;
-  },
-};
-
 export class AsyncEvaluator {
   private readonly expr: E.Expression;
   private readonly evaluator: IExpressionEvaluator<E.Expression, Promise<E.TermExpression>>;
@@ -33,7 +27,7 @@ export class AsyncEvaluator {
       now: config.now || new Date(Date.now()),
       baseIRI: config.baseIRI || undefined,
       overloadCache: config.overloadCache,
-      typeCache: config.typeCache || new LRUCache(baseCacheOptions),
+      typeCache: config.typeCache || new LRUCache(),
       typeDiscoveryCallback: config.typeDiscoveryCallback || (() => 'term'),
       exists: config.exists,
       aggregate: config.aggregate,

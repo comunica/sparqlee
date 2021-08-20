@@ -15,12 +15,6 @@ export interface ISyncEvaluatorConfig extends ISharedConfig {
   extensionFunctionCreator?: SyncExtensionFunctionCreator;
 }
 
-const baseCacheOptions: LRUCache.Options<string, string> = {
-  length(value: string, key?: string): number {
-    return value.length;
-  },
-};
-
 export type SyncExtensionFunction = (args: RDF.Term[]) => RDF.Term;
 export type SyncExtensionFunctionCreator = (functionNamedNode: RDF.NamedNode) => SyncExtensionFunction | undefined;
 
@@ -33,7 +27,7 @@ export class SyncEvaluator {
       now: config.now || new Date(Date.now()),
       baseIRI: config.baseIRI || undefined,
       overloadCache: config.overloadCache,
-      typeCache: config.typeCache || new LRUCache(baseCacheOptions),
+      typeCache: config.typeCache || new LRUCache(),
       typeDiscoveryCallback: config.typeDiscoveryCallback || (() => 'term'),
       exists: config.exists,
       aggregate: config.aggregate,

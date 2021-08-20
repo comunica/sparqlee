@@ -1,5 +1,5 @@
 import { stringToTermPrefix, template } from './Aliases';
-import { generalEvaluate } from './generalEvaluation';
+import { generalErrorEvaluation, generalEvaluate } from './generalEvaluation';
 import type { TestTableConfig } from './utils';
 
 export enum Notation {
@@ -46,9 +46,14 @@ abstract class Table<RowType extends Row> {
 
   protected async testErrorExpression(expr: string, error: string) {
     const { config, additionalPrefixes } = this.def;
-    await expect(generalEvaluate({
-      expression: template(expr, additionalPrefixes), expectEquality: true, generalEvaluationConfig: config,
-    })).rejects.toThrow(error);
+    const result = await generalErrorEvaluation({
+      expression: template(expr, additionalPrefixes), expectEquality: false, generalEvaluationConfig: config,
+    });
+    expect(result).not.toBeUndefined();
+    expect(() => { throw result.asyncError; }).toThrow(error);
+    if (result.syncError) {
+      expect(() => { throw result.syncError; }).toThrow(error);
+    }
   }
 
   protected abstract format(operation: string, row: RowType): string;

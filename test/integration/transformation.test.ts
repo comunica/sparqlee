@@ -1,11 +1,11 @@
 import type * as RDF from '@rdfjs/types';
-import * as LRUCache from 'lru-cache';
 import { DataFactory } from 'rdf-data-factory';
 
 import { isNonLexicalLiteral } from '../../lib/expressions';
 import type { ITermTransformer } from '../../lib/transformers/TermTransformer';
 import { TermTransformer } from '../../lib/transformers/TermTransformer';
 import { TypeURL as DT } from '../../lib/util/Consts';
+import { getDefaultFunctionContext } from '../util/utils';
 
 function int(value: string): RDF.Literal {
   return DF.literal(value, DF.namedNode(DT.XSD_INTEGER));
@@ -28,10 +28,7 @@ const DF = new DataFactory();
 describe('transformations', () => {
   let termTransformer: ITermTransformer;
   beforeEach(() => {
-    termTransformer = new TermTransformer({
-      cache: new LRUCache<string, string>(),
-      discoverer: (() => 'term'),
-    });
+    termTransformer = new TermTransformer(getDefaultFunctionContext().openWorldType);
   });
 
   function simpleLiteralCreator(value: string, dataType?: string, language?: string): RDF.Literal {
