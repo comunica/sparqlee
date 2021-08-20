@@ -254,10 +254,8 @@ async function inRecursiveAsync(
 
   try {
     const nextExpression = args.shift();
-    if (!nextExpression) {
-      throw new Error('Create to catch');
-    }
-    const next = await evaluate(nextExpression, mapping);
+    // We know this will not be undefined because we check args.length === 0
+    const next = await evaluate(nextExpression!, mapping);
     const isEqual = regularFunctions[C.RegularOperator.EQUAL];
     if ((<E.BooleanLiteral> isEqual.apply([ needle, next ], context)).typedValue) {
       return bool(true);
@@ -284,10 +282,8 @@ function inRecursiveSync(
 
   try {
     const nextExpression = args.shift();
-    if (!nextExpression) {
-      throw new Error('Create to catch');
-    }
-    const next = evaluate(nextExpression, mapping);
+    // We know this will not be undefined because we check args.length === 0
+    const next = evaluate(nextExpression!, mapping);
     const isEqual = regularFunctions[C.RegularOperator.EQUAL];
     if ((<E.BooleanLiteral> isEqual.apply([ needle, next ], context)).typedValue) {
       return bool(true);
