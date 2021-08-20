@@ -2,14 +2,15 @@
  * These helpers provide a (albeit inflexible) DSL for writing function
  * definitions for the SPARQL functions.
  */
-import * as E from '../expressions';
 import type { Literal } from '../expressions';
+import * as E from '../expressions';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import type { ArgumentType } from './Core';
+import { internalIsSubType } from '../util/TypeHandling';
+import type { ArgumentType, IFunctionContext } from './Core';
+import type { ImplementationFunction } from './OverloadTree';
 import { OverloadTree } from './OverloadTree';
-import {IOpenWorldTyping} from "../util/TypeHandling";
 
 type Term = E.TermExpression;
 
@@ -26,10 +27,6 @@ export class Builder {
     this.collected = false;
   }
 
-  public getOpenWorldTypeCallBack(): () => IOpenWorldTyping {
-    return this.overloadTree.getOpenWorldTypeCallBack();
-  }
-
   public collect(): OverloadTree {
     if (this.collected) {
       // Only 1 time allowed because we can't copy a tree. (And we don't need this).
@@ -39,7 +36,8 @@ export class Builder {
     return this.overloadTree;
   }
 
-  public set(argTypes: ArgumentType[], func: E.SimpleApplication): Builder {
+  public set(argTypes: ArgumentType[],
+    func: ImplementationFunction): Builder {
     this.overloadTree.addOverload(argTypes, func);
     return this;
   }
@@ -55,93 +53,118 @@ export class Builder {
     return this.set(to, impl);
   }
 
-  public onUnary<T extends Term>(type: ArgumentType, op: (val: T) => Term): Builder {
-    return this.set([ type ], ([ val ]: [T]) => op(val));
+  public onUnary<T extends Term>(type: ArgumentType, op: (context: IFunctionContext) => (val: T) => Term): Builder {
+    return this.set([ type ], context => ([ val ]: [T]) => op(context)(val));
   }
 
-  public onUnaryTyped<T>(type: ArgumentType, op: (val: T) => Term): Builder {
-    return this.set([ type ], ([ val ]: [E.Literal<T>]) => op(val.typedValue));
+  public onUnaryTyped<T>(type: ArgumentType, op: (context: IFunctionContext) => (val: T) => Term): Builder {
+    return this.set([ type ], context => ([ val ]: [E.Literal<T>]) => op(context)(val.typedValue));
   }
 
-  public onBinary<L extends Term, R extends Term>(types: ArgumentType[], op: (left: L, right: R) => Term): Builder {
-    return this.set(types, ([ left, right ]: [L, R]) => op(left, right));
+  public onBinary<L extends Term, R extends Term>(types: ArgumentType[],
+    op: (context: IFunctionContext) => (left: L, right: R) => Term): Builder {
+    return this.set(types, context => ([ left, right ]: [L, R]) => op(context)(left, right));
   }
 
-  public onBinaryTyped<L, R>(types: ArgumentType[], op: (left: L, right: R) => Term): Builder {
-    return this.set(types, ([ left, right ]: [E.Literal<L>, E.Literal<R>]) => op(left.typedValue, right.typedValue));
+  public onBinaryTyped<L, R>(types: ArgumentType[],
+    op: (context: IFunctionContext) => (left: L, right: R) => Term): Builder {
+    return this.set(types, context =>
+      ([ left, right ]: [E.Literal<L>, E.Literal<R>]) => op(context)(left.typedValue, right.typedValue));
   }
 
-  public onTernaryTyped<A1, A2, A3>(types: ArgumentType[], op: (a1: A1, a2: A2, a3: A3) => Term): Builder {
-    return this.set(types, ([ a1, a2, a3 ]: [E.Literal<A1>, E.Literal<A2>, E.Literal<A3>]) =>
-      op(a1.typedValue, a2.typedValue, a3.typedValue));
+  public onTernaryTyped<A1, A2, A3>(types: ArgumentType[],
+    op: (context: IFunctionContext) => (a1: A1, a2: A2, a3: A3) => Term): Builder {
+    return this.set(types, context => ([ a1, a2, a3 ]: [E.Literal<A1>, E.Literal<A2>, E.Literal<A3>]) =>
+      op(context)(a1.typedValue, a2.typedValue, a3.typedValue));
   }
 
   public onTernary<
     A1 extends Term,
     A2 extends Term,
     A3 extends Term
-  >(types: ArgumentType[], op: (a1: A1, a2: A2, a3: A3) => Term): Builder {
-    return this.set(types, ([ a1, a2, a3 ]: [A1, A2, A3]) => op(a1, a2, a3));
+  >(types: ArgumentType[], op: (context: IFunctionContext) => (a1: A1, a2: A2, a3: A3) => Term): Builder {
+    return this.set(types, context => ([ a1, a2, a3 ]: [A1, A2, A3]) => op(context)(a1, a2, a3));
   }
 
-  public onQuaternaryTyped<A1, A2, A3, A4>(types: ArgumentType[], op: (a1: A1, a2: A2, a3: A3, a4: A4) => Term):
-  Builder {
-    return this.set(types, ([ a1, a2, a3, a4 ]: [E.Literal<A1>, E.Literal<A2>, E.Literal<A3>, E.Literal<A4>]) =>
-      op(a1.typedValue, a2.typedValue, a3.typedValue, a4.typedValue));
+  public onQuaternaryTyped<A1, A2, A3, A4>(types: ArgumentType[],
+    op: (context: IFunctionContext) => (a1: A1, a2: A2, a3: A3, a4: A4) => Term): Builder {
+    return this.set(types, context =>
+      ([ a1, a2, a3, a4 ]: [E.Literal<A1>, E.Literal<A2>, E.Literal<A3>, E.Literal<A4>]) =>
+        op(context)(a1.typedValue, a2.typedValue, a3.typedValue, a4.typedValue));
   }
 
-  public onTerm1(op: (term: Term) => Term): Builder {
-    return this.set([ 'term' ], ([ term ]: [Term]) => op(term));
+  public onTerm1(op: (context: IFunctionContext) => (term: Term) => Term): Builder {
+    return this.set([ 'term' ], context => ([ term ]: [Term]) => op(context)(term));
   }
 
-  public onLiteral1<T>(op: (lit: E.Literal<T>) => Term): Builder {
-    return this.set([ 'literal' ], ([ term ]: [E.Literal<T>]) => op(term));
+  public onLiteral1<T>(op: (context: IFunctionContext) => (lit: E.Literal<T>) => Term): Builder {
+    return this.set([ 'literal' ], context => ([ term ]: [E.Literal<T>]) => op(context)(term));
   }
 
-  public onBoolean1(op: (lit: E.BooleanLiteral) => Term): Builder {
+  public onBoolean1(op: (context: IFunctionContext) => (lit: E.BooleanLiteral) => Term): Builder {
     return this
-      .set([ C.TypeURL.XSD_BOOLEAN ], ([ lit ]: [E.BooleanLiteral]) => op(lit));
+      .set([ C.TypeURL.XSD_BOOLEAN ], context => ([ lit ]: [E.BooleanLiteral]) => op(context)(lit));
   }
 
-  public onBoolean1Typed(op: (lit: boolean) => Term): Builder {
+  public onBoolean1Typed(op: (context: IFunctionContext) => (lit: boolean) => Term): Builder {
     return this
-      .set([ C.TypeURL.XSD_BOOLEAN ], ([ lit ]: [E.BooleanLiteral]) => op(lit.typedValue));
+      .set([ C.TypeURL.XSD_BOOLEAN ], context => ([ lit ]: [E.BooleanLiteral]) => op(context)(lit.typedValue));
   }
 
-  public onString1(op: (lit: E.Literal<string>) => Term): Builder {
+  public onString1(op: (context: IFunctionContext) => (lit: E.Literal<string>) => Term): Builder {
     return this
-      .set([ C.TypeURL.XSD_STRING ], ([ lit ]: [E.Literal<string>]) => op(lit));
+      .set([ C.TypeURL.XSD_STRING ], context => ([ lit ]: [E.Literal<string>]) => op(context)(lit));
   }
 
-  public onString1Typed(op: (lit: string) => Term): Builder {
+  public onString1Typed(op: (context: IFunctionContext) => (lit: string) => Term): Builder {
     return this
-      .set([ C.TypeURL.XSD_STRING ], ([ lit ]: [E.Literal<string>]) => op(lit.typedValue));
+      .set([ C.TypeURL.XSD_STRING ], context => ([ lit ]: [E.Literal<string>]) => op(context)(lit.typedValue));
   }
 
-  public onLangString1(op: (lit: E.LangStringLiteral) => Term): Builder {
+  public onLangString1(op: (context: IFunctionContext) => (lit: E.LangStringLiteral) => Term): Builder {
     return this
-      .set([ C.TypeURL.RDF_LANG_STRING ], ([ lit ]: [E.LangStringLiteral]) => op(lit));
+      .set([ C.TypeURL.RDF_LANG_STRING ], context => ([ lit ]: [E.LangStringLiteral]) => op(context)(lit));
   }
 
-  public onStringly1(op: (lit: E.Literal<string>) => Term): Builder {
+  public onStringly1(op: (context: IFunctionContext) => (lit: E.Literal<string>) => Term): Builder {
     return this
-      .set([ C.TypeAlias.SPARQL_STRINGLY ], ([ lit ]: [E.Literal<string>]) => op(lit));
+      .set([ C.TypeAlias.SPARQL_STRINGLY ], context => ([ lit ]: [E.Literal<string>]) => op(context)(lit));
   }
 
-  public onStringly1Typed(op: (lit: string) => Term): Builder {
+  public onStringly1Typed(op: (context: IFunctionContext) => (lit: string) => Term): Builder {
     return this
-      .set([ C.TypeAlias.SPARQL_STRINGLY ], ([ lit ]: [E.Literal<string>]) => op(lit.typedValue));
+      .set([ C.TypeAlias.SPARQL_STRINGLY ], context => ([ lit ]: [E.Literal<string>]) => op(context)(lit.typedValue));
   }
 
-  public onNumeric1(op: (val: E.NumericLiteral) => Term): Builder {
+  public onNumeric1(op: (context: IFunctionContext) => (val: E.NumericLiteral) => Term): Builder {
     return this
-      .set([ C.TypeAlias.SPARQL_NUMERIC ], ([ val ]: [E.NumericLiteral]) => op(val))
+      .set([ C.TypeAlias.SPARQL_NUMERIC ], context => ([ val ]: [E.NumericLiteral]) => op(context)(val))
       .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL ], 1);
   }
 
-  public onDateTime1(op: (date: E.DateTimeLiteral) => Term): Builder {
+  public onDateTime1(op: (context: IFunctionContext) => (date: E.DateTimeLiteral) => Term): Builder {
     return this
-      .set([ C.TypeURL.XSD_DATE_TIME ], ([ val ]: [E.DateTimeLiteral]) => op(val))
+      .set([ C.TypeURL.XSD_DATE_TIME ], context => ([ val ]: [E.DateTimeLiteral]) => op(context)(val))
+      .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL ], 1);
+  }
+
+  /**
+   * We return the base types and not the provided types because we don't want to create invalid terms.
+   * Providing negative number to a function unary - for example should not
+   * return a term of type negative number having a positive value.
+   * @param op the numeric operator performed
+   */
+  public numericConverter(op: (context: IFunctionContext) => (val: number) => number): Builder {
+    const evalHelper = (context: IFunctionContext) => (arg: Term): number =>
+      op(context)((<Literal<number>>arg).typedValue);
+    return this.onBinary([ TypeURL.XSD_INTEGER ], context => arg =>
+      integer(evalHelper(context)(arg)))
+      .onBinary([ TypeURL.XSD_DECIMAL ], context => arg =>
+        decimal(evalHelper(context)(arg)))
+      .onBinary([ TypeURL.XSD_FLOAT ], context => arg =>
+        float(evalHelper(context)(arg)))
+      .onBinary([ TypeURL.XSD_DOUBLE ], context => arg =>
+        double(evalHelper(context)(arg)))
       .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL ], 1);
   }
 
@@ -156,32 +179,32 @@ export class Builder {
    * https://www.w3.org/TR/xpath20/#mapping
    * Above url is referenced in the sparql spec: https://www.w3.org/TR/sparql11-query/#OperatorMapping
    */
-  public arithmetic(op: (left: number, right: number) => number): Builder {
-    const evalHelper = (left: Term, right: Term): number =>
-      op((<Literal<number>>left).typedValue, (<Literal<number>>right).typedValue);
-    return this.onBinary([ TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ], (left, right) =>
-      number(evalHelper(left, right), TypeURL.XSD_INTEGER))
-      .onBinary([ TypeURL.XSD_DECIMAL, TypeURL.XSD_DECIMAL ], (left, right) =>
-        number(evalHelper(left, right), TypeURL.XSD_DECIMAL))
-      .onBinary([ TypeURL.XSD_FLOAT, TypeURL.XSD_FLOAT ], (left, right) =>
-        number(evalHelper(left, right), TypeURL.XSD_FLOAT))
-      .onBinary([ TypeURL.XSD_DOUBLE, TypeURL.XSD_DOUBLE ], (left, right) =>
-        number(evalHelper(left, right), TypeURL.XSD_DOUBLE));
+  public arithmetic(op: (context: IFunctionContext) => (left: number, right: number) => number): Builder {
+    const evalHelper = (context: IFunctionContext) => (left: Term, right: Term): number =>
+      op(context)((<Literal<number>>left).typedValue, (<Literal<number>>right).typedValue);
+    return this.onBinary([ TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ], context => (left, right) =>
+      integer(evalHelper(context)(left, right)))
+      .onBinary([ TypeURL.XSD_DECIMAL, TypeURL.XSD_DECIMAL ], context => (left, right) =>
+        decimal(evalHelper(context)(left, right)))
+      .onBinary([ TypeURL.XSD_FLOAT, TypeURL.XSD_FLOAT ], context => (left, right) =>
+        float(evalHelper(context)(left, right)))
+      .onBinary([ TypeURL.XSD_DOUBLE, TypeURL.XSD_DOUBLE ], context => (left, right) =>
+        double(evalHelper(context)(left, right)));
   }
 
-  public numberTest(test: (left: number, right: number) => boolean): Builder {
-    return this.numeric(([ left, right ]: E.NumericLiteral[]) => {
-      const result = test(left.typedValue, right.typedValue);
+  public numberTest(test: (context: IFunctionContext) => (left: number, right: number) => boolean): Builder {
+    return this.numeric(context => ([ left, right ]: E.NumericLiteral[]) => {
+      const result = test(context)(left.typedValue, right.typedValue);
       return bool(result);
     });
   }
 
-  public stringTest(test: (left: string, right: string) => boolean): Builder {
+  public stringTest(test: (context: IFunctionContext) => (left: string, right: string) => boolean): Builder {
     return this
       .set(
         [ C.TypeURL.XSD_STRING, C.TypeURL.XSD_STRING ],
-        ([ left, right ]: E.StringLiteral[]) => {
-          const result = test(left.typedValue, right.typedValue);
+        context => ([ left, right ]: E.StringLiteral[]) => {
+          const result = test(context)(left.typedValue, right.typedValue);
           return bool(result);
         },
       )
@@ -189,12 +212,12 @@ export class Builder {
       .invalidLexicalForm([ C.TypeURL.XSD_STRING, C.TypeAlias.SPARQL_NON_LEXICAL ], 2);
   }
 
-  public booleanTest(test: (left: boolean, right: boolean) => boolean): Builder {
+  public booleanTest(test: (context: IFunctionContext) => (left: boolean, right: boolean) => boolean): Builder {
     return this
       .set(
         [ C.TypeURL.XSD_BOOLEAN, C.TypeURL.XSD_BOOLEAN ],
-        ([ left, right ]: E.BooleanLiteral[]) => {
-          const result = test(left.typedValue, right.typedValue);
+        context => ([ left, right ]: E.BooleanLiteral[]) => {
+          const result = test(context)(left.typedValue, right.typedValue);
           return bool(result);
         },
       )
@@ -202,12 +225,12 @@ export class Builder {
       .invalidLexicalForm([ C.TypeURL.XSD_BOOLEAN, C.TypeAlias.SPARQL_NON_LEXICAL ], 2);
   }
 
-  public dateTimeTest(test: (left: Date, right: Date) => boolean): Builder {
+  public dateTimeTest(test: (context: IFunctionContext) => (left: Date, right: Date) => boolean): Builder {
     return this
       .set(
         [ C.TypeURL.XSD_DATE_TIME, C.TypeURL.XSD_DATE_TIME ],
-        ([ left, right ]: E.DateTimeLiteral[]) => {
-          const result = test(left.typedValue, right.typedValue);
+        context => ([ left, right ]: E.DateTimeLiteral[]) => {
+          const result = test(context)(left.typedValue, right.typedValue);
           return bool(result);
         },
       )
@@ -215,7 +238,7 @@ export class Builder {
       .invalidLexicalForm([ C.TypeURL.XSD_DATE_TIME, C.TypeAlias.SPARQL_NON_LEXICAL ], 2);
   }
 
-  public numeric(op: E.SimpleApplication): Builder {
+  public numeric(op: ImplementationFunction): Builder {
     return this
       .set([ C.TypeAlias.SPARQL_NUMERIC, C.TypeAlias.SPARQL_NUMERIC ], op)
       .invalidLexicalForm([ C.TypeAlias.SPARQL_NUMERIC, C.TypeAlias.SPARQL_NON_LEXICAL ], 2)
@@ -223,7 +246,7 @@ export class Builder {
   }
 
   public invalidLexicalForm(types: ArgumentType[], index: number): Builder {
-    return this.set(types, (args: Term[]): E.TermExpression => {
+    return this.set(types, () => (args: Term[]): E.TermExpression => {
       throw new Err.InvalidLexicalForm(args[index - 1].toRDF());
     });
   }
@@ -237,13 +260,32 @@ export function bool(val: boolean): E.BooleanLiteral {
   return new E.BooleanLiteral(val);
 }
 
-export function number(num: number, dt?: C.LiteralTypes): E.NumericLiteral {
-  return new E.NumericLiteral(num, dt || TypeURL.XSD_FLOAT, undefined);
+export function integer(num: number, dt?: C.LiteralTypes): E.IntegerLiteral {
+  if (dt && !internalIsSubType(dt, TypeURL.XSD_INTEGER)) {
+    throw new Error('apple');
+  }
+  return new E.IntegerLiteral(num, dt || TypeURL.XSD_INTEGER);
 }
 
-export function numberFromString(str: string, dt?: C.LiteralTypes): E.NumericLiteral {
-  const num = Number(str);
-  return new E.NumericLiteral(num, dt || TypeURL.XSD_FLOAT, undefined);
+export function decimal(num: number, dt?: C.LiteralTypes): E.DecimalLiteral {
+  if (dt && !internalIsSubType(dt, TypeURL.XSD_DECIMAL)) {
+    throw new Error('apple');
+  }
+  return new E.DecimalLiteral(num, dt || TypeURL.XSD_DECIMAL);
+}
+
+export function float(num: number, dt?: C.LiteralTypes): E.FloatLiteral {
+  if (dt && !internalIsSubType(dt, TypeURL.XSD_FLOAT)) {
+    throw new Error('apple');
+  }
+  return new E.FloatLiteral(num, dt || TypeURL.XSD_FLOAT);
+}
+
+export function double(num: number, dt?: C.LiteralTypes): E.DoubleLiteral {
+  if (dt && !internalIsSubType(dt, TypeURL.XSD_DOUBLE)) {
+    throw new Error('apple');
+  }
+  return new E.DoubleLiteral(num, dt || TypeURL.XSD_DOUBLE);
 }
 
 export function string(str: string): E.StringLiteral {

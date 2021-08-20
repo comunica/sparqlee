@@ -1,9 +1,32 @@
+import type * as RDF from '@rdfjs/types';
+import type * as LRUCache from 'lru-cache';
 import type * as E from '../expressions';
+import type { Bindings } from '../Types';
 import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
-import type { OverloadTree } from './OverloadTree';
+import type { IOpenWorldTyping } from '../util/TypeHandling';
+import type { ImplementationFunction, OverloadTree } from './OverloadTree';
 
-type Term = E.TermExpression;
+export interface IFunctionContext {
+  openWorldType: IOpenWorldTyping;
+  now: Date;
+  baseIRI?: string;
+}
+export interface IApplyFunctionContext {
+  functionContext: IFunctionContext;
+  overloadCache?: LRUCache<string, string>;
+}
+export interface IEvalSharedContext extends IApplyFunctionContext{
+  args: E.Expression[];
+  mapping: Bindings;
+}
+export interface IEvalContext<Term, BNode> extends IEvalSharedContext {
+  bnode: (input?: string) => BNode;
+  evaluate: (expr: E.Expression, mapping: Bindings) => Term;
+}
+
+export type EvalContextAsync = IEvalContext<Promise<E.TermExpression>, Promise<RDF.BlankNode>>;
+export type EvalContextSync = IEvalContext<E.TermExpression, RDF.BlankNode>;
 
 // ----------------------------------------------------------------------------
 // Overloaded Functions
@@ -32,12 +55,13 @@ export abstract class BaseFunction<Operator> {
    * instance depending on the runtime types. We then just apply this function
    * to the args.
    */
-  public apply = (args: Term[]): Term => {
-    const concreteFunction = this.monomorph(args) || this.handleInvalidTypes(args);
-    return concreteFunction(args);
+  public apply = (args: E.TermExpression[], applyConfig: IApplyFunctionContext):
+  E.TermExpression => {
+    const concreteFunction = this.monomorph(args, applyConfig) || this.handleInvalidTypes(args);
+    return concreteFunction(applyConfig.functionContext)(args);
   };
 
-  protected abstract handleInvalidTypes(args: Term[]): never;
+  protected abstract handleInvalidTypes(args: E.TermExpression[]): never;
 
   /**
    * We monomorph by checking the map of overloads for keys corresponding
@@ -50,8 +74,12 @@ export abstract class BaseFunction<Operator> {
    * for every concrete type when the function is generic over termtypes or
    * terms.
    */
-  private monomorph(args: Term[]): E.SimpleApplication | undefined {
-    return this.overloads.search(args);
+  private monomorph(args: E.TermExpression[], applyConfig: IApplyFunctionContext): ImplementationFunction | undefined {
+    return this.overloads.search(
+      args,
+      applyConfig.functionContext.openWorldType,
+      applyConfig.overloadCache,
+    );
   }
 }
 
@@ -82,7 +110,7 @@ export class RegularFunction extends BaseFunction<C.RegularOperator> {
     super(op, definition);
   }
 
-  protected handleInvalidTypes(args: Term[]): never {
+  protected handleInvalidTypes(args: E.TermExpression[]): never {
     throw new Err.InvalidArgumentTypes(args, this.operator);
   }
 }
@@ -95,7 +123,7 @@ export class NamedFunction extends BaseFunction<C.NamedOperator> {
     super(op, definition);
   }
 
-  protected handleInvalidTypes(args: Term[]): never {
+  protected handleInvalidTypes(args: E.TermExpression[]): never {
     throw new Err.InvalidArgumentTypes(args, this.operator);
   }
 }

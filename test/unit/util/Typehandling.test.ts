@@ -1,9 +1,11 @@
 import type { LiteralTypes } from '../../../lib/util/Consts';
 import { TypeAlias, TypeURL } from '../../../lib/util/Consts';
+import type { OverrideType } from '../../../lib/util/TypeHandling';
 import {
+  internalIsSubType,
   isLiteralType,
   isOverrideType,
-  isSubTypeOf, isTypeAlias,
+  isTypeAlias,
 } from '../../../lib/util/TypeHandling';
 
 describe('TypeHandling', () => {
@@ -44,19 +46,19 @@ describe('TypeHandling', () => {
     });
   });
 
-  describe('has isSubTypeOf function', () => {
+  describe('has internalIsSubType function', () => {
     it('can say yes', () => {
-      const testArray: [string, LiteralTypes][] = [
+      const testArray: [OverrideType, LiteralTypes][] = [
         [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ], [ TypeURL.XSD_SHORT, TypeURL.XSD_INT ],
       ];
-      expect(testArray.every(([ baseType, argumentType ]) => isSubTypeOf(baseType, argumentType))).toBeTruthy();
+      expect(testArray.every(([ baseType, argumentType ]) => internalIsSubType(baseType, argumentType))).toBeTruthy();
     });
     it('can say no', () => {
-      const testArray: [string, LiteralTypes][] = [
-        [ 'term', TypeAlias.SPARQL_NON_LEXICAL ], [ 'term', TypeURL.XSD_STRING ], [ 'banana', TypeURL.XSD_DOUBLE ],
-        [ TypeURL.XSD_FLOAT, TypeURL.XSD_DOUBLE ],
+      const testArray: [OverrideType, LiteralTypes][] = [
+        [ 'term', TypeAlias.SPARQL_NON_LEXICAL ], [ 'term', TypeURL.XSD_STRING ],
+        [ TypeURL.XSD_BOOLEAN, TypeURL.XSD_DOUBLE ], [ TypeURL.XSD_FLOAT, TypeURL.XSD_DOUBLE ],
       ];
-      expect(testArray.every(([ baseType, argumentType ]) => !isSubTypeOf(baseType, argumentType))).toBeTruthy();
+      expect(testArray.every(([ baseType, argumentType ]) => !internalIsSubType(baseType, argumentType))).toBeTruthy();
     });
   });
 });

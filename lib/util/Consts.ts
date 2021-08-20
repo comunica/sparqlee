@@ -106,8 +106,8 @@ export enum RegularOperator {
   STR = 'str',
   LANG = 'lang',
   DATATYPE = 'datatype',
-  // IRI = 'iri', (see special operators)
-  // URI = 'uri', (see special operators)
+  IRI = 'iri',
+  URI = 'uri',
   // BNODE = 'BNODE', (see special operators)
   STRDT = 'strdt',
   STRLANG = 'strlang',
@@ -141,7 +141,7 @@ export enum RegularOperator {
 
   // Functions on Dates and Times
   // https://www.w3.org/TR/sparql11-query/#func-date-time
-  // NOW = 'now' (see special operators)
+  NOW = 'now',
   YEAR = 'year',
   MONTH = 'month',
   DAY = 'day',
@@ -182,9 +182,6 @@ export enum SpecialOperator {
   CONCAT = 'concat',
 
   // Context dependant functions
-  NOW = 'now',
-  IRI = 'iri',
-  URI = 'uri',
   BNODE = 'BNODE',
 }
 

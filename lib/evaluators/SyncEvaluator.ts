@@ -1,51 +1,58 @@
 import type * as RDF from '@rdfjs/types';
+import * as LRUCache from 'lru-cache';
 import type { Algebra as Alg } from 'sparqlalgebrajs';
-
 import type * as E from '../expressions/Expressions';
-
-import { transformAlgebra } from '../Transformation';
+import { AlgebraTransformer } from '../transformers/AlgebraTransformer';
 import type { Bindings, IExpressionEvaluator } from '../Types';
+import type { ISharedConfig } from './evaluatorHelpers/BaseExpressionEvaluator';
+import type { ICompleteSyncEvaluatorConfig } from './evaluatorHelpers/SyncRecursiveEvaluator';
+import { SyncRecursiveEvaluator } from './evaluatorHelpers/SyncRecursiveEvaluator';
 
-import { SyncRecursiveEvaluator } from './RecursiveExpressionEvaluator';
-
-type Expression = E.Expression;
-type Term = E.TermExpression;
-
-export interface ISyncEvaluatorConfig {
-  now?: Date;
-  baseIRI?: string;
-
+export interface ISyncEvaluatorConfig extends ISharedConfig {
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => boolean;
   aggregate?: (expression: Alg.AggregateExpression) => RDF.Term;
   bnode?: (input?: string) => RDF.BlankNode;
   extensionFunctionCreator?: SyncExtensionFunctionCreator;
 }
 
+const baseCacheOptions: LRUCache.Options<string, string> = {
+  length(value: string, key?: string): number {
+    return value.length;
+  },
+};
+
 export type SyncExtensionFunction = (args: RDF.Term[]) => RDF.Term;
 export type SyncExtensionFunctionCreator = (functionNamedNode: RDF.NamedNode) => SyncExtensionFunction | undefined;
 
-export type SyncEvaluatorContext = ISyncEvaluatorConfig & {
-  now: Date;
-};
-
 export class SyncEvaluator {
-  private readonly expr: Expression;
-  private readonly evaluator: IExpressionEvaluator<Expression, Term>;
+  private readonly expr: E.Expression;
+  private readonly evaluator: IExpressionEvaluator<E.Expression, E.TermExpression>;
 
-  public constructor(public algExpr: Alg.Expression, public config: ISyncEvaluatorConfig = {}) {
-    const context: SyncEvaluatorContext = {
+  public static setDefaultsFromConfig(config: ISyncEvaluatorConfig): ICompleteSyncEvaluatorConfig {
+    return {
       now: config.now || new Date(Date.now()),
-      bnode: config.bnode || undefined,
       baseIRI: config.baseIRI || undefined,
+      overloadCache: config.overloadCache,
+      typeCache: config.typeCache || new LRUCache(baseCacheOptions),
+      typeDiscoveryCallback: config.typeDiscoveryCallback || (() => 'term'),
       exists: config.exists,
       aggregate: config.aggregate,
+      bnode: config.bnode,
     };
+  }
 
-    const extensionFunctionCreator: SyncExtensionFunctionCreator =
-      // eslint-disable-next-line unicorn/no-useless-undefined
-      config.extensionFunctionCreator || (() => undefined);
-    this.expr = transformAlgebra(algExpr, { type: 'sync', creator: extensionFunctionCreator });
-    this.evaluator = new SyncRecursiveEvaluator(context);
+  public constructor(public algExpr: Alg.Expression, public config: ISyncEvaluatorConfig = {}) {
+    // eslint-disable-next-line unicorn/no-useless-undefined
+    const creator = config.extensionFunctionCreator || (() => undefined);
+    const baseConfig = SyncEvaluator.setDefaultsFromConfig(config);
+
+    this.expr = new AlgebraTransformer({
+      type: 'sync',
+      creator,
+      ...baseConfig,
+    }).transformAlgebra(algExpr);
+
+    this.evaluator = new SyncRecursiveEvaluator(baseConfig);
   }
 
   public evaluate(mapping: Bindings): RDF.Term {
@@ -58,7 +65,7 @@ export class SyncEvaluator {
     return result.coerceEBV();
   }
 
-  public evaluateAsInternal(mapping: Bindings): Term {
+  public evaluateAsInternal(mapping: Bindings): E.TermExpression {
     const result = this.evaluator.evaluate(this.expr, mapping);
     return result;
   }

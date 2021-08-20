@@ -1,21 +1,21 @@
+import type * as LRUCache from 'lru-cache';
 import type * as E from '../expressions';
 import { isLiteralTermExpression } from '../expressions';
 import type { LiteralTypes } from '../util/Consts';
 import { TypeURL } from '../util/Consts';
-import type {IOpenWorldTyping, OverrideType} from '../util/TypeHandling';
+import type { IOpenWorldTyping, OverrideType } from '../util/TypeHandling';
 import { extensionTable, isLiteralType } from '../util/TypeHandling';
-import type { ArgumentType } from './Core';
-import { number, string } from './Helpers';
-import * as LRUCache from "lru-cache";
+import type { ArgumentType, IFunctionContext } from './Core';
+import { double, float, string } from './Helpers';
 
 export type SearchStack = OverloadTree[];
-
+export type ImplementationFunction = (funcConf: IFunctionContext) => E.SimpleApplication;
 /**
  * Maps argument types on their specific implementation in a tree like structure.
  * When adding any functionality to this class, make sure you add it to SpecialFunctions as well.
  */
 export class OverloadTree {
-  private implementation?: E.SimpleApplication | undefined;
+  private implementation?: ImplementationFunction | undefined;
   // We need this field. e.g. decimal decimal should be kept even when double double is added.
   // We use promotion count to check priority.
   private promotionCount?: number | undefined;
@@ -29,14 +29,10 @@ export class OverloadTree {
     this.promotionCount = undefined;
   }
 
-  public getOpenWorldTypeCallBack(): () => IOpenWorldTyping {
-    return undefined;
-  }
-
   /**
    * Get the implementation for the types that exactly match @param args .
    */
-  public getImplementationExact(args: ArgumentType[]): E.SimpleApplication | undefined {
+  public getImplementationExact(args: ArgumentType[]): ImplementationFunction | undefined {
     // eslint-disable-next-line @typescript-eslint/no-this-alias,consistent-this
     let node: OverloadTree = this;
     for (const expression of args) {
@@ -52,12 +48,10 @@ export class OverloadTree {
    * Searches in a depth first way for the best matching overload. considering this a the tree's root.
    * @param args:
    * @param overloadCache
-   * @param typeCache
-   * @param typeDiscoveryCallback
+   * @param openWorldType
    */
-  public search(args: E.TermExpression[], overloadCache?: LRUCache<string, string>,
-    typeCache?: LRUCache<string, string>, typeDiscoveryCallback?: (unknownType: string) => string):
-    E.SimpleApplication | undefined {
+  public search(args: E.TermExpression[], openWorldType: IOpenWorldTyping, overloadCache?: LRUCache<string, string>):
+  ImplementationFunction | undefined {
     // SearchStack is a stack of all node's that need to be checked for implementation.
     // It provides an easy way to keep order in our search.
     const searchStack: { node: OverloadTree; index: number }[] = [];
@@ -91,11 +85,11 @@ export class OverloadTree {
    * get the implementation.
    * @param func the implementation for this overload.
    */
-  public addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication): void {
+  public addOverload(argumentTypes: ArgumentType[], func: ImplementationFunction): void {
     this._addOverload([ ...argumentTypes ], func, 0);
   }
 
-  private _addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication, promotionCount: number): void {
+  private _addOverload(argumentTypes: ArgumentType[], func: ImplementationFunction, promotionCount: number): void {
     const [ argumentType, ..._argumentTypes ] = argumentTypes;
     if (!argumentType) {
       if (this.promotionCount === undefined || promotionCount <= this.promotionCount) {
@@ -118,23 +112,23 @@ export class OverloadTree {
     // TODO: in case of decimal a round needs to happen.
     if (argumentType === TypeURL.XSD_DOUBLE) {
       this.addPromotedOverload(TypeURL.XSD_FLOAT, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes, promotionCount);
+        double((<E.NumericLiteral>arg).typedValue), _argumentTypes, promotionCount);
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes, promotionCount);
+        double((<E.NumericLiteral>arg).typedValue), _argumentTypes, promotionCount);
     }
     if (argumentType === TypeURL.XSD_FLOAT) {
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_FLOAT), _argumentTypes, promotionCount);
+        float((<E.NumericLiteral>arg).typedValue), _argumentTypes, promotionCount);
     }
   }
 
-  private addPromotedOverload(typeToPromote: ArgumentType, func: E.SimpleApplication,
+  private addPromotedOverload(typeToPromote: ArgumentType, func: ImplementationFunction,
     conversionFunction: (arg: E.TermExpression) => E.TermExpression, argumentTypes: ArgumentType[],
     promotionCount: number): void {
     if (!this.subTrees[typeToPromote]) {
       this.subTrees[typeToPromote] = new OverloadTree(this.depth + 1);
     }
-    this.subTrees[typeToPromote]._addOverload(argumentTypes, args => func([
+    this.subTrees[typeToPromote]._addOverload(argumentTypes, funcConf => args => func(funcConf)([
       ...args.slice(0, this.depth),
       conversionFunction(args[this.depth]),
       ...args.slice(this.depth + 1, args.length),

@@ -1,3 +1,5 @@
+import * as LRUCache from 'lru-cache';
+import type { IFunctionContext } from '../../lib/functions';
 import type { AliasMap } from './Aliases';
 import type { GeneralEvaluationConfig } from './generalEvaluation';
 import type { Notation } from './TestTable';
@@ -52,5 +54,15 @@ export function runTestTable(arg: TestTableConfig): void {
   }
 
   testTable.test();
+}
+
+export function getDefaultFunctionContext(): IFunctionContext {
+  return {
+    now: new Date(),
+    openWorldType: {
+      cache: new LRUCache<string, string>(),
+      discoverer: () => 'term',
+    },
+  };
 }
 

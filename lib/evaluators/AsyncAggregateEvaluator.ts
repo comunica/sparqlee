@@ -1,15 +1,30 @@
 import type { Algebra } from 'sparqlalgebrajs';
+import type { IApplyFunctionContext } from '../functions';
 import type { Bindings } from '../Types';
 import type { IAsyncEvaluatorConfig } from './AsyncEvaluator';
 import { AsyncEvaluator } from './AsyncEvaluator';
-import { BaseAggregateEvaluator } from './BaseAggregateEvaluator';
+import { BaseAggregateEvaluator } from './evaluatorHelpers/BaseAggregateEvaluator';
 
 export class AsyncAggregateEvaluator extends BaseAggregateEvaluator {
   private readonly evaluator: AsyncEvaluator;
   private errorOccurred: boolean;
 
+  private static getApplyFunctionConfig(config: IAsyncEvaluatorConfig): IApplyFunctionContext {
+    const { now, baseIRI, overloadCache, typeCache, typeDiscoveryCallback } =
+      AsyncEvaluator.setDefaultsFromConfig(config);
+    return {
+      functionContext: {
+        now,
+        baseIRI,
+        openWorldType: { cache: typeCache,
+          discoverer: typeDiscoveryCallback },
+      },
+      overloadCache,
+    };
+  }
+
   public constructor(expr: Algebra.AggregateExpression, config?: IAsyncEvaluatorConfig, throwError?: boolean) {
-    super(expr, throwError);
+    super(expr, AsyncAggregateEvaluator.getApplyFunctionConfig(config || {}), throwError);
     this.evaluator = new AsyncEvaluator(expr.expression, config);
     this.errorOccurred = false;
   }

@@ -1,6 +1,6 @@
-import type {LiteralTypes} from './Consts';
-import {TypeAlias, TypeURL} from './Consts';
-import * as LRUCache from "lru-cache";
+import type * as LRUCache from 'lru-cache';
+import type { LiteralTypes } from './Consts';
+import { TypeAlias, TypeURL } from './Consts';
 
 export type OverrideType = LiteralTypes | 'term';
 
@@ -139,6 +139,11 @@ export interface IOpenWorldTyping {
   cache: LRUCache<string, string>;
   // Super type discoverer
   discoverer: (unknownType: string) => string;
+}
+
+export function internalIsSubType(baseType: OverrideType, argumentType: LiteralTypes): boolean {
+  return baseType !== 'term' &&
+    (extensionTable[baseType] && extensionTable[baseType][argumentType] !== undefined);
 }
 
 /**
