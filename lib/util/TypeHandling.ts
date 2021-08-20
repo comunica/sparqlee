@@ -73,13 +73,17 @@ type ExtensionTable = Record<KnownLiteralTypes, SubExtensionTable>;
 export type GeneralSubExtensionTable = Record<string, number> & { __depth: number };
 export let extensionTable: ExtensionTable;
 
+/**
+ * This will return the super types of a type and cache them.
+ * @param type IRI we will decide the super types of.
+ * @param openWorldType the enabler that provides a way to find super types.
+ */
 export function getOpenWorldSubExtension(type: string, openWorldType: IOpenWorldEnabler): GeneralSubExtensionTable {
   const cached = openWorldType.cache.get(type);
   if (cached) {
     return cached;
   }
   const value = openWorldType.discoverer(type);
-  const knownValue = isKnownLiteralType(value);
   if (value === 'term') {
     const res: GeneralSubExtensionTable = Object.create(null);
     res.__depth = 0;
@@ -88,6 +92,7 @@ export function getOpenWorldSubExtension(type: string, openWorldType: IOpenWorld
     return res;
   }
   let subExtension: GeneralSubExtensionTable;
+  const knownValue = isKnownLiteralType(value);
   if (knownValue) {
     subExtension = { ...extensionTable[knownValue] };
   } else {
@@ -164,20 +169,23 @@ export interface IOpenWorldEnabler {
   discoverer: SuperTypeDiscoverCallback;
 }
 
+/**
+ * Internal type of @see isSubTypeOf This only takes knownTypes but doesn't need an enabler
+ */
 export function internalIsSubType(baseType: OverrideType, argumentType: KnownLiteralTypes): boolean {
   return baseType !== 'term' &&
     (extensionTable[baseType] && extensionTable[baseType][argumentType] !== undefined);
 }
 
 /**
- * This function needs do be O(1) at all times! The execution time of this function is vital!
+ * This function needs do be O(1)! The execution time of this function is vital!
  * We define typeA isSubtypeOf typeA as true.
  * @param baseType type you want to provide.
  * @param argumentType type you want to provide @param baseType to.
- * @param openWorldType
+ * @param openWorldEnabler the enabler to discover super types of unknown types.
  */
 export function isSubTypeOf(baseType: string, argumentType: KnownLiteralTypes,
-  openWorldType: IOpenWorldEnabler): boolean {
+  openWorldEnabler: IOpenWorldEnabler): boolean {
   const concreteType: OverrideType | undefined = isOverrideType(baseType);
   let subExtensionTable: GeneralSubExtensionTable;
   if (concreteType === 'term' || baseType === 'term') {
@@ -188,7 +196,7 @@ export function isSubTypeOf(baseType: string, argumentType: KnownLiteralTypes,
     subExtensionTable = extensionTable[concreteType];
   } else {
     // Datatype is a custom datatype
-    subExtensionTable = getOpenWorldSubExtension(baseType, openWorldType);
+    subExtensionTable = getOpenWorldSubExtension(baseType, openWorldEnabler);
   }
   return subExtensionTable[argumentType] !== undefined;
 }

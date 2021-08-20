@@ -33,7 +33,7 @@ export class Average extends BaseAggregator<IAverageState> {
   }
 
   public result(state: IAverageState): RDF.Term {
-    const count = new E.IntegerLiteral(state.count, C.TypeURL.XSD_INTEGER);
+    const count = new E.IntegerLiteral(state.count);
     const result = this.divider.apply([ state.sum, count ], this.applyConfig);
     return result.toRDF();
   }

@@ -134,24 +134,60 @@ export abstract class NumericLiteral extends Literal<number> {
 }
 
 export class IntegerLiteral extends NumericLiteral {
+  public constructor(
+    public typedValue: number,
+    dataType?: string,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(typedValue, dataType || TypeURL.XSD_INTEGER, strValue, language);
+  }
+
   protected specificFormatter(val: number): string {
     return val.toFixed(0);
   }
 }
 
 export class DecimalLiteral extends NumericLiteral {
+  public constructor(
+    public typedValue: number,
+    dataType?: string,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(typedValue, dataType || TypeURL.XSD_DECIMAL, strValue, language);
+  }
+
   protected specificFormatter(val: number): string {
     return val.toString();
   }
 }
 
 export class FloatLiteral extends NumericLiteral {
+  public constructor(
+    public typedValue: number,
+    dataType?: string,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(typedValue, dataType || TypeURL.XSD_FLOAT, strValue, language);
+  }
+
   protected specificFormatter(val: number): string {
     return val.toString();
   }
 }
 
 export class DoubleLiteral extends NumericLiteral {
+  public constructor(
+    public typedValue: number,
+    dataType?: string,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(typedValue, dataType || TypeURL.XSD_DOUBLE, strValue, language);
+  }
+
   protected specificFormatter(val: number): string {
     const jsExponential = val.toExponential();
     const [ jsMantisse, jsExponent ] = jsExponential.split('e');

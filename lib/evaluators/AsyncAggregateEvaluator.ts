@@ -16,8 +16,10 @@ export class AsyncAggregateEvaluator extends BaseAggregateEvaluator {
       functionContext: {
         now,
         baseIRI,
-        openWorldEnabler: { cache: typeCache,
-          discoverer: superTypeDiscoverCallback },
+        openWorldEnabler: {
+          cache: typeCache,
+          discoverer: superTypeDiscoverCallback,
+        },
       },
       overloadCache,
     };

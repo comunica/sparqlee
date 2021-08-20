@@ -264,28 +264,28 @@ export function integer(num: number, dt?: C.KnownLiteralTypes): E.IntegerLiteral
   if (dt && !internalIsSubType(dt, TypeURL.XSD_INTEGER)) {
     throw new Error('apple');
   }
-  return new E.IntegerLiteral(num, dt || TypeURL.XSD_INTEGER);
+  return new E.IntegerLiteral(num, dt);
 }
 
 export function decimal(num: number, dt?: C.KnownLiteralTypes): E.DecimalLiteral {
   if (dt && !internalIsSubType(dt, TypeURL.XSD_DECIMAL)) {
     throw new Error('apple');
   }
-  return new E.DecimalLiteral(num, dt || TypeURL.XSD_DECIMAL);
+  return new E.DecimalLiteral(num, dt);
 }
 
 export function float(num: number, dt?: C.KnownLiteralTypes): E.FloatLiteral {
   if (dt && !internalIsSubType(dt, TypeURL.XSD_FLOAT)) {
     throw new Error('apple');
   }
-  return new E.FloatLiteral(num, dt || TypeURL.XSD_FLOAT);
+  return new E.FloatLiteral(num, dt);
 }
 
 export function double(num: number, dt?: C.KnownLiteralTypes): E.DoubleLiteral {
   if (dt && !internalIsSubType(dt, TypeURL.XSD_DOUBLE)) {
     throw new Error('apple');
   }
-  return new E.DoubleLiteral(num, dt || TypeURL.XSD_DOUBLE);
+  return new E.DoubleLiteral(num, dt);
 }
 
 export function string(str: string): E.StringLiteral {
