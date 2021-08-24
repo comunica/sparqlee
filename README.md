@@ -48,10 +48,11 @@ Note: If you want to use *aggregates*, or *exists* you should check out the [str
 
 ### Config
 
-Sparqlee accepts an optional config argument, that is not required for simple use cases, but for feature completeness and spec compliance it should be populated fully.
+Sparqlee accepts an optional config argument, that is not required for simple use cases,
+but for feature completeness and spec compliance it should receive `now, baseIRI, exists, aggregate and bnode`.
 
 ```ts
-interface AsyncEvaluatorConfig {
+interface AsyncEvaluatorContext {
   now?: Date;
   baseIRI?: string;
 
@@ -59,6 +60,9 @@ interface AsyncEvaluatorConfig {
   aggregate?: (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
   bnode?: (input?: string) => Promise<RDF.BlankNode>;
   extensionFunctionCreator?: (functionNamedNode: RDF.NamedNode) => (args: RDF.Term[]) => Promise<RDF.Term> | undefined;
+  overloadCache?: LRUCache<string, SomeInternalType>;
+  typeCache?: LRUCache<string, SomeInternalType>;
+  superTypeDiscoverCallback?: (unknownType: string) => string;
 }
 ```
 
@@ -66,7 +70,11 @@ See the [stream](#streams) and [context dependant function](#context_dependant_f
 
 ### Errors
 
-Sparqlee exports an Error class called `ExpressionError` from which all SPARQL related errors inherit. These might include unbound variables, wrong types, invalid lexical forms, and much more. More info on errors [here](lib/util/Errors.ts). These errors can be caught, and may impact program execution in an expected way. All other errors are unexpected, and are thus programmer mistakes or mistakes in this library.
+Sparqlee exports an Error class called `ExpressionError` from which all SPARQL related errors inherit.
+These might include unbound variables, wrong types, invalid lexical forms, and much more.
+More info on errors [here](lib/util/Errors.ts).
+These errors can be caught, and may impact program execution in an expected way. 
+All other errors are unexpected, and are thus programmer mistakes or mistakes in this library.
 
 There is also the utility function `isExpressionError` for detecting these cases.
 
@@ -87,7 +95,10 @@ try {
 
 ### Exists
 
-'Exists' operations are an annoying problem to tackle in the context of an expression evaluator, since they make the operation statefull and context dependant. They might span entire streams and, depending on the use case, have very different requirements for speed and memory consumption. Sparqlee has therefore decided to delegate this responsibility back to you.
+'Exists' operations are an annoying problem to tackle in the context of an expression evaluator,
+since they make the operation statefull and context dependant.
+They might span entire streams and, depending on the use case, have very different requirements for speed and memory consumption.
+Sparqlee has therefore decided to delegate this responsibility back to you.
 
 You can, if you want, pass hooks to the evaluators of the shape:
 
@@ -95,7 +106,8 @@ You can, if you want, pass hooks to the evaluators of the shape:
 exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;
 ```
 
-If Sparqlee encounters any or existence expression, it will call this hook with the relevant information so you can resolve it yourself. If these hooks are not present, but an existence expression is encountered, then an error is thrown.
+If Sparqlee encounters any or existence expression, it will call this hook with the relevant information so you can resolve it yourself.
+If these hooks are not present, but an existence expression is encountered, then an error is thrown.
 
 An example consumer/hook can be found in [Comunica](https://github.com/comunica/comunica/blob/master/packages/actor-query-operation-filter-sparqlee/lib/ActorQueryOperationFilterSparqlee.ts).;
 
@@ -142,6 +154,25 @@ config.extensionFunctionCreator = (functionName: RDF.NamedNode) => {
 }
 ```
 
+### Overload function caching
+
+An overloadcache allows Sparqlee to cache the implementation of a function provided the argument types. 
+This cache is only used when provided to the context.
+
+### Super type discovery
+
+The `superTypeDiscoverCallback` allow a user to use custom types and define there super relationship to other types.
+Example:
+```ts
+const superTypeDiscoverCallback = (unknownType: string) => {
+  if (unknownType === "http://example.org/custom-string") {
+    return 'http://www.w3.org/2001/XMLSchema#string';
+  }
+  return 'term';
+}
+```
+The `typeCache` allows us to cache these super type relationships.
+
 ### Binary
 
 Sparqlee also provides a binary for evaluating simple expressions from the command line. Example
@@ -164,13 +195,18 @@ Literal {
 
 ### Context dependant functions
 
-Some functions (BNODE, NOW, IRI) need a (statefull) context from the caller to function correctly according to the spec. This context can be passed as an argument to Sparqlee (see the [config section](#config) for exact types). If they are not passed, Sparqlee will use a naive implementation that might do the trick for simple use cases.
+Some functions (BNODE, NOW, IRI) need a (statefull) context from the caller to function correctly according to the spec.
+This context can be passed as an argument to Sparqlee (see the [config section](#config) for exact types).
+If they are not passed, Sparqlee will use a naive implementation that might do the trick for simple use cases.
 
 #### BNODE
 
 [spec](https://www.w3.org/TR/sparql11-query/#func-bnode)
 
-Blank nodes are very dependant on the rest of the SPARQL query, therefore, we provide the option of delegating the entire responsibility back to you by accepting a blank node constructor callback. If this is not found, we create a blank node with the given label, or we use uuid (v4) for argument-less calls to generate definitely unique blank nodes of the shape `blank_uuid`.
+Blank nodes are very dependant on the rest of the SPARQL query, therefore, 
+we provide the option of delegating the entire responsibility back to you by accepting a blank node constructor callback.
+If this is not found, we create a blank node with the given label,
+or we use uuid (v4) for argument-less calls to generate definitely unique blank nodes of the shape `blank_uuid`.
 
 `bnode(input?: string) => RDF.BlankNode`
 
@@ -178,13 +214,16 @@ Blank nodes are very dependant on the rest of the SPARQL query, therefore, we pr
 
 [spec](https://www.w3.org/TR/sparql11-query/#func-now)
 
-All calls to now in a query must return the same value, since we aren't aware of the rest of the query, you can provide a timestamp (`now: Date`). If it's not present, Sparqlee will use the timestamp of evaluator creation, this at least allows evaluation with multiple bindings to have the same `now` value.
+All calls to now in a query must return the same value, since we aren't aware of the rest of the query,
+you can provide a timestamp (`now: Date`). If it's not present, Sparqlee will use the timestamp of evaluator creation,
+this at least allows evaluation with multiple bindings to have the same `now` value.
 
 #### IRI
 
 [spec](https://www.w3.org/TR/sparql11-query/#func-iri)
 
-To be fully spec compliant, the IRI/URI functions should take into account base IRI of the query, which you can provide as `baseIRI: string` to the config.
+To be fully spec compliant, the IRI/URI functions should take into account base IRI of the query,
+which you can provide as `baseIRI: string` to the config.
 
 ## Spec compliance
 
@@ -314,7 +353,8 @@ All definitions are defined using a builder model defined in [Helpers.ts](lib/fu
 Three kinds exists:
 
 - Regular functions: Functions with a uniform interface, that only need their arguments to calculate their result.
-- Special functions: whose behaviour deviates enough from the norm to warrant the implementations taking full control over type checking and evaluation (these are mostly the functional forms).
+- Special functions: whose behaviour deviates enough from the norm to warrant the implementations taking full control
+over type checking and evaluation (these are mostly the functional forms).
 - Named functions: which correspond to the SPARQLAlgebra Named Expressions.
 
 **TODO**: Explain this hot mess some more.
