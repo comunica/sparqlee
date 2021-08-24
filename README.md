@@ -158,6 +158,8 @@ config.extensionFunctionCreator = (functionName: RDF.NamedNode) => {
 
 An overloadcache allows Sparqlee to cache the implementation of a function provided the argument types. 
 This cache is only used when provided to the context.
+It can speed up execution time significantly especially when adding evaluating a lot of bindings that mostly have the same types.
+This statement is backed up by the [integer addition benchmark](/benchmarks/integerAddition.ts).
 
 This cache can be reused across multiple evaluators. We don't recommend manual modification.
 

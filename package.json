@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "bench": "yarn run build && node dist/benchmark/*.js",
+    "bench": "yarn run build && node dist/benchmarks/*.js",
     "watch": "tsc --watch",
     "lint": "eslint . --ext .ts --cache",
     "test": "jest",
