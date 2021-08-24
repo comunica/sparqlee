@@ -5,7 +5,7 @@
     "lib/**/*.ts",
     "test/**/*.ts",
     "bin/**/*.ts",
-    "benchmark/**/*.ts"
+    "benchmarks/**/*.ts",
   ],
   "exclude": [
     "**/node_modules"
