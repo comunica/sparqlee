@@ -29,7 +29,7 @@ export class SyncEvaluator {
       overloadCache: context.overloadCache,
       superTypeProvider: {
         cache: context.typeCache || new LRUCache(),
-        discoverer: context.superTypeDiscoverCallback || (() => 'term'),
+        discoverer: context.getSuperType || (() => 'term'),
       },
       extensionFunctionCreator: context.extensionFunctionCreator,
       exists: context.exists,

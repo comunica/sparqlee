@@ -14,7 +14,7 @@ describe('string functions', () => {
       config: {
         type: 'sync',
         config: {
-          superTypeDiscoverCallback(unknownType) {
+          getSuperType(unknownType) {
             if (unknownType.includes('specialString')) {
               return 'https://example.org/string';
             }
@@ -65,7 +65,7 @@ describe('string functions', () => {
       config: {
         type: 'sync',
         config: {
-          superTypeDiscoverCallback: unknownType => TypeURL.XSD_STRING,
+          getSuperType: unknownType => TypeURL.XSD_STRING,
         },
       },
       testTable: `

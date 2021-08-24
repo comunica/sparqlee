@@ -12,7 +12,7 @@ describe('evaluation of \'+\' like', () => {
     config: {
       type: 'sync',
       config: {
-        superTypeDiscoverCallback: unknownType => TypeURL.XSD_INTEGER,
+        getSuperType: unknownType => TypeURL.XSD_INTEGER,
       },
     },
     testTable: `

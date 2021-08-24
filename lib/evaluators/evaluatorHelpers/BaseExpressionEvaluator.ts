@@ -10,7 +10,7 @@ export interface ISharedContext {
   baseIRI?: string;
   overloadCache?: OverLoadCache;
   typeCache?: TypeCache;
-  superTypeDiscoverCallback?: SuperTypeCallback;
+  getSuperType?: SuperTypeCallback;
 }
 
 export interface ICompleteSharedContext {

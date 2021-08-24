@@ -62,7 +62,7 @@ interface AsyncEvaluatorContext {
   extensionFunctionCreator?: (functionNamedNode: RDF.NamedNode) => (args: RDF.Term[]) => Promise<RDF.Term> | undefined;
   overloadCache?: LRUCache<string, SomeInternalType>;
   typeCache?: LRUCache<string, SomeInternalType>;
-  superTypeDiscoverCallback?: (unknownType: string) => string;
+  getSuperType?: (unknownType: string) => string;
 }
 ```
 
@@ -159,19 +159,27 @@ config.extensionFunctionCreator = (functionName: RDF.NamedNode) => {
 An overloadcache allows Sparqlee to cache the implementation of a function provided the argument types. 
 This cache is only used when provided to the context.
 
+This cache can be reused across multiple evaluators. We don't recommend manual modification.
+
 ### Super type discovery
 
-The `superTypeDiscoverCallback` allow a user to use custom types and define there super relationship to other types.
+The `getSuperType` allow a user to use custom types and define their super relationship to other types.
 Example:
 ```ts
 const superTypeDiscoverCallback = (unknownType: string) => {
-  if (unknownType === "http://example.org/custom-string") {
+  if (unknownType === "http://example.org/label") {
     return 'http://www.w3.org/2001/XMLSchema#string';
   }
   return 'term';
 }
 ```
+This is helpful when performing queries over data that uses data-types that are a restriction on the known xsd data types.
+For example a datasource could define `ex:label = "good" | "bad"`. These are both strings,
+and we could for example call the `substr` function on these values.
+When we want to allow this in a type safe way, we need to check if `ex:label` is a restriction on string.
+
 The `typeCache` allows us to cache these super type relationships.
+This cache can be reused across multiple evaluators. We don't recommend manual modification.
 
 ### Binary
 
