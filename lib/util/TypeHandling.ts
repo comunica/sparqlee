@@ -68,35 +68,35 @@ export const extensionTableInput: Record<KnownLiteralTypes, OverrideType> = {
   [TypeAlias.SPARQL_NON_LEXICAL]: 'term',
   [TypeURL.XSD_ANY_URI]: 'term',
 };
-type SubExtensionTable = Record<KnownLiteralTypes, number> & { __depth: number };
-type ExtensionTable = Record<KnownLiteralTypes, SubExtensionTable>;
-export type GeneralSubExtensionTable = Record<string, number> & { __depth: number };
-export let extensionTable: ExtensionTable;
+type SuperTypeDict = Record<KnownLiteralTypes, number> & { __depth: number };
+type SuperTypeDictTable = Record<KnownLiteralTypes, SuperTypeDict>;
+export type GeneralSuperTypeDict = Record<string, number> & { __depth: number };
+export let superTypeDictTable: SuperTypeDictTable;
 
 /**
  * This will return the super types of a type and cache them.
  * @param type IRI we will decide the super types of.
  * @param openWorldType the enabler that provides a way to find super types.
  */
-export function getOpenWorldSubExtension(type: string, openWorldType: IOpenWorldEnabler): GeneralSubExtensionTable {
+export function getSuperTypes(type: string, openWorldType: ISuperTypeProvider): GeneralSuperTypeDict {
   const cached = openWorldType.cache.get(type);
   if (cached) {
     return cached;
   }
   const value = openWorldType.discoverer(type);
   if (value === 'term') {
-    const res: GeneralSubExtensionTable = Object.create(null);
+    const res: GeneralSuperTypeDict = Object.create(null);
     res.__depth = 0;
     res[type] = 0;
     openWorldType.cache.set(type, res);
     return res;
   }
-  let subExtension: GeneralSubExtensionTable;
+  let subExtension: GeneralSuperTypeDict;
   const knownValue = isKnownLiteralType(value);
   if (knownValue) {
-    subExtension = { ...extensionTable[knownValue] };
+    subExtension = { ...superTypeDictTable[knownValue] };
   } else {
-    subExtension = { ...getOpenWorldSubExtension(value, openWorldType) };
+    subExtension = { ...getSuperTypes(value, openWorldType) };
   }
   subExtension.__depth++;
   subExtension[type] = subExtension.__depth;
@@ -106,7 +106,7 @@ export function getOpenWorldSubExtension(type: string, openWorldType: IOpenWorld
 
 // No circular structure allowed! & No other keys allowed!
 export function extensionTableInit(): void {
-  const res: ExtensionTable = Object.create(null);
+  const res: SuperTypeDictTable = Object.create(null);
   for (const [ _key, value ] of Object.entries(extensionTableInput)) {
     const key = <KnownLiteralTypes>_key;
     if (res[key]) {
@@ -114,13 +114,13 @@ export function extensionTableInit(): void {
     }
     extensionTableBuilderInitKey(key, value, res);
   }
-  extensionTable = res;
+  superTypeDictTable = res;
 }
 extensionTableInit();
 
-function extensionTableBuilderInitKey(key: KnownLiteralTypes, value: OverrideType, res: ExtensionTable): void {
+function extensionTableBuilderInitKey(key: KnownLiteralTypes, value: OverrideType, res: SuperTypeDictTable): void {
   if (value === 'term' || value === undefined) {
-    const baseRes: SubExtensionTable = Object.create(null);
+    const baseRes: SuperTypeDict = Object.create(null);
     baseRes.__depth = 0;
     baseRes[key] = 0;
     res[key] = baseRes;
@@ -149,7 +149,7 @@ export function isTypeAlias(type: string): TypeAlias | undefined {
 }
 
 export function isKnownLiteralType(type: string): KnownLiteralTypes | undefined {
-  if (type in extensionTable) {
+  if (type in superTypeDictTable) {
     return <KnownLiteralTypes> type;
   }
   return undefined;
@@ -162,19 +162,19 @@ export function isOverrideType(type: string): OverrideType | undefined {
   return undefined;
 }
 
-export type TypeCache = LRUCache<string, GeneralSubExtensionTable>;
-export type SuperTypeDiscoverCallback = (unknownType: string) => string;
-export interface IOpenWorldEnabler {
+export type TypeCache = LRUCache<string, GeneralSuperTypeDict>;
+export type SuperTypeCallback = (unknownType: string) => string;
+export interface ISuperTypeProvider {
   cache: TypeCache;
-  discoverer: SuperTypeDiscoverCallback;
+  discoverer: SuperTypeCallback;
 }
 
 /**
  * Internal type of @see isSubTypeOf This only takes knownTypes but doesn't need an enabler
  */
-export function internalIsSubType(baseType: OverrideType, argumentType: KnownLiteralTypes): boolean {
+export function isInternalSubType(baseType: OverrideType, argumentType: KnownLiteralTypes): boolean {
   return baseType !== 'term' &&
-    (extensionTable[baseType] && extensionTable[baseType][argumentType] !== undefined);
+    (superTypeDictTable[baseType] && superTypeDictTable[baseType][argumentType] !== undefined);
 }
 
 /**
@@ -185,18 +185,18 @@ export function internalIsSubType(baseType: OverrideType, argumentType: KnownLit
  * @param openWorldEnabler the enabler to discover super types of unknown types.
  */
 export function isSubTypeOf(baseType: string, argumentType: KnownLiteralTypes,
-  openWorldEnabler: IOpenWorldEnabler): boolean {
+  openWorldEnabler: ISuperTypeProvider): boolean {
   const concreteType: OverrideType | undefined = isOverrideType(baseType);
-  let subExtensionTable: GeneralSubExtensionTable;
+  let subExtensionTable: GeneralSuperTypeDict;
   if (concreteType === 'term' || baseType === 'term') {
     return false;
   }
   if (concreteType) {
     // Concrete dataType is known by sparqlee.
-    subExtensionTable = extensionTable[concreteType];
+    subExtensionTable = superTypeDictTable[concreteType];
   } else {
     // Datatype is a custom datatype
-    subExtensionTable = getOpenWorldSubExtension(baseType, openWorldEnabler);
+    subExtensionTable = getSuperTypes(baseType, openWorldEnabler);
   }
   return subExtensionTable[argumentType] !== undefined;
 }

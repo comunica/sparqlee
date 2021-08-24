@@ -1,21 +1,13 @@
 import type * as RDF from '@rdfjs/types';
+import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type * as E from '../expressions';
 import type { Bindings } from '../Types';
 import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
-import type { IOpenWorldEnabler } from '../util/TypeHandling';
-import type { ImplementationFunction, OverLoadCache, OverloadTree } from './OverloadTree';
+import type { ISuperTypeProvider } from '../util/TypeHandling';
+import type { ImplementationFunction, OverloadTree, OverLoadCache } from './OverloadTree';
 
-export interface IFunctionContext {
-  openWorldEnabler: IOpenWorldEnabler;
-  now: Date;
-  baseIRI?: string;
-}
-export interface IApplyFunctionContext {
-  functionContext: IFunctionContext;
-  overloadCache?: OverLoadCache;
-}
-export interface IEvalSharedContext extends IApplyFunctionContext{
+export interface IEvalSharedContext extends ICompleteSharedContext{
   args: E.Expression[];
   mapping: Bindings;
 }
@@ -54,10 +46,12 @@ export abstract class BaseFunction<Operator> {
    * instance depending on the runtime types. We then just apply this function
    * to the args.
    */
-  public apply = (args: E.TermExpression[], applyConfig: IApplyFunctionContext):
+  public apply = (args: E.TermExpression[], context: ICompleteSharedContext):
   E.TermExpression => {
-    const concreteFunction = this.monomorph(args, applyConfig) || this.handleInvalidTypes(args);
-    return concreteFunction(applyConfig.functionContext)(args);
+    const concreteFunction =
+      this.monomorph(args, context.superTypeProvider, context.overloadCache) ||
+      this.handleInvalidTypes(args);
+    return concreteFunction(context)(args);
   };
 
   protected abstract handleInvalidTypes(args: E.TermExpression[]): never;
@@ -73,12 +67,9 @@ export abstract class BaseFunction<Operator> {
    * for every concrete type when the function is generic over termtypes or
    * terms.
    */
-  private monomorph(args: E.TermExpression[], applyConfig: IApplyFunctionContext): ImplementationFunction | undefined {
-    return this.overloads.search(
-      args,
-      applyConfig.functionContext.openWorldEnabler,
-      applyConfig.overloadCache,
-    );
+  private monomorph(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
+    overloadCache?: OverLoadCache): ImplementationFunction | undefined {
+    return this.overloads.search(args, superTypeProvider, overloadCache);
   }
 }
 

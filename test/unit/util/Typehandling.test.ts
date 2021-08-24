@@ -2,12 +2,12 @@ import type { KnownLiteralTypes } from '../../../lib/util/Consts';
 import { TypeAlias, TypeURL } from '../../../lib/util/Consts';
 import type { OverrideType } from '../../../lib/util/TypeHandling';
 import {
-  internalIsSubType,
+  isInternalSubType,
   isKnownLiteralType,
   isOverrideType, isSubTypeOf,
   isTypeAlias,
 } from '../../../lib/util/TypeHandling';
-import { getDefaultFunctionContext } from '../../util/utils';
+import { getDefaultSharedContext } from '../../util/utils';
 
 describe('TypeHandling', () => {
   describe('has isTypeAlias function', () => {
@@ -52,14 +52,14 @@ describe('TypeHandling', () => {
       const testArray: [OverrideType, KnownLiteralTypes][] = [
         [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ], [ TypeURL.XSD_SHORT, TypeURL.XSD_INT ],
       ];
-      expect(testArray.every(([ baseType, argumentType ]) => internalIsSubType(baseType, argumentType))).toBeTruthy();
+      expect(testArray.every(([ baseType, argumentType ]) => isInternalSubType(baseType, argumentType))).toBeTruthy();
     });
     it('can say no', () => {
       const testArray: [OverrideType, KnownLiteralTypes][] = [
         [ 'term', TypeAlias.SPARQL_NON_LEXICAL ], [ 'term', TypeURL.XSD_STRING ],
         [ TypeURL.XSD_BOOLEAN, TypeURL.XSD_DOUBLE ], [ TypeURL.XSD_FLOAT, TypeURL.XSD_DOUBLE ],
       ];
-      expect(testArray.every(([ baseType, argumentType ]) => !internalIsSubType(baseType, argumentType))).toBeTruthy();
+      expect(testArray.every(([ baseType, argumentType ]) => !isInternalSubType(baseType, argumentType))).toBeTruthy();
     });
   });
 
@@ -69,7 +69,7 @@ describe('TypeHandling', () => {
         [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ], [ TypeURL.XSD_SHORT, TypeURL.XSD_INT ],
       ];
       expect(testArray.every(([ baseType, argumentType ]) =>
-        isSubTypeOf(baseType, argumentType, getDefaultFunctionContext().openWorldEnabler))).toBeTruthy();
+        isSubTypeOf(baseType, argumentType, getDefaultSharedContext().superTypeProvider))).toBeTruthy();
     });
     it('can say no', () => {
       const testArray: [OverrideType, KnownLiteralTypes][] = [
@@ -77,7 +77,7 @@ describe('TypeHandling', () => {
         [ TypeURL.XSD_BOOLEAN, TypeURL.XSD_DOUBLE ], [ TypeURL.XSD_FLOAT, TypeURL.XSD_DOUBLE ],
       ];
       expect(testArray.every(([ baseType, argumentType ]) =>
-        !isSubTypeOf(baseType, argumentType, getDefaultFunctionContext().openWorldEnabler))).toBeTruthy();
+        !isSubTypeOf(baseType, argumentType, getDefaultSharedContext().superTypeProvider))).toBeTruthy();
     });
   });
 });

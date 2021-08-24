@@ -7,12 +7,12 @@ import type { ITermTransformer } from '../../transformers/TermTransformer';
 import { TermTransformer } from '../../transformers/TermTransformer';
 import type { Bindings, IExpressionEvaluator } from '../../Types';
 import * as Err from '../../util/Errors';
-import type { IOpenWorldEnabler } from '../../util/TypeHandling';
+import type { ISuperTypeProvider } from '../../util/TypeHandling';
 import type { AsyncExtensionFunctionCreator } from '../AsyncEvaluator';
 import { BaseExpressionEvaluator } from './BaseExpressionEvaluator';
-import type { ICompleteSharedConfig } from './BaseExpressionEvaluator';
+import type { ICompleteSharedContext } from './BaseExpressionEvaluator';
 
-export interface ICompleteAsyncEvaluatorConfig extends ICompleteSharedConfig {
+export interface ICompleteAsyncEvaluatorContext extends ICompleteSharedContext {
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;
   aggregate?: (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
   bnode?: (input?: string) => Promise<RDF.BlankNode>;
@@ -21,7 +21,7 @@ export interface ICompleteAsyncEvaluatorConfig extends ICompleteSharedConfig {
 
 export class AsyncRecursiveEvaluator extends BaseExpressionEvaluator
   implements IExpressionEvaluator<E.Expression, Promise<E.Term>> {
-  protected openWorldType: IOpenWorldEnabler;
+  protected openWorldType: ISuperTypeProvider;
   private readonly subEvaluators: Record<string, (expr: E.Expression, mapping: Bindings) =>
   Promise<E.Term> | E.Term> = {
     // Shared
@@ -37,15 +37,8 @@ export class AsyncRecursiveEvaluator extends BaseExpressionEvaluator
     [E.ExpressionType.AsyncExtension]: this.evalAsyncExtension.bind(this),
   };
 
-  public constructor(private readonly context: ICompleteAsyncEvaluatorConfig, termTransformer?: ITermTransformer) {
-    super(termTransformer || new TermTransformer({
-      discoverer: context.superTypeDiscoverCallback,
-      cache: context.typeCache,
-    }));
-    this.openWorldType = {
-      discoverer: context.superTypeDiscoverCallback,
-      cache: context.typeCache,
-    };
+  public constructor(private readonly context: ICompleteAsyncEvaluatorContext, termTransformer?: ITermTransformer) {
+    super(termTransformer || new TermTransformer(context.superTypeProvider));
   }
 
   public async evaluate(expr: E.Expression, mapping: Bindings): Promise<E.Term> {
@@ -67,14 +60,14 @@ export class AsyncRecursiveEvaluator extends BaseExpressionEvaluator
     const context: EvalContextAsync = {
       args: expr.args,
       mapping,
-      evaluate,
-      functionContext: {
-        now: this.context.now,
-        baseIRI: this.context.baseIRI,
-        openWorldEnabler: this.openWorldType,
-      },
-      bnode: this.context.bnode,
+
+      superTypeProvider: this.context.superTypeProvider,
+      now: this.context.now,
+      baseIRI: this.context.baseIRI,
       overloadCache: this.context.overloadCache,
+
+      evaluate,
+      bnode: this.context.bnode,
     };
     return expr.applyAsync(context);
   }

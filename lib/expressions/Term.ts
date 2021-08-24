@@ -4,7 +4,7 @@ import { DataFactory } from 'rdf-data-factory';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import type { IOpenWorldEnabler } from '../util/TypeHandling';
+import type { ISuperTypeProvider } from '../util/TypeHandling';
 import { isSubTypeOf } from '../util/TypeHandling';
 import type { TermExpression, TermType } from './Expressions';
 import { ExpressionType } from './Expressions';
@@ -272,7 +272,7 @@ export class NonLexicalLiteral extends Literal<undefined> {
   public constructor(
     typedValue: undefined,
     public typeURL: string,
-    private readonly openWorldType: IOpenWorldEnabler,
+    private readonly openWorldType: ISuperTypeProvider,
     strValue?: string,
     language?: string,
   ) {

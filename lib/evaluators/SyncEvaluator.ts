@@ -4,11 +4,11 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import type * as E from '../expressions/Expressions';
 import { AlgebraTransformer } from '../transformers/AlgebraTransformer';
 import type { Bindings, IExpressionEvaluator } from '../Types';
-import type { ISharedConfig } from './evaluatorHelpers/BaseExpressionEvaluator';
-import type { ICompleteSyncEvaluatorConfig } from './evaluatorHelpers/SyncRecursiveEvaluator';
+import type { ISharedContext } from './evaluatorHelpers/BaseExpressionEvaluator';
+import type { ICompleteSyncEvaluatorContext } from './evaluatorHelpers/SyncRecursiveEvaluator';
 import { SyncRecursiveEvaluator } from './evaluatorHelpers/SyncRecursiveEvaluator';
 
-export interface ISyncEvaluatorConfig extends ISharedConfig {
+export interface ISyncEvaluatorContext extends ISharedContext {
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => boolean;
   aggregate?: (expression: Alg.AggregateExpression) => RDF.Term;
   bnode?: (input?: string) => RDF.BlankNode;
@@ -22,31 +22,35 @@ export class SyncEvaluator {
   private readonly expr: E.Expression;
   private readonly evaluator: IExpressionEvaluator<E.Expression, E.TermExpression>;
 
-  public static setDefaultsFromConfig(config: ISyncEvaluatorConfig): ICompleteSyncEvaluatorConfig {
+  public static completeContext(context: ISyncEvaluatorContext): ICompleteSyncEvaluatorContext {
     return {
-      now: config.now || new Date(Date.now()),
-      baseIRI: config.baseIRI || undefined,
-      overloadCache: config.overloadCache,
-      typeCache: config.typeCache || new LRUCache(),
-      superTypeDiscoverCallback: config.superTypeDiscoverCallback || (() => 'term'),
-      exists: config.exists,
-      aggregate: config.aggregate,
-      bnode: config.bnode,
+      now: context.now || new Date(Date.now()),
+      baseIRI: context.baseIRI || undefined,
+      overloadCache: context.overloadCache,
+      superTypeProvider: {
+        cache: context.typeCache || new LRUCache(),
+        discoverer: context.superTypeDiscoverCallback || (() => 'term'),
+      },
+      extensionFunctionCreator: context.extensionFunctionCreator,
+      exists: context.exists,
+      aggregate: context.aggregate,
+      bnode: context.bnode,
     };
   }
 
-  public constructor(public algExpr: Alg.Expression, public config: ISyncEvaluatorConfig = {}) {
+  public constructor(public algExpr: Alg.Expression, public context: ISyncEvaluatorContext = {}) {
     // eslint-disable-next-line unicorn/no-useless-undefined
-    const creator = config.extensionFunctionCreator || (() => undefined);
-    const baseConfig = SyncEvaluator.setDefaultsFromConfig(config);
+    const creator = context.extensionFunctionCreator || (() => undefined);
+    const baseContext = SyncEvaluator.completeContext(context);
 
-    this.expr = new AlgebraTransformer({
+    const transformer = new AlgebraTransformer({
       type: 'sync',
       creator,
-      ...baseConfig,
-    }).transformAlgebra(algExpr);
+      ...baseContext,
+    });
+    this.expr = transformer.transformAlgebra(algExpr);
 
-    this.evaluator = new SyncRecursiveEvaluator(baseConfig);
+    this.evaluator = new SyncRecursiveEvaluator(baseContext, transformer);
   }
 
   public evaluate(mapping: Bindings): RDF.Term {

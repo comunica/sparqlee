@@ -4,14 +4,14 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import type * as E from '../expressions/Expressions';
 import { AlgebraTransformer } from '../transformers/AlgebraTransformer';
 import type { Bindings, IExpressionEvaluator } from '../Types';
-import type { ICompleteAsyncEvaluatorConfig } from './evaluatorHelpers/AsyncRecursiveEvaluator';
+import type { ICompleteAsyncEvaluatorContext } from './evaluatorHelpers/AsyncRecursiveEvaluator';
 import { AsyncRecursiveEvaluator } from './evaluatorHelpers/AsyncRecursiveEvaluator';
-import type { ISharedConfig } from './evaluatorHelpers/BaseExpressionEvaluator';
+import type { ISharedContext } from './evaluatorHelpers/BaseExpressionEvaluator';
 
 export type AsyncExtensionFunction = (args: RDF.Term[]) => Promise<RDF.Term>;
 export type AsyncExtensionFunctionCreator = (functionNamedNode: RDF.NamedNode) => AsyncExtensionFunction | undefined;
 
-export interface IAsyncEvaluatorConfig extends ISharedConfig {
+export interface IAsyncEvaluatorContext extends ISharedContext {
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => Promise<boolean>;
   aggregate?: (expression: Alg.AggregateExpression) => Promise<RDF.Term>;
   bnode?: (input?: string) => Promise<RDF.BlankNode>;
@@ -22,31 +22,35 @@ export class AsyncEvaluator {
   private readonly expr: E.Expression;
   private readonly evaluator: IExpressionEvaluator<E.Expression, Promise<E.TermExpression>>;
 
-  public static setDefaultsFromConfig(config: IAsyncEvaluatorConfig): ICompleteAsyncEvaluatorConfig {
+  public static completeContext(context: IAsyncEvaluatorContext): ICompleteAsyncEvaluatorContext {
     return {
-      now: config.now || new Date(Date.now()),
-      baseIRI: config.baseIRI || undefined,
-      overloadCache: config.overloadCache,
-      typeCache: config.typeCache || new LRUCache(),
-      superTypeDiscoverCallback: config.superTypeDiscoverCallback || (() => 'term'),
-      exists: config.exists,
-      aggregate: config.aggregate,
-      bnode: config.bnode,
+      now: context.now || new Date(Date.now()),
+      baseIRI: context.baseIRI || undefined,
+      overloadCache: context.overloadCache,
+      superTypeProvider: {
+        cache: context.typeCache || new LRUCache(),
+        discoverer: context.superTypeDiscoverCallback || (() => 'term'),
+      },
+      extensionFunctionCreator: context.extensionFunctionCreator,
+      exists: context.exists,
+      aggregate: context.aggregate,
+      bnode: context.bnode,
     };
   }
 
-  public constructor(public algExpr: Alg.Expression, config: IAsyncEvaluatorConfig = {}) {
+  public constructor(public algExpr: Alg.Expression, context: IAsyncEvaluatorContext = {}) {
     // eslint-disable-next-line unicorn/no-useless-undefined
-    const creator = config.extensionFunctionCreator || (() => undefined);
-    const baseConfig = AsyncEvaluator.setDefaultsFromConfig(config);
+    const creator = context.extensionFunctionCreator || (() => undefined);
+    const baseContext = AsyncEvaluator.completeContext(context);
 
-    this.expr = new AlgebraTransformer({
+    const transformer = new AlgebraTransformer({
       type: 'async',
       creator,
-      ...baseConfig,
-    }).transformAlgebra(algExpr);
+      ...baseContext,
+    });
+    this.expr = transformer.transformAlgebra(algExpr);
 
-    this.evaluator = new AsyncRecursiveEvaluator(baseConfig);
+    this.evaluator = new AsyncRecursiveEvaluator(baseContext, transformer);
   }
 
   public async evaluate(mapping: Bindings): Promise<RDF.Term> {

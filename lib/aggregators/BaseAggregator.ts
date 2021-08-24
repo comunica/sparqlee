@@ -1,7 +1,7 @@
 import type * as RDF from '@rdfjs/types';
 import type { Algebra } from 'sparqlalgebrajs';
+import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type * as E from '../expressions';
-import type { IApplyFunctionContext } from '../functions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import type { ITermTransformer } from '../transformers/TermTransformer';
 import { TypeAlias } from '../util/Consts';
@@ -12,10 +12,10 @@ export abstract class BaseAggregator<State> {
   protected separator: string;
   protected termTransformer: ITermTransformer;
 
-  public constructor(expr: Algebra.AggregateExpression, protected applyConfig: IApplyFunctionContext) {
+  public constructor(expr: Algebra.AggregateExpression, protected sharedContext: ICompleteSharedContext) {
     this.distinct = expr.distinct;
     this.separator = expr.separator || ' ';
-    this.termTransformer = new TermTransformer(applyConfig.functionContext.openWorldEnabler);
+    this.termTransformer = new TermTransformer(sharedContext.superTypeProvider);
   }
 
   protected termToNumericOrError(term: RDF.Term): E.NumericLiteral {
@@ -23,7 +23,7 @@ export abstract class BaseAggregator<State> {
     if (term.termType !== 'Literal') {
       throw new Error(`Term with value ${term.value} has type ${term.termType} and is not a numeric literal`);
     } else if (
-      !isSubTypeOf(term.datatype.value, TypeAlias.SPARQL_NUMERIC, this.applyConfig.functionContext.openWorldEnabler)
+      !isSubTypeOf(term.datatype.value, TypeAlias.SPARQL_NUMERIC, this.sharedContext.superTypeProvider)
     ) {
       throw new Error(`Term datatype ${term.datatype.value} with value ${term.value} has type ${term.termType} and is not a numeric literal`);
     }

@@ -1,33 +1,16 @@
 import type { Algebra } from 'sparqlalgebrajs';
-import type { IApplyFunctionContext } from '../functions';
 import type { Bindings } from '../Types';
 import { BaseAggregateEvaluator } from './evaluatorHelpers/BaseAggregateEvaluator';
-import type { ISyncEvaluatorConfig } from './SyncEvaluator';
+import type { ISyncEvaluatorContext } from './SyncEvaluator';
 import { SyncEvaluator } from './SyncEvaluator';
 
 // TODO: Support hooks & change name to SyncAggregateEvaluator
 export class AggregateEvaluator extends BaseAggregateEvaluator {
   private readonly evaluator: SyncEvaluator;
 
-  private static getApplyFunctionConfig(config: ISyncEvaluatorConfig): IApplyFunctionContext {
-    const { now, baseIRI, overloadCache, typeCache, superTypeDiscoverCallback } =
-      SyncEvaluator.setDefaultsFromConfig(config);
-    return {
-      functionContext: {
-        now,
-        baseIRI,
-        openWorldEnabler: {
-          cache: typeCache,
-          discoverer: superTypeDiscoverCallback,
-        },
-      },
-      overloadCache,
-    };
-  }
-
-  public constructor(expr: Algebra.AggregateExpression, config?: ISyncEvaluatorConfig, throwError?: boolean) {
-    super(expr, AggregateEvaluator.getApplyFunctionConfig(config || {}), throwError);
-    this.evaluator = new SyncEvaluator(expr.expression, config);
+  public constructor(expr: Algebra.AggregateExpression, context?: ISyncEvaluatorContext, throwError?: boolean) {
+    super(expr, SyncEvaluator.completeContext(context || {}), throwError);
+    this.evaluator = new SyncEvaluator(expr.expression, context);
   }
 
   public put(bindings: Bindings): void {

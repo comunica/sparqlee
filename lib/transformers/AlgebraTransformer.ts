@@ -1,12 +1,10 @@
 import { Algebra as Alg } from 'sparqlalgebrajs';
 import type { AsyncExtensionFunction, AsyncExtensionFunctionCreator } from '../evaluators/AsyncEvaluator';
-import type { ICompleteSharedConfig } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
+import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type { SyncExtensionFunction, SyncExtensionFunctionCreator } from '../evaluators/SyncEvaluator';
 import * as E from '../expressions';
 import type { AsyncExtensionApplication, SimpleApplication } from '../expressions';
-import type { IApplyFunctionContext, IFunctionContext } from '../functions';
 import { namedFunctions, regularFunctions, specialFunctions } from '../functions';
-import type { OverLoadCache } from '../functions/OverloadTree';
 import * as C from '../util/Consts';
 import * as Err from '../util/Errors';
 import { ExtensionFunctionError } from '../util/Errors';
@@ -16,28 +14,17 @@ import { TermTransformer } from './TermTransformer';
 type FunctionCreatorConfig = { type: 'sync'; creator: SyncExtensionFunctionCreator } |
 { type: 'async'; creator: AsyncExtensionFunctionCreator };
 
-type AlgebraTransformConfig = ICompleteSharedConfig & FunctionCreatorConfig;
+type AlgebraTransformConfig = ICompleteSharedContext & FunctionCreatorConfig;
 
 export interface IAlgebraTransformer extends ITermTransformer{
   transformAlgebra: (expr: Alg.Expression) => E.Expression;
 }
 
 export class AlgebraTransformer extends TermTransformer implements IAlgebraTransformer {
-  private readonly funcContext: IFunctionContext;
   private readonly creatorConfig: FunctionCreatorConfig;
-  private readonly overloadCache: OverLoadCache;
-  private readonly applyContext: IApplyFunctionContext;
-  public constructor(algebraConfig: AlgebraTransformConfig) {
-    super({ discoverer: algebraConfig.superTypeDiscoverCallback, cache: algebraConfig.typeCache });
-    this.funcContext = {
-      openWorldEnabler: this.openWorldType,
-      baseIRI: algebraConfig.baseIRI,
-      now: algebraConfig.now,
-    };
-    // @ts-expect-error TS2322
-    this.creatorConfig = { type: algebraConfig.type, creator: algebraConfig.creator };
-    this.overloadCache = algebraConfig.overloadCache;
-    this.applyContext = { functionContext: this.funcContext, overloadCache: algebraConfig.overloadCache };
+  public constructor(protected readonly algebraConfig: AlgebraTransformConfig) {
+    super(algebraConfig.superTypeProvider);
+    this.creatorConfig = <FunctionCreatorConfig> { type: algebraConfig.type, creator: algebraConfig.creator };
   }
 
   public transformAlgebra(expr: Alg.Expression): E.Expression {
@@ -91,7 +78,7 @@ export class AlgebraTransformer extends TermTransformer implements IAlgebraTrans
     if (!AlgebraTransformer.hasCorrectArity(regularArgs, regularFunc.arity)) {
       throw new Err.InvalidArity(regularArgs, regularOp);
     }
-    return new E.Operator(regularArgs, args => regularFunc.apply(args, this.applyContext));
+    return new E.Operator(regularArgs, args => regularFunc.apply(args, this.algebraConfig));
   }
 
   private wrapSyncFunction(func: SyncExtensionFunction, name: string): SimpleApplication {
@@ -125,7 +112,7 @@ export class AlgebraTransformer extends TermTransformer implements IAlgebraTrans
       // Return a basic named expression
       const op = <C.NamedOperator>expr.name.value;
       const namedFunc = namedFunctions[op];
-      return new E.Named(expr.name, namedArgs, args => namedFunc.apply(args, this.applyContext));
+      return new E.Named(expr.name, namedArgs, args => namedFunc.apply(args, this.algebraConfig));
     }
     if (this.creatorConfig.type === 'sync') {
       // Expression might be extension function, check this for the sync

@@ -1,18 +1,17 @@
-import type { IFunctionContext } from '../../../lib/functions';
+import type { ICompleteSharedContext } from '../../../lib/evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type { Builder } from '../../../lib/functions/Helpers';
 import { bool, declare } from '../../../lib/functions/Helpers';
 import { TypeURL } from '../../../lib/util/Consts';
-import { getDefaultFunctionContext } from '../../util/utils';
+import { getDefaultSharedContext } from '../../util/utils';
 import fn = jest.fn;
-import mock = jest.mock;
 
 describe('The function helper file', () => {
   describe('has a builder', () => {
     let builder: Builder;
-    let functionConfig: IFunctionContext;
+    let sharedContext: ICompleteSharedContext;
     beforeEach(() => {
       builder = declare('non cacheable');
-      functionConfig = getDefaultFunctionContext();
+      sharedContext = getDefaultSharedContext();
     });
 
     it('can only be collected once', () => {
@@ -29,14 +28,14 @@ describe('The function helper file', () => {
       const func = fn();
       const args = [ bool(true) ];
       builder.onUnaryTyped(TypeURL.XSD_BOOLEAN, () => func).collect()
-        .search(args, functionConfig.openWorldEnabler)(functionConfig)(args);
+        .search(args, sharedContext.superTypeProvider)(sharedContext)(args);
       expect(func).toBeCalledTimes(1);
     });
 
     it('defines a function onBoolean1', () => {
       const func = fn();
       const args = [ bool(true) ];
-      builder.onBoolean1(() => func).collect().search(args, functionConfig.openWorldEnabler)(functionConfig)(args);
+      builder.onBoolean1(() => func).collect().search(args, sharedContext.superTypeProvider)(sharedContext)(args);
       expect(func).toBeCalledTimes(1);
     });
   });

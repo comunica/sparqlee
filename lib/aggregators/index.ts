@@ -1,6 +1,6 @@
 import type * as RDF from '@rdfjs/types';
 import type { Algebra } from 'sparqlalgebrajs';
-import type { IApplyFunctionContext } from '../functions';
+import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type { SetFunction } from '../util/Consts';
 import { Average } from './Average';
 import type { BaseAggregator } from './BaseAggregator';
@@ -12,7 +12,7 @@ import { Sample } from './Sample';
 import { Sum } from './Sum';
 
 export interface IAggregatorClass {
-  new(expr: Algebra.AggregateExpression, applyConfig: IApplyFunctionContext): BaseAggregator<any>;
+  new(expr: Algebra.AggregateExpression, sharedContext: ICompleteSharedContext): BaseAggregator<any>;
 
   emptyValue: () => RDF.Term;
 }

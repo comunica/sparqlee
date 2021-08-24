@@ -1,20 +1,21 @@
 import type * as LRUCache from 'lru-cache';
+import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type * as E from '../expressions';
 import { isLiteralTermExpression } from '../expressions';
 import type { KnownLiteralTypes } from '../util/Consts';
 import { TypeURL } from '../util/Consts';
-import type { IOpenWorldEnabler, OverrideType,
-  GeneralSubExtensionTable } from '../util/TypeHandling';
+import type { ISuperTypeProvider, OverrideType,
+  GeneralSuperTypeDict } from '../util/TypeHandling';
 import {
-  extensionTable,
-  getOpenWorldSubExtension,
+  superTypeDictTable,
+  getSuperTypes,
   isKnownLiteralType,
 } from '../util/TypeHandling';
-import type { ArgumentType, IFunctionContext } from './Core';
+import type { ArgumentType } from './Core';
 import { double, float, string } from './Helpers';
 
 export type SearchStack = OverloadTree[];
-export type ImplementationFunction = (funcConf: IFunctionContext) => E.SimpleApplication;
+export type ImplementationFunction = (sharedContext: ICompleteSharedContext) => E.SimpleApplication;
 export type OverLoadCache = LRUCache<string, ImplementationFunction | undefined>;
 /**
  * Maps argument types on their specific implementation in a tree like structure.
@@ -61,9 +62,9 @@ export class OverloadTree {
    * Searches in a depth first way for the best matching overload. considering this a the tree's root.
    * @param args:
    * @param overloadCache
-   * @param openWorldType
+   * @param superTypeProvider
    */
-  public search(args: E.TermExpression[], openWorldType: IOpenWorldEnabler,
+  public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
     overloadCache?: OverLoadCache): ImplementationFunction | undefined {
     const identifier = this.getOverloadCacheIdentifier(args);
     if (overloadCache?.has(identifier)) {
@@ -79,7 +80,7 @@ export class OverloadTree {
     // GetSubTreeWithArg return a SearchStack containing the node's that should be contacted next.
     // We also log the index since there is no other way to remember this index.
     // the provided stack should be pushed on top of our search stack since it also has it's order.
-    searchStack.push(...this.getSubTreeWithArg(args[startIndex], openWorldType).map(node =>
+    searchStack.push(...this.getSubTreeWithArg(args[startIndex], superTypeProvider).map(node =>
       ({ node, index: startIndex + 1 })));
     while (searchStack.length > 0) {
       const { index, node } = <{ node: OverloadTree; index: number }>searchStack.pop();
@@ -89,7 +90,7 @@ export class OverloadTree {
         overloadCache?.set(identifier, node.implementation);
         return node.implementation;
       }
-      searchStack.push(...node.getSubTreeWithArg(args[index], openWorldType).map(item =>
+      searchStack.push(...node.getSubTreeWithArg(args[index], superTypeProvider).map(item =>
         ({ node: item, index: index + 1 })));
     }
     // Calling a function with one argument but finding no implementation should return no implementation.
@@ -158,7 +159,7 @@ export class OverloadTree {
    * @param arg term to try and match to possible overloads of this node.
    * @returns SearchStack a stack with top element the next node that should be asked for implementation or overload.
    */
-  private getSubTreeWithArg(arg: E.TermExpression, openWorldType: IOpenWorldEnabler): SearchStack {
+  private getSubTreeWithArg(arg: E.TermExpression, openWorldType: ISuperTypeProvider): SearchStack {
     const res: SearchStack = [];
     const literalExpression = isLiteralTermExpression(arg);
     // These types refer to Type exported by lib/util/Consts.ts
@@ -175,13 +176,13 @@ export class OverloadTree {
       // We map over each of the overloads, filter only the once that can be used (this is normally 1 or 2).
       // The sort function on an array with 1 or 2 arguments will be negligible.
       const concreteType = isKnownLiteralType(literalExpression.dataType);
-      let subExtensionTable: GeneralSubExtensionTable;
+      let subExtensionTable: GeneralSuperTypeDict;
       if (concreteType) {
         // Concrete dataType is known by sparqlee.
-        subExtensionTable = extensionTable[concreteType];
+        subExtensionTable = superTypeDictTable[concreteType];
       } else {
         // Datatype is a custom datatype
-        subExtensionTable = getOpenWorldSubExtension(literalExpression.dataType, openWorldType);
+        subExtensionTable = getSuperTypes(literalExpression.dataType, openWorldType);
       }
       const overLoads = <[OverrideType, OverloadTree][]> Object.entries(this.subTrees);
       const matches: [number, OverloadTree][] = overLoads.filter(([ matchType, _ ]) => matchType in subExtensionTable)

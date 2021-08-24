@@ -2,12 +2,12 @@ import type * as RDF from '@rdfjs/types';
 import * as LRUCache from 'lru-cache';
 import type * as T from '../expressions/Term';
 import { TermTransformer } from '../transformers/TermTransformer';
-import type { IOpenWorldEnabler, SuperTypeDiscoverCallback, TypeCache } from './TypeHandling';
+import type { ISuperTypeProvider, SuperTypeCallback, TypeCache } from './TypeHandling';
 
 // Determine the relative numerical order of the two given terms.
 export function orderTypes(litA: RDF.Term | undefined, litB: RDF.Term | undefined, isAscending: boolean,
-  typeDiscoveryCallback?: SuperTypeDiscoverCallback, typeCache?: TypeCache): -1 | 0 | 1 {
-  const openWorldType: IOpenWorldEnabler = {
+  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache): -1 | 0 | 1 {
+  const openWorldType: ISuperTypeProvider = {
     discoverer: typeDiscoveryCallback || (() => 'term'),
     cache: typeCache || new LRUCache(),
   };

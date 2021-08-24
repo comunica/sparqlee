@@ -1,17 +1,18 @@
 import { Decimal } from 'decimal.js';
 import { sha1, sha256, sha384, sha512 } from 'hash.js';
 import { DataFactory } from 'rdf-data-factory';
-import { resolve as resolveRelativeIri } from 'relative-to-absolute-iri/lib/Resolve';
+import { resolve as resolveRelativeIri } from 'relative-to-absolute-iri';
 import { hash as md5 } from 'spark-md5';
 import * as uuid from 'uuid';
 
+import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
-import type { IFunctionContext, IOverloadedDefinition } from './Core';
+import type { IOverloadedDefinition } from './Core';
 import { bool, decimal, declare, double, integer, langString, string } from './Helpers';
 import * as X from './XPathFunctions';
 
@@ -270,9 +271,9 @@ const STRDT = {
   arity: 2,
   overloads: declare(C.RegularOperator.STRDT).set(
     [ TypeURL.XSD_STRING, 'namedNode' ],
-    ({ openWorldEnabler }) => ([ str, iri ]: [E.StringLiteral, E.NamedNode]) => {
+    ({ superTypeProvider }) => ([ str, iri ]: [E.StringLiteral, E.NamedNode]) => {
       const lit = DF.literal(str.typedValue, DF.namedNode(iri.value));
-      return new TermTransformer(openWorldEnabler).transformLiteral(lit);
+      return new TermTransformer(superTypeProvider).transformLiteral(lit);
     },
   ).collect(),
 };
@@ -530,9 +531,9 @@ const langmatches = {
     ).collect(),
 };
 
-const regex2: (context: IFunctionContext) => (text: string, pattern: string) => E.BooleanLiteral =
+const regex2: (context: ICompleteSharedContext) => (text: string, pattern: string) => E.BooleanLiteral =
   () => (text: string, pattern: string) => bool(X.matches(text, pattern));
-const regex3: (context: IFunctionContext) => (text: string, pattern: string, flags: string) => E.BooleanLiteral =
+const regex3: (context: ICompleteSharedContext) => (text: string, pattern: string, flags: string) => E.BooleanLiteral =
   () => (text: string, pattern: string, flags: string) => bool(X.matches(text, pattern, flags));
 /**
  * https://www.w3.org/TR/sparql11-query/#func-regex
@@ -648,8 +649,8 @@ function parseDate(dateLit: E.DateTimeLiteral): P.ISplittedDate {
  */
 const now = {
   arity: 0,
-  overloads: declare(C.RegularOperator.NOW).set([], (functionConfig: IFunctionContext) => () =>
-    new E.DateTimeLiteral(functionConfig.now, functionConfig.now.toISOString())).collect(),
+  overloads: declare(C.RegularOperator.NOW).set([], (sharedContext: ICompleteSharedContext) => () =>
+    new E.DateTimeLiteral(sharedContext.now, sharedContext.now.toISOString())).collect(),
 };
 
 /**

@@ -4,7 +4,7 @@ import { DataFactory } from 'rdf-data-factory';
 
 import { TypeURL, TypeURL as DT } from '../../../lib/util/Consts';
 import { orderTypes } from '../../../lib/util/Ordering';
-import type { SuperTypeDiscoverCallback, TypeCache } from '../../../lib/util/TypeHandling';
+import type { SuperTypeCallback, TypeCache } from '../../../lib/util/TypeHandling';
 
 const DF = new DataFactory();
 
@@ -106,7 +106,7 @@ describe('ordering literals', () => {
   });
 
   it('handles extended types', () => {
-    const discover: SuperTypeDiscoverCallback = unknownType => TypeURL.XSD_DECIMAL;
+    const discover: SuperTypeCallback = unknownType => TypeURL.XSD_DECIMAL;
     const cache: TypeCache = new LRUCache();
     const someType = 'https://example.org/some-decimal';
     const numA = decimal('11', someType);

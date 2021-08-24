@@ -6,7 +6,7 @@ import { TypeURL as DT, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { isSubTypeOf } from '../util/TypeHandling';
-import type { IOpenWorldEnabler } from '../util/TypeHandling';
+import type { ISuperTypeProvider } from '../util/TypeHandling';
 
 export interface ITermTransformer {
   transformRDFTermUnsafe: (term: RDF.Term) => E.Term;
@@ -14,7 +14,7 @@ export interface ITermTransformer {
 }
 
 export class TermTransformer implements ITermTransformer {
-  public constructor(protected readonly openWorldType: IOpenWorldEnabler) {
+  public constructor(protected readonly superTypeProvider: ISuperTypeProvider) {
   }
 
   /**
@@ -65,13 +65,13 @@ export class TermTransformer implements ITermTransformer {
 
     const dataType = lit.datatype.value;
 
-    if (isSubTypeOf(dataType, TypeURL.XSD_STRING, this.openWorldType)) {
+    if (isSubTypeOf(dataType, TypeURL.XSD_STRING, this.superTypeProvider)) {
       return new E.StringLiteral(lit.value, dataType);
     }
-    if (isSubTypeOf(dataType, DT.RDF_LANG_STRING, this.openWorldType)) {
+    if (isSubTypeOf(dataType, DT.RDF_LANG_STRING, this.superTypeProvider)) {
       return new E.LangStringLiteral(lit.value, lit.language);
     }
-    if (isSubTypeOf(dataType, DT.XSD_DATE_TIME, this.openWorldType)) {
+    if (isSubTypeOf(dataType, DT.XSD_DATE_TIME, this.superTypeProvider)) {
       // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
       // This is because sparql functions don't care about the timezone.
       // It's also doesn't break the specs because we keep the string representation stored,
@@ -80,33 +80,33 @@ export class TermTransformer implements ITermTransformer {
       // https://github.com/comunica/sparqlee/pull/103#discussion_r688462368
       const dateVal: Date = new Date(lit.value);
       if (Number.isNaN(dateVal.getTime())) {
-        return new E.NonLexicalLiteral(undefined, dataType, this.openWorldType, lit.value);
+        return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
       }
       return new E.DateTimeLiteral(new Date(lit.value), lit.value, dataType);
     }
-    if (isSubTypeOf(dataType, DT.XSD_BOOLEAN, this.openWorldType)) {
+    if (isSubTypeOf(dataType, DT.XSD_BOOLEAN, this.superTypeProvider)) {
       if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
-        return new E.NonLexicalLiteral(undefined, dataType, this.openWorldType, lit.value);
+        return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
       }
       return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
     }
-    if (isSubTypeOf(dataType, DT.XSD_DECIMAL, this.openWorldType)) {
+    if (isSubTypeOf(dataType, DT.XSD_DECIMAL, this.superTypeProvider)) {
       const intVal: number = P.parseXSDDecimal(lit.value);
       if (intVal === undefined) {
-        return new E.NonLexicalLiteral(undefined, dataType, this.openWorldType, lit.value);
+        return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
       }
-      if (isSubTypeOf(dataType, DT.XSD_INTEGER, this.openWorldType)) {
+      if (isSubTypeOf(dataType, DT.XSD_INTEGER, this.superTypeProvider)) {
         return new E.IntegerLiteral(intVal, dataType, lit.value);
       }
       // If type is not an integer it's just a decimal.
       return new E.DecimalLiteral(intVal, dataType, lit.value);
     }
-    const isFloat = isSubTypeOf(dataType, DT.XSD_FLOAT, this.openWorldType);
-    const isDouble = isSubTypeOf(dataType, DT.XSD_DOUBLE, this.openWorldType);
+    const isFloat = isSubTypeOf(dataType, DT.XSD_FLOAT, this.superTypeProvider);
+    const isDouble = isSubTypeOf(dataType, DT.XSD_DOUBLE, this.superTypeProvider);
     if (isFloat || isDouble) {
       const doubleVal: number = P.parseXSDFloat(lit.value);
       if (doubleVal === undefined) {
-        return new E.NonLexicalLiteral(undefined, dataType, this.openWorldType, lit.value);
+        return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
       }
       if (isFloat) {
         return new E.FloatLiteral(doubleVal, dataType, lit.value);

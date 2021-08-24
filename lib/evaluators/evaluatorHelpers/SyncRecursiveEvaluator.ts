@@ -7,19 +7,21 @@ import type { ITermTransformer } from '../../transformers/TermTransformer';
 import { TermTransformer } from '../../transformers/TermTransformer';
 import type { Bindings, IExpressionEvaluator } from '../../Types';
 import * as Err from '../../util/Errors';
-import type { IOpenWorldEnabler } from '../../util/TypeHandling';
-import type { ICompleteSharedConfig } from './BaseExpressionEvaluator';
+import type { ISuperTypeProvider } from '../../util/TypeHandling';
+import type { SyncExtensionFunctionCreator } from '../SyncEvaluator';
+import type { ICompleteSharedContext } from './BaseExpressionEvaluator';
 import { BaseExpressionEvaluator } from './BaseExpressionEvaluator';
 
-export interface ICompleteSyncEvaluatorConfig extends ICompleteSharedConfig {
+export interface ICompleteSyncEvaluatorContext extends ICompleteSharedContext {
   exists?: (expression: Alg.ExistenceExpression, mapping: Bindings) => boolean;
   aggregate?: (expression: Alg.AggregateExpression) => RDF.Term;
   bnode?: (input?: string) => RDF.BlankNode;
+  extensionFunctionCreator?: SyncExtensionFunctionCreator;
 }
 
 export class SyncRecursiveEvaluator extends BaseExpressionEvaluator
   implements IExpressionEvaluator<E.Expression, E.Term> {
-  protected openWorldType: IOpenWorldEnabler;
+  protected openWorldType: ISuperTypeProvider;
   private readonly subEvaluators: Record<string, (expr: E.Expression, mapping: Bindings) => E.Term> = {
     // Shared
     [E.ExpressionType.Term]: this.term.bind(this),
@@ -34,15 +36,8 @@ export class SyncRecursiveEvaluator extends BaseExpressionEvaluator
     [E.ExpressionType.SyncExtension]: this.evalSyncExtension.bind(this),
   };
 
-  public constructor(private readonly context: ICompleteSyncEvaluatorConfig, termTransformer?: ITermTransformer) {
-    super(termTransformer || new TermTransformer({
-      discoverer: context.superTypeDiscoverCallback,
-      cache: context.typeCache,
-    }));
-    this.openWorldType = {
-      discoverer: context.superTypeDiscoverCallback,
-      cache: context.typeCache,
-    };
+  public constructor(private readonly context: ICompleteSyncEvaluatorContext, termTransformer?: ITermTransformer) {
+    super(termTransformer || new TermTransformer(context.superTypeProvider));
   }
 
   public evaluate(expr: E.Expression, mapping: Bindings): E.Term {
@@ -63,14 +58,14 @@ export class SyncRecursiveEvaluator extends BaseExpressionEvaluator
     const context: EvalContextSync = {
       args: expr.args,
       mapping,
-      evaluate,
-      functionContext: {
-        now: this.context.now,
-        baseIRI: this.context.baseIRI,
-        openWorldEnabler: this.openWorldType,
-      },
-      bnode: this.context.bnode,
+
+      superTypeProvider: this.context.superTypeProvider,
+      now: this.context.now,
+      baseIRI: this.context.baseIRI,
       overloadCache: this.context.overloadCache,
+
+      evaluate,
+      bnode: this.context.bnode,
     };
     return expr.applySync(context);
   }

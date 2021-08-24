@@ -3,22 +3,21 @@ import type { OverLoadCache } from '../../functions/OverloadTree';
 import type { ITermTransformer } from '../../transformers/TermTransformer';
 import type { Bindings } from '../../Types';
 import * as Err from '../../util/Errors';
-import type { SuperTypeDiscoverCallback, TypeCache } from '../../util/TypeHandling';
+import type { SuperTypeCallback, TypeCache, ISuperTypeProvider } from '../../util/TypeHandling';
 
-export interface ISharedConfig {
+export interface ISharedContext {
   now?: Date;
   baseIRI?: string;
   overloadCache?: OverLoadCache;
   typeCache?: TypeCache;
-  superTypeDiscoverCallback?: SuperTypeDiscoverCallback;
+  superTypeDiscoverCallback?: SuperTypeCallback;
 }
 
-export interface ICompleteSharedConfig {
+export interface ICompleteSharedContext {
   now: Date;
   baseIRI?: string;
   overloadCache?: OverLoadCache;
-  typeCache: TypeCache;
-  superTypeDiscoverCallback: SuperTypeDiscoverCallback;
+  superTypeProvider: ISuperTypeProvider;
 }
 
 export class BaseExpressionEvaluator {

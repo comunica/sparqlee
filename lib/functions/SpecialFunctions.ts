@@ -246,7 +246,7 @@ async function inRecursiveAsync(
   context: EvalContextAsync,
   results: (Error | false)[],
 ): PTerm {
-  const { args, mapping, evaluate, functionContext, overloadCache } = context;
+  const { args, mapping, evaluate, overloadCache } = context;
   if (args.length === 0) {
     const noErrors = results.every(val => !val);
     return noErrors ? bool(false) : Promise.reject(new Err.InError(results));
@@ -255,7 +255,7 @@ async function inRecursiveAsync(
   try {
     const next = await evaluate(args.shift(), mapping);
     const isEqual = regularFunctions[C.RegularOperator.EQUAL];
-    if ((<E.BooleanLiteral> isEqual.apply([ needle, next ], { functionContext, overloadCache })).typedValue) {
+    if ((<E.BooleanLiteral> isEqual.apply([ needle, next ], context)).typedValue) {
       return bool(true);
     }
     return inRecursiveAsync(needle, context, [ ...results, false ]);
@@ -269,7 +269,7 @@ function inRecursiveSync(
   context: EvalContextSync,
   results: (Error | false)[],
 ): Term {
-  const { args, mapping, evaluate, functionContext, overloadCache } = context;
+  const { args, mapping, evaluate, overloadCache } = context;
   if (args.length === 0) {
     const noErrors = results.every(val => !val);
     if (noErrors) {
@@ -281,7 +281,7 @@ function inRecursiveSync(
   try {
     const next = evaluate(args.shift(), mapping);
     const isEqual = regularFunctions[C.RegularOperator.EQUAL];
-    if ((<E.BooleanLiteral> isEqual.apply([ needle, next ], { functionContext, overloadCache })).typedValue) {
+    if ((<E.BooleanLiteral> isEqual.apply([ needle, next ], context)).typedValue) {
       return bool(true);
     }
     return inRecursiveSync(needle, context, [ ...results, false ]);
@@ -330,15 +330,15 @@ const concatTree: OverloadTree = declare(C.SpecialOperator.CONCAT).onStringly1((
 const concat: ISpecialDefinition = {
   arity: Number.POSITIVE_INFINITY,
   async applyAsync(context: EvalContextAsync): PTerm {
-    const { args, mapping, evaluate, functionContext, overloadCache } = context;
+    const { args, mapping, evaluate, overloadCache, superTypeProvider } = context;
     const pLits: Promise<E.Literal<string>>[] = args
       .map(async expr => evaluate(expr, mapping))
       .map(async pTerm => {
-        const operation = concatTree.search([ await pTerm ], functionContext.openWorldEnabler, overloadCache);
+        const operation = concatTree.search([ await pTerm ], superTypeProvider, overloadCache);
         if (!operation) {
           throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.CONCAT);
         }
-        return <E.Literal<string>> operation(functionContext)([ await pTerm ]);
+        return <E.Literal<string>> operation(context)([ await pTerm ]);
       });
     const lits = await Promise.all(pLits);
     const strings = lits.map(lit => lit.typedValue);
@@ -348,15 +348,15 @@ const concat: ISpecialDefinition = {
   },
 
   applySync(context: EvalContextSync): Term {
-    const { args, mapping, evaluate, functionContext, overloadCache } = context;
+    const { args, mapping, evaluate, superTypeProvider, overloadCache } = context;
     const lits = args
       .map(expr => evaluate(expr, mapping))
       .map(pTerm => {
-        const operation = concatTree.search([ pTerm ], functionContext.openWorldEnabler, overloadCache);
+        const operation = concatTree.search([ pTerm ], superTypeProvider, overloadCache);
         if (!operation) {
           throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.CONCAT);
         }
-        return <E.Literal<string>> operation(functionContext)([ pTerm ]);
+        return <E.Literal<string>> operation(context)([ pTerm ]);
       });
     const strings = lits.map(lit => lit.typedValue);
     const joined = strings.join('');
@@ -390,19 +390,19 @@ const BNODE: ISpecialDefinition = {
     return args.length === 0 || args.length === 1;
   },
   async applyAsync(context: EvalContextAsync): PTerm {
-    const { args, mapping, evaluate, functionContext, overloadCache } = context;
+    const { args, mapping, evaluate, superTypeProvider, overloadCache } = context;
     const input = args.length === 1 ?
       await evaluate(args[0], mapping) :
       undefined;
 
     let strInput: string | undefined;
     if (input) {
-      const operation = bnodeTree.search([ input ], functionContext.openWorldEnabler, overloadCache);
+      const operation = bnodeTree.search([ input ], superTypeProvider, overloadCache);
       if (!operation) {
         throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.BNODE);
       }
       // eslint-disable-next-line prefer-const
-      strInput = operation(functionContext)([ input ]).str();
+      strInput = operation(context)([ input ]).str();
     }
 
     if (context.bnode) {
@@ -413,19 +413,19 @@ const BNODE: ISpecialDefinition = {
     return BNODE_(strInput);
   },
   applySync(context: EvalContextSync): Term {
-    const { args, mapping, evaluate, functionContext, overloadCache } = context;
+    const { args, mapping, evaluate, superTypeProvider, overloadCache } = context;
     const input = args.length === 1 ?
       evaluate(args[0], mapping) :
       undefined;
 
     let strInput: string | undefined;
     if (input) {
-      const operation = bnodeTree.search([ input ], functionContext.openWorldEnabler, overloadCache);
+      const operation = bnodeTree.search([ input ], superTypeProvider, overloadCache);
       if (!operation) {
         throw new Err.InvalidArgumentTypes(args, C.SpecialOperator.BNODE);
       }
       // eslint-disable-next-line prefer-const
-      strInput = operation(functionContext)([ input ]).str();
+      strInput = operation(context)([ input ]).str();
     }
 
     if (context.bnode) {
