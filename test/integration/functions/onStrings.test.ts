@@ -59,7 +59,9 @@ describe('string functions', () => {
       "👨‍👩‍👧‍👦"@en 2 = "‍👩‍👧‍👦"@en
       "👪"@en 1 1 = "👪"@en
       "👨‍👩‍👧‍👦"@en 1 1 = "👨"@en
-      '"type promotion"^^xsd:anyURI' 2 4 = "ype"
+      '"type promotion"^^xsd:anyURI' 2 3 = "ype"
+      '"type promotion"^^xsd:anyURI' 6 5 = "promo"
+      '"type promotion"^^xsd:anyURI' 6 1 = "p"
       `,
     });
   });

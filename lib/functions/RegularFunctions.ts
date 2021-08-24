@@ -329,10 +329,11 @@ const SUBSTR = {
     )
     .onTernaryTyped([ TypeURL.XSD_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
       (source: string, startingLoc: number, length: number) =>
-        string([ ...source ].slice(startingLoc - 1, length).join('')))
+        string([ ...source ].slice(startingLoc - 1, length + startingLoc - 1).join('')))
     .onTernary([ TypeURL.RDF_LANG_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
       (source: E.LangStringLiteral, startingLoc: E.NumericLiteral, length: E.NumericLiteral) => {
-        const sub = [ ...source.typedValue ].slice(startingLoc.typedValue - 1, length.typedValue).join('');
+        const sub = [ ...source.typedValue ].slice(startingLoc.typedValue - 1,
+          length.typedValue + startingLoc.typedValue - 1).join('');
         return langString(sub, source.language);
       })
     .collect(),
