@@ -45,6 +45,18 @@ describe('string functions', () => {
     });
   });
 
+  // TODO: PR: I put this here for coverage, I don't know if it's correct
+  describe('replace with global option', () => {
+    runTestTable({
+      operation: 'REPLACE',
+      arity: 'vary',
+      notation: Notation.Function,
+      testTable: `
+      "apple" "a" "A" "g" = "Apple"
+    `,
+    });
+  });
+
   // TODO: Add errors for when non BCP47 strings are passed
   describe('evaluation of \'langMatches\' like', () => {
     runTestTable({
@@ -62,6 +74,7 @@ describe('string functions', () => {
        "de" "de-*-DE" = false
        "de-X-De" "de-*-DE" = false
        "de-Deva" "de-*-DE" = false
+       "de-de" "be-*-BE" = false
       `,
     });
   });
