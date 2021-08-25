@@ -1,5 +1,6 @@
 import { DataFactory } from 'rdf-data-factory';
 import type { ISyncEvaluatorContext } from '../../../lib/evaluators/SyncEvaluator';
+import { int } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
@@ -18,6 +19,9 @@ describe('evaluations of \'bnode\' with custom blank node generator function', (
     '' = _:bcd
     "" = _:bcd
     "hello" = _:hellocd
+    `,
+    errorTable: `
+     ${int('2')} = 'Argument types not valid'
     `,
   });
 });
