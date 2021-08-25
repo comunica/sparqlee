@@ -2,8 +2,10 @@ import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 
 import { isNonLexicalLiteral } from '../../lib/expressions';
-import { transformLiteral } from '../../lib/Transformation';
+import type { ITermTransformer } from '../../lib/transformers/TermTransformer';
+import { TermTransformer } from '../../lib/transformers/TermTransformer';
 import { TypeURL as DT } from '../../lib/util/Consts';
+import { getDefaultSharedContext } from '../util/utils';
 
 function int(value: string): RDF.Literal {
   return DF.literal(value, DF.namedNode(DT.XSD_INTEGER));
@@ -24,19 +26,42 @@ function double(value: string): RDF.Literal {
 const DF = new DataFactory();
 
 describe('transformations', () => {
+  let termTransformer: ITermTransformer;
+  beforeEach(() => {
+    termTransformer = new TermTransformer(getDefaultSharedContext().superTypeProvider);
+  });
+
+  function simpleLiteralCreator(value: string, dataType?: string, language?: string): RDF.Literal {
+    return {
+      termType: 'Literal',
+      value,
+      language,
+      datatype: dataType === undefined ? undefined : DF.namedNode(dataType),
+      equals: other => false,
+    };
+  }
+
+  function returnNonLexicalTest(value: string, dataType: string) {
+    const lit = DF.literal(value, DF.namedNode(dataType));
+    const res = isNonLexicalLiteral(termTransformer.transformLiteral(lit));
+    expect(res).toBeTruthy();
+    expect(res.typeURL).toEqual(dataType);
+    expect(res.strValue).toEqual(value);
+  }
+
   describe('ordering literals', () => {
     it('invalid namedNode', () => {
       // No namednode, language is also not given
       const num = int('11');
       num.termType = undefined;
-      const res = transformLiteral(num);
+      const res = termTransformer.transformLiteral(num);
       expect(res.strValue).toEqual('11');
       expect(res.typedValue).toEqual(11);
       expect(res.language).toEqual(undefined);
       expect(res.dataType).toEqual(DT.XSD_INTEGER);
       // No namednode but language is given
       num.language = 'en';
-      const res2 = transformLiteral(num);
+      const res2 = termTransformer.transformLiteral(num);
       expect(res2.strValue).toEqual('11');
       expect(res2.typedValue).toEqual(11);
       expect(res2.language).toEqual(undefined);
@@ -45,7 +70,7 @@ describe('transformations', () => {
 
     it('integers type transform', () => {
       const num = int('11');
-      const res = transformLiteral(num);
+      const res = termTransformer.transformLiteral(num);
       expect(res.strValue).toEqual('11');
       expect(res.termType).toEqual('literal');
       expect(res.dataType).toEqual(DT.XSD_INTEGER);
@@ -55,7 +80,7 @@ describe('transformations', () => {
 
     it('double type transform', () => {
       const num = double('11');
-      const res = transformLiteral(num);
+      const res = termTransformer.transformLiteral(num);
       expect(res.strValue).toEqual('11');
       expect(res.termType).toEqual('literal');
       expect(res.dataType).toEqual(DT.XSD_DOUBLE);
@@ -64,7 +89,7 @@ describe('transformations', () => {
     });
     it('decimal type transform', () => {
       const num = decimal('11');
-      const res = transformLiteral(num);
+      const res = termTransformer.transformLiteral(num);
       expect(res.strValue).toEqual('11');
       expect(res.termType).toEqual('literal');
       expect(res.dataType).toEqual(DT.XSD_DECIMAL);
@@ -74,7 +99,7 @@ describe('transformations', () => {
 
     it('float type transform', () => {
       const num = float('11');
-      const res = transformLiteral(num);
+      const res = termTransformer.transformLiteral(num);
       expect(res.strValue).toEqual('11');
       expect(res.termType).toEqual('literal');
       expect(res.dataType).toEqual(DT.XSD_FLOAT);
@@ -84,7 +109,7 @@ describe('transformations', () => {
 
     it('langString type transform', () => {
       const lit = DF.literal('ab', DT.RDF_LANG_STRING);
-      const res = transformLiteral(lit);
+      const res = termTransformer.transformLiteral(lit);
       expect(res.strValue).toEqual('ab');
       expect(res.termType).toEqual('literal');
       expect(res.dataType).toEqual(DT.RDF_LANG_STRING);
@@ -94,7 +119,7 @@ describe('transformations', () => {
 
     it('other type transform', () => {
       const lit = DF.literal('ab', 'othertype');
-      const res = transformLiteral(lit);
+      const res = termTransformer.transformLiteral(lit);
       expect(res.strValue).toEqual('ab');
       expect(res.termType).toEqual('literal');
       expect(res.dataType).toEqual(DT.RDF_LANG_STRING);
@@ -110,7 +135,7 @@ describe('transformations', () => {
         const someStr = 'apple';
         const lit = simpleLiteralCreator(someStr);
         expect(lit.datatype).toBeFalsy();
-        const res = transformLiteral(lit);
+        const res = termTransformer.transformLiteral(lit);
         expect(res.dataType).toEqual(DT.XSD_STRING);
         expect(res.strValue).toEqual(someStr);
         expect(res.typedValue).toEqual(someStr);
@@ -121,7 +146,7 @@ describe('transformations', () => {
         const lit = simpleLiteralCreator(someStr, undefined, 'eng');
         expect(lit.datatype).toBeFalsy();
         expect(lit.language).toBeTruthy();
-        const res = transformLiteral(lit);
+        const res = termTransformer.transformLiteral(lit);
         expect(res.dataType).toEqual(DT.RDF_LANG_STRING);
         expect(res.strValue).toEqual(someStr);
         expect(res.typedValue).toEqual(someStr);
@@ -133,7 +158,7 @@ describe('transformations', () => {
         expect(lit.datatype).toBeTruthy();
         expect(lit.language).toBeFalsy();
         expect(lit.datatype.value).toBeFalsy();
-        const res = transformLiteral(lit);
+        const res = termTransformer.transformLiteral(lit);
         expect(res.dataType).toEqual(DT.XSD_STRING);
         expect(res.strValue).toEqual(someStr);
         expect(res.typedValue).toEqual(someStr);
@@ -159,21 +184,3 @@ describe('transformations', () => {
     });
   });
 });
-
-function simpleLiteralCreator(value: string, dataType?: string, language?: string): RDF.Literal {
-  return {
-    termType: 'Literal',
-    value,
-    language,
-    datatype: dataType === undefined ? undefined : DF.namedNode(dataType),
-    equals: other => false,
-  };
-}
-
-function returnNonLexicalTest(value: string, dataType: string) {
-  const lit = DF.literal(value, DF.namedNode(dataType));
-  const res = isNonLexicalLiteral(transformLiteral(lit));
-  expect(res).toBeTruthy();
-  expect(res.typeURL).toEqual(dataType);
-  expect(res.strValue).toEqual(value);
-}

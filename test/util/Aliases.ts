@@ -19,6 +19,7 @@ export const defaultPrefixes: Record<string, string> = {
   rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString',
   fn: 'https://www.w3.org/TR/xpath-functions#',
   er: 'http://www.w3.org/2005/xqt-errors#',
+  example: 'https://example.org/',
 };
 
 /**

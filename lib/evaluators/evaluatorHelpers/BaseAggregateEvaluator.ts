@@ -1,10 +1,12 @@
 import type * as RDF from '@rdfjs/types';
 import type { Algebra } from 'sparqlalgebrajs';
-import type { IAggregatorClass, BaseAggregator } from '../Aggregators';
-import { aggregators } from '../Aggregators';
-import type { Bindings } from '../Types';
-import type { SetFunction } from '../util/Consts';
-import * as Err from '../util/Errors';
+import type { IAggregatorClass } from '../../aggregators';
+import { aggregators } from '../../aggregators';
+import type { BaseAggregator } from '../../aggregators/BaseAggregator';
+import type { Bindings } from '../../Types';
+import type { SetFunction } from '../../util/Consts';
+import * as Err from '../../util/Errors';
+import type { ICompleteSharedContext } from './BaseExpressionEvaluator';
 
 export abstract class BaseAggregateEvaluator {
   protected expression: Algebra.AggregateExpression;
@@ -12,9 +14,10 @@ export abstract class BaseAggregateEvaluator {
   protected throwError = false;
   protected state: any;
 
-  protected constructor(expr: Algebra.AggregateExpression, throwError?: boolean) {
+  protected constructor(expr: Algebra.AggregateExpression,
+    sharedContext: ICompleteSharedContext, throwError?: boolean) {
     this.expression = expr;
-    this.aggregator = new aggregators[<SetFunction> expr.aggregator](expr);
+    this.aggregator = new aggregators[<SetFunction> expr.aggregator](expr, sharedContext);
     this.throwError = throwError;
   }
 
