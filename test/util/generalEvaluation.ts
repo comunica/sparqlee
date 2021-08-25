@@ -8,11 +8,10 @@ import type { ISyncEvaluatorContext, SyncExtensionFunctionCreator } from '../../
 import { SyncEvaluator } from '../../lib/evaluators/SyncEvaluator';
 import { Bindings } from '../../lib/Types';
 
-export type GeneralEvaluationConfig = { type: 'sync'; config: ISyncEvaluatorContext } |
-{ type: 'async'; config: IAsyncEvaluatorContext };
+export type GeneralEvaluationConfig = { type: 'sync'; config: ISyncEvaluatorContext; bindings?: Bindings } |
+{ type: 'async'; config: IAsyncEvaluatorContext; bindings?: Bindings };
 
 export interface IGeneralEvaluationArg {
-  bindings?: Bindings;
   expression: string;
   generalEvaluationConfig?: GeneralEvaluationConfig;
   /**
@@ -24,7 +23,9 @@ export interface IGeneralEvaluationArg {
 
 export async function generalEvaluate(arg: IGeneralEvaluationArg):
 Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
-  const bindings: Bindings = arg.bindings ? arg.bindings : Bindings({});
+  const bindings: Bindings = arg.generalEvaluationConfig?.bindings ?
+    arg.generalEvaluationConfig.bindings :
+    Bindings({});
   if (arg.generalEvaluationConfig?.type === 'async') {
     const asyncResultLegacy = await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config);
     if (!arg.generalEvaluationConfig.config.enableExtendedXsdTypes) {
@@ -62,7 +63,9 @@ Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
 
 export async function generalErrorEvaluation(arg: IGeneralEvaluationArg):
 Promise<{ asyncError: unknown; syncError?: unknown } | undefined > {
-  const bindings: Bindings = arg.bindings ? arg.bindings : Bindings({});
+  const bindings: Bindings = arg.generalEvaluationConfig?.bindings ?
+    arg.generalEvaluationConfig.bindings :
+    Bindings({});
   if (arg.generalEvaluationConfig?.type === 'async') {
     try {
       await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config);

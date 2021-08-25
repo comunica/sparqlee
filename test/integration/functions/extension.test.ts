@@ -115,9 +115,10 @@ describe('extension functions:', () => {
       const generalEvaluationConfig: GeneralEvaluationConfig = {
         type: 'sync',
         config: { extensionFunctionCreator: creator },
+        bindings,
       };
       const evaluated = await generalEvaluate({
-        expression: complexQuery, expectEquality: true, generalEvaluationConfig, bindings,
+        expression: complexQuery, expectEquality: true, generalEvaluationConfig,
       });
       expect(evaluated.asyncResult).toEqual(DF.literal('APPLE', stringType));
     });
