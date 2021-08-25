@@ -65,9 +65,9 @@ export class OverloadTree {
    * @param superTypeProvider
    */
   public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
-    overloadCache?: OverLoadCache): ImplementationFunction | undefined {
+    overloadCache: OverLoadCache): ImplementationFunction | undefined {
     const identifier = this.getOverloadCacheIdentifier(args);
-    if (overloadCache?.has(identifier)) {
+    if (overloadCache.has(identifier)) {
       return overloadCache.get(identifier);
     }
     // SearchStack is a stack of all node's that need to be checked for implementation.
@@ -87,7 +87,7 @@ export class OverloadTree {
       // We check the implementation because it would be possible a path is created but not implemented.
       // ex: f(double, double, double) and f(term, term). and calling f(double, double).
       if (index === args.length && node.implementation) {
-        overloadCache?.set(identifier, node.implementation);
+        overloadCache.set(identifier, node.implementation);
         return node.implementation;
       }
       searchStack.push(...node.getSubTreeWithArg(args[index], superTypeProvider).map(item =>
@@ -95,7 +95,7 @@ export class OverloadTree {
     }
     // Calling a function with one argument but finding no implementation should return no implementation.
     // Not even the one with no arguments.
-    overloadCache?.set(identifier, undefined);
+    overloadCache.set(identifier, undefined);
     return undefined;
   }
 

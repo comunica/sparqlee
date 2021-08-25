@@ -28,14 +28,15 @@ describe('The function helper file', () => {
       const func = fn();
       const args = [ bool(true) ];
       builder.onUnaryTyped(TypeURL.XSD_BOOLEAN, () => func).collect()
-        .search(args, sharedContext.superTypeProvider)(sharedContext)(args);
+        .search(args, sharedContext.superTypeProvider, sharedContext.overloadCache)(sharedContext)(args);
       expect(func).toBeCalledTimes(1);
     });
 
     it('defines a function onBoolean1', () => {
       const func = fn();
       const args = [ bool(true) ];
-      builder.onBoolean1(() => func).collect().search(args, sharedContext.superTypeProvider)(sharedContext)(args);
+      builder.onBoolean1(() => func).collect()
+        .search(args, sharedContext.superTypeProvider, sharedContext.overloadCache)(sharedContext)(args);
       expect(func).toBeCalledTimes(1);
     });
   });

@@ -8,7 +8,9 @@ import * as Benchmark from 'benchmark';
 import * as LRUCache from 'lru-cache';
 import { DataFactory } from 'rdf-data-factory';
 import { translate } from 'sparqlalgebrajs';
+import type { ICompleteSharedContext } from '../lib/evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import { SyncEvaluator } from '../lib/evaluators/SyncEvaluator';
+import type { SimpleApplication } from '../lib/expressions';
 import { Bindings } from '../lib/Types';
 import { TypeURL } from '../lib/util/Consts';
 import { template } from '../test/util/Aliases';
@@ -22,7 +24,14 @@ function integerTerm(int: number): RDF.Term {
 
 const noCache = new Benchmark('bench addition no overloadCache', () => {
   const query = translate(template('?a + ?b = ?c'));
-  const evaluator = new SyncEvaluator(query.input.expression);
+  const evaluator = new SyncEvaluator(query.input.expression, {
+    overloadCache: new LRUCache({
+      max: 1,
+      length(value: ((sharedContext: ICompleteSharedContext) => SimpleApplication) | undefined, key?: string): number {
+        return 5;
+      },
+    }),
+  });
   const max = 100;
   for (let fst = 0; fst < max; fst++) {
     for (let snd = 0; snd < max; snd++) {

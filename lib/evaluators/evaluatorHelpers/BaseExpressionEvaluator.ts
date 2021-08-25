@@ -16,7 +16,7 @@ export interface ISharedContext {
 export interface ICompleteSharedContext {
   now: Date;
   baseIRI?: string;
-  overloadCache?: OverLoadCache;
+  overloadCache: OverLoadCache;
   superTypeProvider: ISuperTypeProvider;
 }
 
