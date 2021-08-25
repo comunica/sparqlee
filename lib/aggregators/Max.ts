@@ -6,14 +6,15 @@ interface IExtremeState {
 }
 export class Max extends BaseAggregator<IExtremeState> {
   public init(start: RDF.Term): IExtremeState {
-    const { value } = this.extractValue(null, start);
+    const { value } = this.extractValue(start);
     if (start.termType === 'Literal') {
       return { extremeValue: value, term: start };
     }
+    throw new Error('Term should be a literal');
   }
 
   public put(state: IExtremeState, term: RDF.Term): IExtremeState {
-    const extracted = this.extractValue(state.term, term);
+    const extracted = this.extractValue(term);
     if (extracted.value > state.extremeValue && term.termType === 'Literal') {
       return {
         extremeValue: extracted.value,

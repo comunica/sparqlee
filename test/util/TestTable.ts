@@ -50,9 +50,9 @@ abstract class Table<RowType extends Row> {
       expression: template(expr, additionalPrefixes), expectEquality: false, generalEvaluationConfig: config,
     });
     expect(result).not.toBeUndefined();
-    expect(() => { throw result.asyncError; }).toThrow(error);
-    if (result.syncError) {
-      expect(() => { throw result.syncError; }).toThrow(error);
+    expect(() => { throw result?.asyncError; }).toThrow(error);
+    if (result?.syncError) {
+      expect(() => { throw result?.syncError; }).toThrow(error);
     }
   }
 

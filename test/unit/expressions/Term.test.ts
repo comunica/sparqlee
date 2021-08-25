@@ -8,7 +8,7 @@ describe('Term', () => {
   describe('has isNonLexicalLiteral function', () => {
     it('detects nonLexicalLiterals', () => {
       const openWorldType: ISuperTypeProvider = getDefaultSharedContext().superTypeProvider;
-      expect(isNonLexicalLiteral(new NonLexicalLiteral(undefined, TypeURL.XSD_DECIMAL, undefined, '1')))
+      expect(isNonLexicalLiteral(new NonLexicalLiteral(undefined, TypeURL.XSD_DECIMAL, openWorldType, '1')))
         .toBeTruthy();
     });
 

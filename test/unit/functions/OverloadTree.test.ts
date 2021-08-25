@@ -20,10 +20,10 @@ describe('OverloadTree', () => {
     tree.addOverload([ promoteTo ], () => ([ arg ]) => arg);
     const arg = new Literal<T>(value, promoteFrom);
     const res = isLiteralTermExpression(tree
-      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)(sharedContext)([ arg ]));
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
-    expect(res.dataType).toEqual(promoteTo);
-    expect(res.typedValue).toEqual(valueToEqual || value);
+    expect(res!.dataType).toEqual(promoteTo);
+    expect(res!.typedValue).toEqual(valueToEqual || value);
   }
 
   function subtypeSubstitutionTest<T>(tree: OverloadTree, argumentType: KnownLiteralTypes,
@@ -31,10 +31,10 @@ describe('OverloadTree', () => {
     tree.addOverload([ expectedType ], () => ([ arg ]) => arg);
     const arg = new Literal<T>(value, argumentType);
     const res = isLiteralTermExpression(tree
-      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)(sharedContext)([ arg ]));
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
-    expect(res.dataType).toEqual(argumentType);
-    expect(res.typedValue).toEqual(value);
+    expect(res!.dataType).toEqual(argumentType);
+    expect(res!.typedValue).toEqual(value);
   }
 
   describe('handles Type Promotion', () => {
@@ -70,10 +70,10 @@ describe('OverloadTree', () => {
 
     const arg = new Literal<number>(0, TypeURL.XSD_SHORT);
     const res = isLiteralTermExpression(emptyTree
-      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)(sharedContext)([ arg ]));
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
-    expect(res.dataType).toEqual(TypeURL.XSD_DOUBLE);
-    expect(res.typedValue).toEqual(0);
+    expect(res!.dataType).toEqual(TypeURL.XSD_DOUBLE);
+    expect(res!.typedValue).toEqual(0);
   });
 
   it('can handle unknown literal dataType', () => {
@@ -82,10 +82,10 @@ describe('OverloadTree', () => {
     const litValue = 'weird';
     const arg = new Literal<string>(litValue, dataType);
     const res = isLiteralTermExpression(emptyTree
-      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)(sharedContext)([ arg ]));
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
-    expect(res.dataType).toEqual(dataType);
-    expect(res.typedValue).toEqual(litValue);
+    expect(res!.dataType).toEqual(dataType);
+    expect(res!.typedValue).toEqual(litValue);
   });
 
   it('will cache an undefined function', () => {
