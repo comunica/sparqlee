@@ -30,7 +30,7 @@ export abstract class BaseAggregator<State> {
     return <E.NumericLiteral> this.termTransformer.transformLiteral(term);
   }
 
-  protected extractValue(extremeTerm: RDF.Literal, term: RDF.Term): { value: any; type: string } {
+  protected extractValue(term: RDF.Term): { value: any; type: string } {
     if (term.termType !== 'Literal') {
       throw new Error(`Term with value ${term.value} has type ${term.termType} and is not a literal`);
     }
@@ -39,7 +39,7 @@ export abstract class BaseAggregator<State> {
     return { type: transformedLit.dataType, value: transformedLit.typedValue };
   }
 
-  public static emptyValue(): RDF.Term {
+  public static emptyValue(): RDF.Term | undefined {
     return undefined;
   }
 

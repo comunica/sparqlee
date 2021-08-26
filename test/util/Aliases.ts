@@ -35,7 +35,8 @@ export function stringToTermPrefix(str: string, additionalPrefixes?: Record<stri
 
   const url = term.datatype.value;
   try {
-    const prefix = url.match(/.*:/ug)[0].slice(0, -1);
+    const matched = url.match(/.*:/ug);
+    const prefix = matched ? matched[0].slice(0, -1) : '';
     const prefixes: Record<string, string> = additionalPrefixes ?
       { ...defaultPrefixes, ...additionalPrefixes } :
       defaultPrefixes;

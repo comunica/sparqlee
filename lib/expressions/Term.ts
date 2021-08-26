@@ -72,7 +72,7 @@ export function isLiteralTermExpression(expr: TermExpression): Literal<any> | un
   }
   return undefined;
 }
-export class Literal<T> extends Term {
+export class Literal<T extends { toString: () => string }> extends Term {
   public termType: 'literal' = 'literal';
 
   /**
@@ -98,7 +98,6 @@ export class Literal<T> extends Term {
   }
 
   public str(): string {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return this.strValue || this.typedValue.toString();
   }
 }
@@ -229,7 +228,7 @@ export class LangStringLiteral extends Literal<string> {
   }
 
   public coerceEBV(): boolean {
-    return this.strValue.length > 0;
+    return this.str().length > 0;
   }
 }
 
@@ -247,7 +246,7 @@ export class StringLiteral extends Literal<string> {
   }
 
   public coerceEBV(): boolean {
-    return this.strValue.length > 0;
+    return this.str().length > 0;
   }
 }
 
@@ -268,7 +267,7 @@ export class StringLiteral extends Literal<string> {
  *  - https://www.w3.org/TR/xquery/#dt-ebv
  *  - ... some other more precise thing i can't find...
  */
-export class NonLexicalLiteral extends Literal<undefined> {
+export class NonLexicalLiteral extends Literal<{ toString: () => 'undefined' }> {
   public constructor(
     typedValue: undefined,
     public typeURL: string,
@@ -276,8 +275,8 @@ export class NonLexicalLiteral extends Literal<undefined> {
     strValue?: string,
     language?: string,
   ) {
-    super(typedValue, typeURL, strValue, language);
-    this.typedValue = undefined;
+    super({ toString: () => 'undefined' }, typeURL, strValue, language);
+    this.typedValue = { toString: () => 'undefined' };
     this.dataType = TypeAlias.SPARQL_NON_LEXICAL;
   }
 
@@ -299,12 +298,12 @@ export class NonLexicalLiteral extends Literal<undefined> {
   }
 
   public str(): string {
-    return this.strValue;
+    return this.strValue || '';
   }
 }
 
 export function isNonLexicalLiteral(lit: Literal<any>): NonLexicalLiteral | undefined {
-  if (lit.typedValue === undefined && lit.dataType === TypeAlias.SPARQL_NON_LEXICAL) {
+  if (lit.dataType === TypeAlias.SPARQL_NON_LEXICAL) {
     return <NonLexicalLiteral> lit;
   }
   return undefined;

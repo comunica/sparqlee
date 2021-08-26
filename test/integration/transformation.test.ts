@@ -1,3 +1,5 @@
+// We need to disable typescript because we want undefined types.
+// @ts-nocheck
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 

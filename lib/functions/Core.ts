@@ -12,7 +12,7 @@ export interface IEvalSharedContext extends ICompleteSharedContext{
   mapping: Bindings;
 }
 export interface IEvalContext<Term, BNode> extends IEvalSharedContext {
-  bnode: (input?: string) => BNode;
+  bnode?: (input?: string) => BNode;
   evaluate: (expr: E.Expression, mapping: Bindings) => Term;
 }
 
@@ -68,7 +68,7 @@ export abstract class BaseFunction<Operator> {
    * terms.
    */
   private monomorph(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
-    overloadCache?: OverLoadCache): ImplementationFunction | undefined {
+    overloadCache: OverLoadCache): ImplementationFunction | undefined {
     return this.overloads.search(args, superTypeProvider, overloadCache);
   }
 }

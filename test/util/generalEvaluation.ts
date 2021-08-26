@@ -13,7 +13,7 @@ export type GeneralEvaluationConfig = { type: 'sync'; config: ISyncEvaluatorCont
 
 export interface IGeneralEvaluationArg {
   bindings?: Bindings;
-  expression?: string;
+  expression: string;
   generalEvaluationConfig?: GeneralEvaluationConfig;
   /**
    * Boolean pointing out if the result of async and sync evaluation should be the same.
@@ -28,12 +28,13 @@ Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
   if (arg.generalEvaluationConfig?.type === 'async') {
     return { asyncResult: await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config) };
   }
+  const syncConfig = <ISyncEvaluatorContext | undefined> arg.generalEvaluationConfig?.config;
   const asyncResult = await evaluateAsync(
     arg.expression,
     bindings,
-    syncConfigToAsyncConfig(arg.generalEvaluationConfig?.config),
+    syncConfigToAsyncConfig(syncConfig),
   );
-  const syncResult = evaluateSync(arg.expression, bindings, arg.generalEvaluationConfig?.config);
+  const syncResult = evaluateSync(arg.expression, bindings, syncConfig);
   if (arg.expectEquality || arg.expectEquality === undefined) {
     expect(termToString(asyncResult)).toEqual(termToString(syncResult));
   }
@@ -52,18 +53,19 @@ Promise<{ asyncError: unknown; syncError?: unknown } | undefined > {
     }
   }
   const res: { asyncError: unknown; syncError?: unknown } = Object.create(null);
+  const syncConfig = <ISyncEvaluatorContext | undefined> arg.generalEvaluationConfig?.config;
   try {
     await evaluateAsync(
       arg.expression,
       bindings,
-      syncConfigToAsyncConfig(arg.generalEvaluationConfig?.config),
+      syncConfigToAsyncConfig(syncConfig),
     );
     return undefined;
   } catch (error: unknown) {
     res.asyncError = error;
   }
   try {
-    evaluateSync(arg.expression, bindings, arg.generalEvaluationConfig?.config);
+    evaluateSync(arg.expression, bindings, syncConfig);
     return undefined;
   } catch (error: unknown) {
     res.syncError = error;
@@ -78,11 +80,13 @@ function syncConfigToAsyncConfig(config: ISyncEvaluatorContext | undefined): IAs
   if (!config) {
     return undefined;
   }
-  const asyncExists = config.exists ? async(e: Alg.ExistenceExpression, m: Bindings) => config.exists(e, m) : undefined;
-  const asyncAggregate = config.aggregate ?
-    async(expression: Alg.AggregateExpression) => config.aggregate(expression) :
+  const asyncExists = config.exists ?
+    async(e: Alg.ExistenceExpression, m: Bindings) => config.exists!(e, m) :
     undefined;
-  const asyncBnode = config.bnode ? async(input?: string) => config.bnode(input) : undefined;
+  const asyncAggregate = config.aggregate ?
+    async(expression: Alg.AggregateExpression) => config.aggregate!(expression) :
+    undefined;
+  const asyncBnode = config.bnode ? async(input?: string) => config.bnode!(input) : undefined;
   const asyncExtensionFunctionCreator = syncCallbackWrapper(config.extensionFunctionCreator);
   return {
     ...config,
@@ -96,7 +100,13 @@ function syncConfigToAsyncConfig(config: ISyncEvaluatorContext | undefined): IAs
 function syncCallbackWrapper(f: SyncExtensionFunctionCreator | undefined): AsyncExtensionFunctionCreator | undefined {
   if (!f)
   { return undefined; }
-  return (namedNode: RDF.NamedNode) => async(args: RDF.Term[]) => f(namedNode)(args);
+  return (namedNode: RDF.NamedNode) => {
+    const func = f(namedNode);
+    if (!func) {
+      return;
+    }
+    return (args: RDF.Term[]) => Promise.resolve(func(args));
+  };
 }
 
 function parse(query: string) {

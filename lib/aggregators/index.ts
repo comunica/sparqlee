@@ -14,7 +14,7 @@ import { Sum } from './Sum';
 export interface IAggregatorClass {
   new(expr: Algebra.AggregateExpression, sharedContext: ICompleteSharedContext): BaseAggregator<any>;
 
-  emptyValue: () => RDF.Term;
+  emptyValue: () => RDF.Term | undefined;
 }
 
 export const aggregators: Readonly<{[key in SetFunction]: IAggregatorClass }> = {
