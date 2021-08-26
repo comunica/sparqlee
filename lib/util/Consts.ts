@@ -65,6 +65,24 @@ export enum TypeURL {
   XSD_DAYTIME_DURATION = 'http://www.w3.org/2001/XMLSchema#dayTimeDuration',
 }
 
+export type MainSparqlType =
+  'string'
+  | 'langString'
+  | 'dateTime'
+  | 'boolean'
+  | 'integer'
+  | 'decimal'
+  | 'float'
+  | 'double'
+  | 'other'
+  | 'nonlexical';
+
+export type MainNumericSparqlType =
+  | 'integer'
+  | 'decimal'
+  | 'float'
+  | 'double';
+
 // ----------------------------------------------------------------------------
 // Operators
 // ----------------------------------------------------------------------------

@@ -11,6 +11,7 @@ export interface ISharedContext {
   overloadCache?: OverLoadCache;
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
+  experimentalMode?: boolean;
 }
 
 export interface ICompleteSharedContext {
@@ -18,6 +19,7 @@ export interface ICompleteSharedContext {
   baseIRI?: string;
   overloadCache: OverLoadCache;
   superTypeProvider: ISuperTypeProvider;
+  experimentalMode: boolean;
 }
 
 export class BaseExpressionEvaluator {

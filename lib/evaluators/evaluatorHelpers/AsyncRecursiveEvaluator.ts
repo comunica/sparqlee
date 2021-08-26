@@ -68,6 +68,7 @@ export class AsyncRecursiveEvaluator extends BaseExpressionEvaluator
 
       evaluate,
       bnode: this.context.bnode,
+      experimentalMode: this.context.experimentalMode,
     };
     return expr.applyAsync(context);
   }
