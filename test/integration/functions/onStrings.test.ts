@@ -35,7 +35,7 @@ describe('string functions', () => {
             return TypeURL.XSD_STRING;
           },
           overloadCache: new LRUCache(),
-          enableExtendedXSDTypes: true,
+          enableExtendedXsdTypes: true,
         },
       },
       testTable: `
@@ -76,7 +76,7 @@ describe('string functions', () => {
         type: 'sync',
         config: {
           getSuperType: unknownType => TypeURL.XSD_STRING,
-          enableExtendedXSDTypes: true,
+          enableExtendedXsdTypes: true,
         },
       },
       testTable: `

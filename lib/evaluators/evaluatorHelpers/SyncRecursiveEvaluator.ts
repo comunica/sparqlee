@@ -37,7 +37,7 @@ export class SyncRecursiveEvaluator extends BaseExpressionEvaluator
   };
 
   public constructor(private readonly context: ICompleteSyncEvaluatorContext, termTransformer?: ITermTransformer) {
-    super(termTransformer || new TermTransformer(context.superTypeProvider, context.enableExtendedXSDTypes));
+    super(termTransformer || new TermTransformer(context.superTypeProvider, context.enableExtendedXsdTypes));
   }
 
   public evaluate(expr: E.Expression, mapping: Bindings): E.Term {
@@ -66,7 +66,7 @@ export class SyncRecursiveEvaluator extends BaseExpressionEvaluator
 
       evaluate,
       bnode: this.context.bnode,
-      enableExtendedXSDTypes: this.context.enableExtendedXSDTypes,
+      enableExtendedXsdTypes: this.context.enableExtendedXsdTypes,
     };
     return expr.applySync(context);
   }

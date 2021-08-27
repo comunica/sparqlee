@@ -23,7 +23,7 @@ function integerTerm(int: number): RDF.Term {
 const noCache = new Benchmark('bench addition no overloadCache', () => {
   const query = translate(template('?a + ?b = ?c'));
   const evaluator = new SyncEvaluator(query.input.expression, {
-    enableExtendedXSDTypes: true,
+    enableExtendedXsdTypes: true,
     // Provide a cache that can not store anything
     overloadCache: new LRUCache({
       max: 1,
@@ -46,7 +46,7 @@ const cache = new Benchmark('bench addition with overloadCache', () => {
   const query = translate(template('?a + ?b = ?c'));
   const evaluator = new SyncEvaluator(query.input.expression, {
     overloadCache: new LRUCache(),
-    enableExtendedXSDTypes: true,
+    enableExtendedXsdTypes: true,
   });
   const max = 100;
   for (let fst = 0; fst < max; fst++) {

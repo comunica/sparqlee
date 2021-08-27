@@ -27,10 +27,10 @@ Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
   const bindings: Bindings = arg.bindings ? arg.bindings : Bindings({});
   if (arg.generalEvaluationConfig?.type === 'async') {
     const asyncResultLegacy = await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config);
-    if (!arg.generalEvaluationConfig.config.enableExtendedXSDTypes) {
+    if (!arg.generalEvaluationConfig.config.enableExtendedXsdTypes) {
       const asyncResultNewSystem = await evaluateAsync(arg.expression, bindings, {
         ...arg.generalEvaluationConfig.config,
-        enableExtendedXSDTypes: true,
+        enableExtendedXsdTypes: true,
       });
       expect(termToString(asyncResultLegacy)).toEqual(termToString(asyncResultNewSystem));
     }
@@ -44,14 +44,14 @@ Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
     convertedConfig,
   );
   const syncResult = evaluateSync(arg.expression, bindings, syncConfig);
-  if (!arg.generalEvaluationConfig || !arg.generalEvaluationConfig.config.enableExtendedXSDTypes) {
+  if (!arg.generalEvaluationConfig || !arg.generalEvaluationConfig.config.enableExtendedXsdTypes) {
     expect(termToString(asyncResult)).toEqual(termToString(await evaluateAsync(arg.expression, bindings, {
       ...convertedConfig || {},
-      enableExtendedXSDTypes: true,
+      enableExtendedXsdTypes: true,
     })));
     expect(termToString(syncResult)).toEqual(termToString(evaluateSync(arg.expression, bindings, {
       ...syncConfig || {},
-      enableExtendedXSDTypes: true,
+      enableExtendedXsdTypes: true,
     })));
   }
   if (arg.expectEquality || arg.expectEquality === undefined) {

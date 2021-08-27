@@ -45,7 +45,7 @@ describe('evaluation of \'/\' like', () => {
       type: 'sync',
       config: {
         getSuperType: unknownType => TypeURL.XSD_INTEGER,
-        enableExtendedXSDTypes: true,
+        enableExtendedXsdTypes: true,
       },
     },
     testTable: `

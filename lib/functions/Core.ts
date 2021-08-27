@@ -51,7 +51,7 @@ export abstract class BaseFunction<Operator> {
   public apply = (args: E.TermExpression[], context: ICompleteSharedContext):
   E.TermExpression => {
     const concreteFunction =
-      this.monomorph(args, context.superTypeProvider, context.overloadCache, context.enableExtendedXSDTypes) ||
+      this.monomorph(args, context.superTypeProvider, context.overloadCache, context.enableExtendedXsdTypes) ||
       this.handleInvalidTypes(args);
     return concreteFunction(context)(args);
   };

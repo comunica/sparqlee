@@ -12,7 +12,7 @@ describe('OverloadTree', () => {
   let sharedContext: ICompleteSharedContext;
   beforeEach(() => {
     emptyTree = new OverloadTree('Non cacheable');
-    sharedContext = { ...getDefaultSharedContext(), enableExtendedXSDTypes: true };
+    sharedContext = { ...getDefaultSharedContext(), enableExtendedXsdTypes: true };
   });
 
   function typePromotionTest<T>(tree: OverloadTree, promoteFrom: KnownLiteralTypes, promoteTo: KnownLiteralTypes,

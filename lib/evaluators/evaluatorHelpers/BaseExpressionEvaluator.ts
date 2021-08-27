@@ -5,14 +5,19 @@ import type { Bindings } from '../../Types';
 import * as Err from '../../util/Errors';
 import type { SuperTypeCallback, TypeCache, ISuperTypeProvider } from '../../util/TypeHandling';
 
-// TODO: add JS doc.
 export interface ISharedContext {
   now?: Date;
   baseIRI?: string;
   overloadCache?: OverLoadCache;
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
-  enableExtendedXSDTypes?: boolean;
+  /**
+   * This feature is opt in. It activates the use of a new 'experimental' type system.
+   * This system is needed when using typeCache, overloadCache or getSuperType.
+   * The system is more powerful and reliable. In most cases however the old system works perfectly.
+   * Using this experimental system makes sparqlee a bit slower but more reliable using type promotion for example.
+   */
+  enableExtendedXsdTypes?: boolean;
 }
 
 export interface ICompleteSharedContext {
@@ -20,7 +25,7 @@ export interface ICompleteSharedContext {
   baseIRI?: string;
   overloadCache: OverLoadCache;
   superTypeProvider: ISuperTypeProvider;
-  enableExtendedXSDTypes: boolean;
+  enableExtendedXsdTypes: boolean;
 }
 
 export class BaseExpressionEvaluator {

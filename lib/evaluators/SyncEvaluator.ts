@@ -35,7 +35,7 @@ export class SyncEvaluator {
       exists: context.exists,
       aggregate: context.aggregate,
       bnode: context.bnode,
-      enableExtendedXSDTypes: context.enableExtendedXSDTypes || false,
+      enableExtendedXsdTypes: context.enableExtendedXsdTypes || false,
     };
   }
 
