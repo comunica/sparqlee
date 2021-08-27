@@ -5,13 +5,14 @@ import type { Bindings } from '../../Types';
 import * as Err from '../../util/Errors';
 import type { SuperTypeCallback, TypeCache, ISuperTypeProvider } from '../../util/TypeHandling';
 
+// TODO: add JS doc.
 export interface ISharedContext {
   now?: Date;
   baseIRI?: string;
   overloadCache?: OverLoadCache;
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
-  experimentalMode?: boolean;
+  enableExtendedXSDTypes?: boolean;
 }
 
 export interface ICompleteSharedContext {
@@ -19,7 +20,7 @@ export interface ICompleteSharedContext {
   baseIRI?: string;
   overloadCache: OverLoadCache;
   superTypeProvider: ISuperTypeProvider;
-  experimentalMode: boolean;
+  enableExtendedXSDTypes: boolean;
 }
 
 export class BaseExpressionEvaluator {

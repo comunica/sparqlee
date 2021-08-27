@@ -66,7 +66,7 @@ export class SyncRecursiveEvaluator extends BaseExpressionEvaluator
 
       evaluate,
       bnode: this.context.bnode,
-      experimentalMode: this.context.experimentalMode,
+      enableExtendedXSDTypes: this.context.enableExtendedXSDTypes,
     };
     return expr.applySync(context);
   }

@@ -66,7 +66,7 @@ describe('string functions', () => {
         type: 'sync',
         config: {
           getSuperType: unknownType => TypeURL.XSD_STRING,
-          experimentalMode: true,
+          enableExtendedXSDTypes: true,
         },
       },
       testTable: `
