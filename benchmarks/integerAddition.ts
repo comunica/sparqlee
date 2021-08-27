@@ -23,6 +23,7 @@ function integerTerm(int: number): RDF.Term {
 const noCache = new Benchmark('bench addition no overloadCache', () => {
   const query = translate(template('?a + ?b = ?c'));
   const evaluator = new SyncEvaluator(query.input.expression, {
+    experimentalMode: true,
     // Provide a cache that can not store anything
     overloadCache: new LRUCache({
       max: 1,
@@ -45,7 +46,23 @@ const cache = new Benchmark('bench addition with overloadCache', () => {
   const query = translate(template('?a + ?b = ?c'));
   const evaluator = new SyncEvaluator(query.input.expression, {
     overloadCache: new LRUCache(),
+    experimentalMode: true,
   });
+  const max = 100;
+  for (let fst = 0; fst < max; fst++) {
+    for (let snd = 0; snd < max; snd++) {
+      evaluator.evaluate(Bindings({
+        '?a': integerTerm(fst),
+        '?b': integerTerm(snd),
+        '?c': integerTerm(fst + snd),
+      }));
+    }
+  }
+});
+
+const nonExperimental = new Benchmark('bench addition non experimental', () => {
+  const query = translate(template('?a + ?b = ?c'));
+  const evaluator = new SyncEvaluator(query.input.expression);
   const max = 100;
   for (let fst = 0; fst < max; fst++) {
     for (let snd = 0; snd < max; snd++) {
@@ -60,10 +77,12 @@ const cache = new Benchmark('bench addition with overloadCache', () => {
 
 benchSuite.push(noCache);
 benchSuite.push(cache);
+benchSuite.push(nonExperimental);
 benchSuite.on('cycle', (event: Event) => {
   console.log(String(event.target));
 }).on('complete', () => {
   console.log(`Mean execution time without cache ${noCache.stats.mean}`);
   console.log(`Mean execution time with cache ${cache.stats.mean}`);
+  console.log(`Mean execution time with nonExperimental ${nonExperimental.stats.mean}`);
   console.log(`Fastest is ${benchSuite.filter('fastest').map('name')}`);
 }).run({ async: true });
