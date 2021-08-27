@@ -9,7 +9,7 @@ import type { ISuperTypeProvider, OverrideType,
 import {
   superTypeDictTable,
   getSuperTypes,
-  isKnownLiteralType,
+  isKnownLiteralType, isOverrideType,
 } from '../util/TypeHandling';
 import type { ExperimentalArgumentType } from './Core';
 import { double, float, string } from './Helpers';
@@ -27,11 +27,13 @@ export class OverloadTree {
   // We use promotion count to check priority.
   private promotionCount?: number | undefined;
   private readonly subTrees: Record<ExperimentalArgumentType, OverloadTree>;
+  private readonly overLoads: [OverrideType, OverloadTree][];
   private readonly depth: number;
 
   public constructor(private readonly identifier: string, depth?: number) {
     this.implementation = undefined;
     this.subTrees = Object.create(null);
+    this.overLoads = [];
     this.depth = depth || 0;
     this.promotionCount = undefined;
   }
@@ -121,6 +123,10 @@ export class OverloadTree {
     }
     if (!this.subTrees[experimentalArgumentType]) {
       this.subTrees[experimentalArgumentType] = new OverloadTree(this.identifier, this.depth + 1);
+      const overrideType = isOverrideType(experimentalArgumentType);
+      if (overrideType) {
+        this.overLoads.push([ overrideType, this.subTrees[overrideType] ]);
+      }
     }
     this.subTrees[experimentalArgumentType]._addOverload(_experimentalArgumentTypes, func, promotionCount);
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
@@ -143,11 +149,12 @@ export class OverloadTree {
     }
   }
 
-  private addPromotedOverload(typeToPromote: ExperimentalArgumentType, func: ImplementationFunction,
+  private addPromotedOverload(typeToPromote: OverrideType, func: ImplementationFunction,
     conversionFunction: (arg: E.TermExpression) => E.TermExpression,
     ExperimentalArgumentTypes: ExperimentalArgumentType[], promotionCount: number): void {
     if (!this.subTrees[typeToPromote]) {
       this.subTrees[typeToPromote] = new OverloadTree(this.identifier, this.depth + 1);
+      this.overLoads.push([ typeToPromote, this.subTrees[typeToPromote] ]);
     }
     this.subTrees[typeToPromote]._addOverload(ExperimentalArgumentTypes, funcConf => args => func(funcConf)([
       ...args.slice(0, this.depth),
@@ -185,8 +192,8 @@ export class OverloadTree {
         // Datatype is a custom datatype
         subExtensionTable = getSuperTypes(literalExpression.dataType, openWorldType);
       }
-      const overLoads = <[OverrideType, OverloadTree][]> Object.entries(this.subTrees);
-      const matches: [number, OverloadTree][] = overLoads.filter(([ matchType, _ ]) => matchType in subExtensionTable)
+      const matches: [number, OverloadTree][] = this.overLoads.filter(([ matchType, _ ]) =>
+        matchType in subExtensionTable)
         .map(([ matchType, tree ]) => [ subExtensionTable[<KnownLiteralTypes> matchType], tree ]);
       matches.sort(([ prioA, matchTypeA ], [ prioB, matchTypeB ]) => prioA - prioB);
       res.push(...matches.map(([ _, sortedType ]) => sortedType));
