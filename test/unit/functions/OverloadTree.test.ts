@@ -12,7 +12,7 @@ describe('OverloadTree', () => {
   let sharedContext: ICompleteSharedContext;
   beforeEach(() => {
     emptyTree = new OverloadTree('Non cacheable');
-    sharedContext = getDefaultSharedContext();
+    sharedContext = { ...getDefaultSharedContext(), enableExtendedXSDTypes: true };
   });
 
   function typePromotionTest<T>(tree: OverloadTree, promoteFrom: KnownLiteralTypes, promoteTo: KnownLiteralTypes,
@@ -88,16 +88,15 @@ describe('OverloadTree', () => {
     expect(res!.typedValue).toEqual(litValue);
   });
 
-  it.skip('will cache addition function', () => {
+  it('will cache addition function', () => {
     const one = new IntegerLiteral(1);
     const two = new IntegerLiteral(2);
-    const context = getDefaultSharedContext();
-    const spy = jest.spyOn(context.overloadCache, 'get');
-    regularFunctions['+'].apply([ one, two ], context);
+    const spy = jest.spyOn(sharedContext.overloadCache, 'get');
+    regularFunctions['+'].apply([ one, two ], sharedContext);
     expect(spy).toBeCalledTimes(0);
-    regularFunctions['+'].apply([ two, one ], context);
+    regularFunctions['+'].apply([ two, one ], sharedContext);
     expect(spy).toBeCalledTimes(1);
-    regularFunctions['+'].apply([ two, one ], context);
+    regularFunctions['+'].apply([ two, one ], sharedContext);
     expect(spy).toBeCalledTimes(2);
   });
 

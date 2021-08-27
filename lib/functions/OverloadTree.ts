@@ -64,8 +64,8 @@ export class OverloadTree {
    * @param overloadCache
    * @param superTypeProvider
    */
-  public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
-    overloadCache: OverLoadCache): ImplementationFunction | undefined {
+  public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider, overloadCache: OverLoadCache):
+  ImplementationFunction | undefined {
     const identifier = this.getOverloadCacheIdentifier(args);
     if (overloadCache.has(identifier)) {
       return overloadCache.get(identifier);
