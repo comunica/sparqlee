@@ -1,27 +1,35 @@
+import type * as LRUCache from 'lru-cache';
+import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type * as E from '../expressions';
 import { isLiteralTermExpression } from '../expressions';
-import type { LiteralTypes } from '../util/Consts';
+import type { KnownLiteralTypes } from '../util/Consts';
 import { TypeURL } from '../util/Consts';
-import type { OverrideType } from '../util/TypeHandling';
-import { extensionTable, isLiteralType } from '../util/TypeHandling';
+import type { ISuperTypeProvider, OverrideType,
+  GeneralSuperTypeDict } from '../util/TypeHandling';
+import {
+  superTypeDictTable,
+  getSuperTypes,
+  isKnownLiteralType,
+} from '../util/TypeHandling';
 import type { ArgumentType } from './Core';
-import { number, string } from './Helpers';
+import { double, float, string } from './Helpers';
 
 export type SearchStack = OverloadTree[];
-
+export type ImplementationFunction = (sharedContext: ICompleteSharedContext) => E.SimpleApplication;
+export type OverLoadCache = LRUCache<string, ImplementationFunction | undefined>;
 /**
  * Maps argument types on their specific implementation in a tree like structure.
  * When adding any functionality to this class, make sure you add it to SpecialFunctions as well.
  */
 export class OverloadTree {
-  private implementation?: E.SimpleApplication | undefined;
+  private implementation?: ImplementationFunction | undefined;
   // We need this field. e.g. decimal decimal should be kept even when double double is added.
   // We use promotion count to check priority.
   private promotionCount?: number | undefined;
   private readonly subTrees: Record<ArgumentType, OverloadTree>;
   private readonly depth: number;
 
-  public constructor(depth?: number) {
+  public constructor(private readonly identifier: string, depth?: number) {
     this.implementation = undefined;
     this.subTrees = Object.create(null);
     this.depth = depth || 0;
@@ -31,7 +39,7 @@ export class OverloadTree {
   /**
    * Get the implementation for the types that exactly match @param args .
    */
-  public getImplementationExact(args: ArgumentType[]): E.SimpleApplication | undefined {
+  public getImplementationExact(args: ArgumentType[]): ImplementationFunction | undefined {
     // eslint-disable-next-line @typescript-eslint/no-this-alias,consistent-this
     let node: OverloadTree = this;
     for (const expression of args) {
@@ -43,11 +51,25 @@ export class OverloadTree {
     return node.implementation;
   }
 
+  private getOverloadCacheIdentifier(args: E.TermExpression[]): string {
+    return this.identifier + args.map(term => {
+      const literalExpression = isLiteralTermExpression(term);
+      return literalExpression ? literalExpression.dataType : term.termType;
+    }).join('');
+  }
+
   /**
    * Searches in a depth first way for the best matching overload. considering this a the tree's root.
-   * @param args
+   * @param args:
+   * @param overloadCache
+   * @param superTypeProvider
    */
-  public search(args: E.TermExpression[]): E.SimpleApplication | undefined {
+  public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
+    overloadCache: OverLoadCache): ImplementationFunction | undefined {
+    const identifier = this.getOverloadCacheIdentifier(args);
+    if (overloadCache.has(identifier)) {
+      return overloadCache.get(identifier);
+    }
     // SearchStack is a stack of all node's that need to be checked for implementation.
     // It provides an easy way to keep order in our search.
     const searchStack: { node: OverloadTree; index: number }[] = [];
@@ -58,20 +80,22 @@ export class OverloadTree {
     // GetSubTreeWithArg return a SearchStack containing the node's that should be contacted next.
     // We also log the index since there is no other way to remember this index.
     // the provided stack should be pushed on top of our search stack since it also has it's order.
-    searchStack.push(...this.getSubTreeWithArg(args[startIndex]).map(node =>
+    searchStack.push(...this.getSubTreeWithArg(args[startIndex], superTypeProvider).map(node =>
       ({ node, index: startIndex + 1 })));
     while (searchStack.length > 0) {
       const { index, node } = <{ node: OverloadTree; index: number }>searchStack.pop();
       // We check the implementation because it would be possible a path is created but not implemented.
       // ex: f(double, double, double) and f(term, term). and calling f(double, double).
       if (index === args.length && node.implementation) {
+        overloadCache.set(identifier, node.implementation);
         return node.implementation;
       }
-      searchStack.push(...node.getSubTreeWithArg(args[index]).map(item =>
+      searchStack.push(...node.getSubTreeWithArg(args[index], superTypeProvider).map(item =>
         ({ node: item, index: index + 1 })));
     }
     // Calling a function with one argument but finding no implementation should return no implementation.
     // Not even the one with no arguments.
+    overloadCache.set(identifier, undefined);
     return undefined;
   }
 
@@ -81,11 +105,11 @@ export class OverloadTree {
    * get the implementation.
    * @param func the implementation for this overload.
    */
-  public addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication): void {
+  public addOverload(argumentTypes: ArgumentType[], func: ImplementationFunction): void {
     this._addOverload([ ...argumentTypes ], func, 0);
   }
 
-  private _addOverload(argumentTypes: ArgumentType[], func: E.SimpleApplication, promotionCount: number): void {
+  private _addOverload(argumentTypes: ArgumentType[], func: ImplementationFunction, promotionCount: number): void {
     const [ argumentType, ..._argumentTypes ] = argumentTypes;
     if (!argumentType) {
       if (this.promotionCount === undefined || promotionCount <= this.promotionCount) {
@@ -95,7 +119,7 @@ export class OverloadTree {
       return;
     }
     if (!this.subTrees[argumentType]) {
-      this.subTrees[argumentType] = new OverloadTree(this.depth + 1);
+      this.subTrees[argumentType] = new OverloadTree(this.identifier, this.depth + 1);
     }
     this.subTrees[argumentType]._addOverload(_argumentTypes, func, promotionCount);
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
@@ -108,23 +132,23 @@ export class OverloadTree {
     // TODO: in case of decimal a round needs to happen.
     if (argumentType === TypeURL.XSD_DOUBLE) {
       this.addPromotedOverload(TypeURL.XSD_FLOAT, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes, promotionCount);
+        double((<E.NumericLiteral>arg).typedValue), _argumentTypes, promotionCount);
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_DOUBLE), _argumentTypes, promotionCount);
+        double((<E.NumericLiteral>arg).typedValue), _argumentTypes, promotionCount);
     }
     if (argumentType === TypeURL.XSD_FLOAT) {
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        number((<E.NumericLiteral>arg).typedValue, TypeURL.XSD_FLOAT), _argumentTypes, promotionCount);
+        float((<E.NumericLiteral>arg).typedValue), _argumentTypes, promotionCount);
     }
   }
 
-  private addPromotedOverload(typeToPromote: ArgumentType, func: E.SimpleApplication,
+  private addPromotedOverload(typeToPromote: ArgumentType, func: ImplementationFunction,
     conversionFunction: (arg: E.TermExpression) => E.TermExpression, argumentTypes: ArgumentType[],
     promotionCount: number): void {
     if (!this.subTrees[typeToPromote]) {
-      this.subTrees[typeToPromote] = new OverloadTree(this.depth + 1);
+      this.subTrees[typeToPromote] = new OverloadTree(this.identifier, this.depth + 1);
     }
-    this.subTrees[typeToPromote]._addOverload(argumentTypes, args => func([
+    this.subTrees[typeToPromote]._addOverload(argumentTypes, funcConf => args => func(funcConf)([
       ...args.slice(0, this.depth),
       conversionFunction(args[this.depth]),
       ...args.slice(this.depth + 1, args.length),
@@ -135,7 +159,7 @@ export class OverloadTree {
    * @param arg term to try and match to possible overloads of this node.
    * @returns SearchStack a stack with top element the next node that should be asked for implementation or overload.
    */
-  private getSubTreeWithArg(arg: E.TermExpression): SearchStack {
+  private getSubTreeWithArg(arg: E.TermExpression, openWorldType: ISuperTypeProvider): SearchStack {
     const res: SearchStack = [];
     const literalExpression = isLiteralTermExpression(arg);
     // These types refer to Type exported by lib/util/Consts.ts
@@ -151,15 +175,20 @@ export class OverloadTree {
       // This function has cost O(n) + O(m * log(m)) with n = amount of overloads and m = amount of matched overloads
       // We map over each of the overloads, filter only the once that can be used (this is normally 1 or 2).
       // The sort function on an array with 1 or 2 arguments will be negligible.
-      const concreteType = isLiteralType(literalExpression.dataType);
+      const concreteType = isKnownLiteralType(literalExpression.dataType);
+      let subExtensionTable: GeneralSuperTypeDict;
       if (concreteType) {
-        const subExtensionTable = extensionTable[concreteType];
-        const overLoads = <[OverrideType, OverloadTree][]> Object.entries(this.subTrees);
-        const matches: [number, OverloadTree][] = overLoads.filter(([ matchType, _ ]) => matchType in subExtensionTable)
-          .map(([ matchType, tree ]) => [ subExtensionTable[<LiteralTypes> matchType], tree ]);
-        matches.sort(([ prioA, matchTypeA ], [ prioB, matchTypeB ]) => prioA - prioB);
-        res.push(...matches.map(([ _, sortedType ]) => sortedType));
+        // Concrete dataType is known by sparqlee.
+        subExtensionTable = superTypeDictTable[concreteType];
+      } else {
+        // Datatype is a custom datatype
+        subExtensionTable = getSuperTypes(literalExpression.dataType, openWorldType);
       }
+      const overLoads = <[OverrideType, OverloadTree][]> Object.entries(this.subTrees);
+      const matches: [number, OverloadTree][] = overLoads.filter(([ matchType, _ ]) => matchType in subExtensionTable)
+        .map(([ matchType, tree ]) => [ subExtensionTable[<KnownLiteralTypes> matchType], tree ]);
+      matches.sort(([ prioA, matchTypeA ], [ prioB, matchTypeB ]) => prioA - prioB);
+      res.push(...matches.map(([ _, sortedType ]) => sortedType));
     }
     return res;
   }

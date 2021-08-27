@@ -1,4 +1,5 @@
-import { numeric } from '../../util/Aliases';
+import { TypeURL } from '../../../lib/util/Consts';
+import { int, numeric } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
@@ -8,6 +9,12 @@ describe('evaluation of \'+\' like', () => {
     operation: '+',
     aliases: numeric,
     notation: Notation.Infix,
+    config: {
+      type: 'sync',
+      config: {
+        getSuperType: unknownType => TypeURL.XSD_INTEGER,
+      },
+    },
     testTable: `
       0i 0i = 0i
       0i 1i = 1i
@@ -28,6 +35,8 @@ describe('evaluation of \'+\' like', () => {
       NaN    NaN    = NaN
       NaN    anyNum = NaN
       anyNum NaN    = NaN
+      
+      "2"^^example:int "3"^^example:int = ${int('5')}
     `,
   });
 });

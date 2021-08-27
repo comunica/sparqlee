@@ -1,81 +1,100 @@
-import { isLiteralTermExpression, Literal } from '../../../lib/expressions';
+import * as LRUCache from 'lru-cache';
+import type { ICompleteSharedContext } from '../../../lib/evaluators/evaluatorHelpers/BaseExpressionEvaluator';
+import { isLiteralTermExpression, Literal, StringLiteral } from '../../../lib/expressions';
 import { OverloadTree } from '../../../lib/functions';
-import type { LiteralTypes } from '../../../lib/util/Consts';
+import type { OverLoadCache } from '../../../lib/functions/OverloadTree';
+import type { KnownLiteralTypes } from '../../../lib/util/Consts';
 import { TypeURL } from '../../../lib/util/Consts';
-
-function typePromotionTest<T>(tree: OverloadTree, promoteFrom: LiteralTypes, promoteTo: LiteralTypes,
-  value: T, valueToEqual?: T) {
-  tree.addOverload([ promoteTo ], ([ arg ]) => arg);
-  const arg = new Literal<T>(value, promoteFrom);
-  const res = isLiteralTermExpression(tree.search([ arg ])([ arg ]));
-  expect(res).toBeTruthy();
-  expect(res.dataType).toEqual(promoteTo);
-  expect(res.typedValue).toEqual(valueToEqual || value);
-}
-
-function subtypeSubstitutionTest<T>(tree: OverloadTree, argumentType: LiteralTypes, expectedType: LiteralTypes,
-  value: T) {
-  tree.addOverload([ expectedType ], ([ arg ]) => arg);
-  const arg = new Literal<T>(value, argumentType);
-  const res = isLiteralTermExpression(tree.search([ arg ])([ arg ]));
-  expect(res).toBeTruthy();
-  expect(res.dataType).toEqual(argumentType);
-  expect(res.typedValue).toEqual(value);
-}
+import { getDefaultSharedContext } from '../../util/utils';
 
 describe('OverloadTree', () => {
-  let tree: OverloadTree;
-
+  let emptyTree: OverloadTree;
+  let sharedContext: ICompleteSharedContext;
   beforeEach(() => {
-    tree = new OverloadTree();
+    emptyTree = new OverloadTree('Non cacheable');
+    sharedContext = getDefaultSharedContext();
   });
+
+  function typePromotionTest<T>(tree: OverloadTree, promoteFrom: KnownLiteralTypes, promoteTo: KnownLiteralTypes,
+    value: T, valueToEqual?: T) {
+    tree.addOverload([ promoteTo ], () => ([ arg ]) => arg);
+    const arg = new Literal<T>(value, promoteFrom);
+    const res = isLiteralTermExpression(tree
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
+    expect(res).toBeTruthy();
+    expect(res!.dataType).toEqual(promoteTo);
+    expect(res!.typedValue).toEqual(valueToEqual || value);
+  }
+
+  function subtypeSubstitutionTest<T>(tree: OverloadTree, argumentType: KnownLiteralTypes,
+    expectedType: KnownLiteralTypes, value: T) {
+    tree.addOverload([ expectedType ], () => ([ arg ]) => arg);
+    const arg = new Literal<T>(value, argumentType);
+    const res = isLiteralTermExpression(tree
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
+    expect(res).toBeTruthy();
+    expect(res!.dataType).toEqual(argumentType);
+    expect(res!.typedValue).toEqual(value);
+  }
 
   describe('handles Type Promotion', () => {
     it('promotes ANY_URI to STRING', () => {
-      typePromotionTest(tree, TypeURL.XSD_ANY_URI, TypeURL.XSD_STRING, 'www.any-uri.com');
+      typePromotionTest(emptyTree, TypeURL.XSD_ANY_URI, TypeURL.XSD_STRING, 'www.any-uri.com');
     });
 
     it('promotes FLOAT to DOUBLE', () => {
-      typePromotionTest(tree, TypeURL.XSD_FLOAT, TypeURL.XSD_DOUBLE, '0');
+      typePromotionTest(emptyTree, TypeURL.XSD_FLOAT, TypeURL.XSD_DOUBLE, '0');
     });
 
     it('promotes DECIMAL to FLOAT', () => {
-      typePromotionTest(tree, TypeURL.XSD_DECIMAL, TypeURL.XSD_FLOAT, '0');
+      typePromotionTest(emptyTree, TypeURL.XSD_DECIMAL, TypeURL.XSD_FLOAT, '0');
     });
 
     it('promotes DECIMAL to DOUBLE', () => {
-      typePromotionTest(tree, TypeURL.XSD_DECIMAL, TypeURL.XSD_DOUBLE, '0');
+      typePromotionTest(emptyTree, TypeURL.XSD_DECIMAL, TypeURL.XSD_DOUBLE, '0');
     });
   });
 
   describe('handles subtype substitution', () => {
     it('substitutes SHORT into DECIMAL', () => {
-      subtypeSubstitutionTest(tree, TypeURL.XSD_SHORT, TypeURL.XSD_DECIMAL, '0');
+      subtypeSubstitutionTest(emptyTree, TypeURL.XSD_SHORT, TypeURL.XSD_DECIMAL, '0');
     });
 
     it('substitutes TOKEN into STRING', () => {
-      subtypeSubstitutionTest(tree, TypeURL.XSD_TOKEN, TypeURL.XSD_STRING, '');
+      subtypeSubstitutionTest(emptyTree, TypeURL.XSD_TOKEN, TypeURL.XSD_STRING, '');
     });
   });
 
   it('can handle both substitution and promotion at once', () => {
-    tree.addOverload([ TypeURL.XSD_DOUBLE ], ([ arg ]) => arg);
+    emptyTree.addOverload([ TypeURL.XSD_DOUBLE ], () => ([ arg ]) => arg);
 
     const arg = new Literal<number>(0, TypeURL.XSD_SHORT);
-    const res = isLiteralTermExpression(tree.search([ arg ])([ arg ]));
+    const res = isLiteralTermExpression(emptyTree
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
-    expect(res.dataType).toEqual(TypeURL.XSD_DOUBLE);
-    expect(res.typedValue).toEqual(0);
+    expect(res!.dataType).toEqual(TypeURL.XSD_DOUBLE);
+    expect(res!.typedValue).toEqual(0);
   });
 
   it('can handle unknown literal dataType', () => {
-    tree.addOverload([ 'term' ], ([ arg ]) => arg);
+    emptyTree.addOverload([ 'term' ], () => ([ arg ]) => arg);
     const dataType = 'www.example.com#weird-string';
     const litValue = 'weird';
     const arg = new Literal<string>(litValue, dataType);
-    const res = isLiteralTermExpression(tree.search([ arg ])([ arg ]));
+    const res = isLiteralTermExpression(emptyTree
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
-    expect(res.dataType).toEqual(dataType);
-    expect(res.typedValue).toEqual(litValue);
+    expect(res!.dataType).toEqual(dataType);
+    expect(res!.typedValue).toEqual(litValue);
+  });
+
+  it('will cache an undefined function', () => {
+    const cache: OverLoadCache = new LRUCache();
+    const spy = jest.spyOn(cache, 'get');
+    const args = [ new StringLiteral('some str') ];
+    emptyTree.search(args, sharedContext.superTypeProvider, cache);
+    expect(spy).toBeCalledTimes(0);
+    emptyTree.search(args, sharedContext.superTypeProvider, cache);
+    expect(spy).toBeCalledTimes(1);
   });
 });

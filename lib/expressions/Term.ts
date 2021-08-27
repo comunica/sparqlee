@@ -1,11 +1,11 @@
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 
-import type { LiteralTypes } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import { isSubTypeOf, isTypeAlias } from '../util/TypeHandling';
+import type { ISuperTypeProvider } from '../util/TypeHandling';
+import { isSubTypeOf } from '../util/TypeHandling';
 import type { TermExpression, TermType } from './Expressions';
 import { ExpressionType } from './Expressions';
 
@@ -72,7 +72,7 @@ export function isLiteralTermExpression(expr: TermExpression): Literal<any> | un
   }
   return undefined;
 }
-export class Literal<T> extends Term {
+export class Literal<T extends { toString: () => string }> extends Term {
   public termType: 'literal' = 'literal';
 
   /**
@@ -98,77 +98,21 @@ export class Literal<T> extends Term {
   }
 
   public str(): string {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return this.strValue || this.typedValue.toString();
   }
 }
 
-/**
- * This class will reject types in the TypeAlias because types of typeAlias are semantic and not representable.
- */
-class TypeCheckedLiteral<T> extends Literal<T> {
-  public dataType: TypeURL;
-  public constructor(
-    typeToCheck: LiteralTypes,
-    public typedValue: T,
-    dataType?: string,
-    public strValue?: string,
-    public language?: string,
-  ) {
-    super(typedValue, dataType || typeToCheck, strValue, language);
-    const existingType = dataType || typeToCheck;
-    if (isTypeAlias(existingType) || !isSubTypeOf(existingType, typeToCheck)) {
-      throw this.getTypeError(typeToCheck, typeToCheck);
-    }
-    this.dataType = <TypeURL> existingType;
-  }
-
-  protected getTypeError(dataType: string, typeToCheck: LiteralTypes): Error {
-    return new Error(
-      `TypeUrl '${dataType}' provided but expected a type implementing ${typeToCheck}.`,
-    );
-  }
-}
-
-export class NumericLiteral extends TypeCheckedLiteral<number> {
+export abstract class NumericLiteral extends Literal<number> {
   public constructor(
     public typedValue: number,
     dataType: string,
     public strValue?: string,
     public language?: string,
   ) {
-    super(TypeAlias.SPARQL_NUMERIC, typedValue, dataType, strValue, language);
+    super(typedValue, dataType, strValue, language);
   }
 
-  private static specificFormatterCreator(type: LiteralTypes): ((val: number) => string) {
-    if (isSubTypeOf(type, TypeURL.XSD_INTEGER)) {
-      return value => value.toFixed(0);
-    }
-    if (isSubTypeOf(type, TypeURL.XSD_DECIMAL)) {
-      return value => value.toString();
-    }
-    if (isSubTypeOf(type, TypeURL.XSD_FLOAT)) {
-      return value => value.toString();
-    }
-    // Since we checked on this being a TypeAlias.SPARQL_NUMERIC in the constructor,
-    // this can only be a TypeURL.XSD_DOUBLE.
-    // https://www.w3.org/TR/xmlschema-2/#double
-    return value => {
-      const jsExponential = value.toExponential();
-      const [ jsMantisse, jsExponent ] = jsExponential.split('e');
-
-      // Leading + must be removed for integer
-      // https://www.w3.org/TR/xmlschema-2/#integer
-      const exponent = jsExponent.replace(/\+/u, '');
-
-      // SPARQL test suite prefers trailing zero's
-      const mantisse = jsMantisse.includes('.') ?
-        jsMantisse :
-        `${jsMantisse}.0`;
-
-      return `${mantisse}E${exponent}`;
-    };
-  }
+  protected abstract specificFormatter(val: number): string;
 
   public coerceEBV(): boolean {
     return !!this.typedValue;
@@ -184,13 +128,85 @@ export class NumericLiteral extends TypeCheckedLiteral<number> {
 
   public str(): string {
     return this.strValue ||
-      NumericLiteral.specificFormatterCreator(this.dataType)(this.typedValue);
+      this.specificFormatter(this.typedValue);
   }
 }
 
-export class BooleanLiteral extends TypeCheckedLiteral<boolean> {
+export class IntegerLiteral extends NumericLiteral {
+  public constructor(
+    public typedValue: number,
+    dataType?: string,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(typedValue, dataType || TypeURL.XSD_INTEGER, strValue, language);
+  }
+
+  protected specificFormatter(val: number): string {
+    return val.toFixed(0);
+  }
+}
+
+export class DecimalLiteral extends NumericLiteral {
+  public constructor(
+    public typedValue: number,
+    dataType?: string,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(typedValue, dataType || TypeURL.XSD_DECIMAL, strValue, language);
+  }
+
+  protected specificFormatter(val: number): string {
+    return val.toString();
+  }
+}
+
+export class FloatLiteral extends NumericLiteral {
+  public constructor(
+    public typedValue: number,
+    dataType?: string,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(typedValue, dataType || TypeURL.XSD_FLOAT, strValue, language);
+  }
+
+  protected specificFormatter(val: number): string {
+    return val.toString();
+  }
+}
+
+export class DoubleLiteral extends NumericLiteral {
+  public constructor(
+    public typedValue: number,
+    dataType?: string,
+    public strValue?: string,
+    public language?: string,
+  ) {
+    super(typedValue, dataType || TypeURL.XSD_DOUBLE, strValue, language);
+  }
+
+  protected specificFormatter(val: number): string {
+    const jsExponential = val.toExponential();
+    const [ jsMantisse, jsExponent ] = jsExponential.split('e');
+
+    // Leading + must be removed for integer
+    // https://www.w3.org/TR/xmlschema-2/#integer
+    const exponent = jsExponent.replace(/\+/u, '');
+
+    // SPARQL test suite prefers trailing zero's
+    const mantisse = jsMantisse.includes('.') ?
+      jsMantisse :
+      `${jsMantisse}.0`;
+
+    return `${mantisse}E${exponent}`;
+  }
+}
+
+export class BooleanLiteral extends Literal<boolean> {
   public constructor(public typedValue: boolean, public strValue?: string, dataType?: string) {
-    super(C.TypeURL.XSD_BOOLEAN, typedValue, dataType, strValue);
+    super(typedValue, dataType || TypeURL.XSD_BOOLEAN, strValue);
   }
 
   public coerceEBV(): boolean {
@@ -198,21 +214,21 @@ export class BooleanLiteral extends TypeCheckedLiteral<boolean> {
   }
 }
 
-export class DateTimeLiteral extends TypeCheckedLiteral<Date> {
+export class DateTimeLiteral extends Literal<Date> {
   // StrValue is mandatory here because toISOString will always add
   // milliseconds, even if they were not present.
   public constructor(public typedValue: Date, public strValue: string, dataType?: string) {
-    super(C.TypeURL.XSD_DATE_TIME, typedValue, dataType, strValue);
+    super(typedValue, dataType || TypeURL.XSD_DATE_TIME, strValue);
   }
 }
 
-export class LangStringLiteral extends TypeCheckedLiteral<string> {
+export class LangStringLiteral extends Literal<string> {
   public constructor(public typedValue: string, public language: string, dataType?: string) {
-    super(C.TypeURL.RDF_LANG_STRING, typedValue, dataType, typedValue, language);
+    super(typedValue, dataType || TypeURL.RDF_LANG_STRING, typedValue, language);
   }
 
   public coerceEBV(): boolean {
-    return this.strValue.length > 0;
+    return this.str().length > 0;
   }
 }
 
@@ -220,17 +236,17 @@ export class LangStringLiteral extends TypeCheckedLiteral<string> {
 // https://www.w3.org/TR/sparql11-query/#defn_SimpleLiteral
 // https://www.w3.org/TR/sparql11-query/#func-strings
 // This does not include language tagged literals
-export class StringLiteral extends TypeCheckedLiteral<string> {
+export class StringLiteral extends Literal<string> {
   /**
    * @param typedValue
    * @param dataType Should be type that implements XSD_STRING
    */
   public constructor(public typedValue: string, dataType?: string) {
-    super(C.TypeURL.XSD_STRING, typedValue, dataType, typedValue);
+    super(typedValue, dataType || TypeURL.XSD_STRING, typedValue);
   }
 
   public coerceEBV(): boolean {
-    return this.strValue.length > 0;
+    return this.str().length > 0;
   }
 }
 
@@ -251,22 +267,23 @@ export class StringLiteral extends TypeCheckedLiteral<string> {
  *  - https://www.w3.org/TR/xquery/#dt-ebv
  *  - ... some other more precise thing i can't find...
  */
-export class NonLexicalLiteral extends Literal<undefined> {
+export class NonLexicalLiteral extends Literal<{ toString: () => 'undefined' }> {
   public constructor(
     typedValue: undefined,
     public typeURL: string,
+    private readonly openWorldType: ISuperTypeProvider,
     strValue?: string,
     language?: string,
   ) {
-    super(typedValue, typeURL, strValue, language);
-    this.typedValue = undefined;
+    super({ toString: () => 'undefined' }, typeURL, strValue, language);
+    this.typedValue = { toString: () => 'undefined' };
     this.dataType = TypeAlias.SPARQL_NON_LEXICAL;
   }
 
   public coerceEBV(): boolean {
     const isNumericOrBool =
-      isSubTypeOf(this.typeURL, TypeURL.XSD_BOOLEAN) ||
-      isSubTypeOf(this.typeURL, TypeAlias.SPARQL_NUMERIC);
+      isSubTypeOf(this.typeURL, TypeURL.XSD_BOOLEAN, this.openWorldType) ||
+      isSubTypeOf(this.typeURL, TypeAlias.SPARQL_NUMERIC, this.openWorldType);
     if (isNumericOrBool) {
       return false;
     }
@@ -281,12 +298,12 @@ export class NonLexicalLiteral extends Literal<undefined> {
   }
 
   public str(): string {
-    return this.strValue;
+    return this.strValue || '';
   }
 }
 
 export function isNonLexicalLiteral(lit: Literal<any>): NonLexicalLiteral | undefined {
-  if (lit.typedValue === undefined && lit.dataType === TypeAlias.SPARQL_NON_LEXICAL) {
+  if (lit.dataType === TypeAlias.SPARQL_NON_LEXICAL) {
     return <NonLexicalLiteral> lit;
   }
   return undefined;
