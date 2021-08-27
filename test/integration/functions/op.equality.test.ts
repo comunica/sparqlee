@@ -15,12 +15,6 @@ describe('evaluation of \'=\'', () => {
   describe('with numeric operands like', () => {
     runTestTable({
       ...config,
-      config: {
-        type: 'sync',
-        config: {
-          getSuperType: unknownType => TypeURL.XSD_INTEGER,
-        },
-      },
       testTable: `
         3i 3i = true
         3d 3d = true
@@ -43,7 +37,18 @@ describe('evaluation of \'=\'', () => {
          NaN  NaN = false
          NaN  3f  = false
          3f   NaN = false
-         
+      `,
+    });
+    runTestTable({
+      ...config,
+      config: {
+        type: 'sync',
+        config: {
+          getSuperType: unknownType => TypeURL.XSD_INTEGER,
+          enableExtendedXsdTypes: true,
+        },
+      },
+      testTable: `         
          "2"^^example:int "2"^^example:int = true
          "2"^^example:int "3"^^example:int = false
       `,

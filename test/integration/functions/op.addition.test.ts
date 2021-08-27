@@ -1,20 +1,18 @@
 import { TypeURL } from '../../../lib/util/Consts';
 import { int, numeric } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
+import type { ITestTableConfigBase } from '../../util/utils';
 import { runTestTable } from '../../util/utils';
 
 describe('evaluation of \'+\' like', () => {
-  runTestTable({
+  const baseConfig: ITestTableConfigBase = {
     arity: 2,
     operation: '+',
     aliases: numeric,
     notation: Notation.Infix,
-    config: {
-      type: 'sync',
-      config: {
-        getSuperType: unknownType => TypeURL.XSD_INTEGER,
-      },
-    },
+  };
+  runTestTable({
+    ...baseConfig,
     testTable: `
       0i 0i = 0i
       0i 1i = 1i
@@ -35,7 +33,18 @@ describe('evaluation of \'+\' like', () => {
       NaN    NaN    = NaN
       NaN    anyNum = NaN
       anyNum NaN    = NaN
-      
+    `,
+  });
+  runTestTable({
+    ...baseConfig,
+    config: {
+      type: 'sync',
+      config: {
+        getSuperType: unknownType => TypeURL.XSD_INTEGER,
+        enableExtendedXsdTypes: true,
+      },
+    },
+    testTable: `
       "2"^^example:int "3"^^example:int = ${int('5')}
     `,
   });

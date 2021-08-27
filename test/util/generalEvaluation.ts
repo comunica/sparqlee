@@ -26,15 +26,34 @@ export async function generalEvaluate(arg: IGeneralEvaluationArg):
 Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
   const bindings: Bindings = arg.bindings ? arg.bindings : Bindings({});
   if (arg.generalEvaluationConfig?.type === 'async') {
-    return { asyncResult: await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config) };
+    const asyncResultLegacy = await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config);
+    if (!arg.generalEvaluationConfig.config.enableExtendedXsdTypes) {
+      const asyncResultNewSystem = await evaluateAsync(arg.expression, bindings, {
+        ...arg.generalEvaluationConfig.config,
+        enableExtendedXsdTypes: true,
+      });
+      expect(termToString(asyncResultLegacy)).toEqual(termToString(asyncResultNewSystem));
+    }
+    return { asyncResult: asyncResultLegacy };
   }
   const syncConfig = <ISyncEvaluatorContext | undefined> arg.generalEvaluationConfig?.config;
+  const convertedConfig = syncConfigToAsyncConfig(syncConfig);
   const asyncResult = await evaluateAsync(
     arg.expression,
     bindings,
-    syncConfigToAsyncConfig(syncConfig),
+    convertedConfig,
   );
   const syncResult = evaluateSync(arg.expression, bindings, syncConfig);
+  if (!arg.generalEvaluationConfig || !arg.generalEvaluationConfig.config.enableExtendedXsdTypes) {
+    expect(termToString(asyncResult)).toEqual(termToString(await evaluateAsync(arg.expression, bindings, {
+      ...convertedConfig || {},
+      enableExtendedXsdTypes: true,
+    })));
+    expect(termToString(syncResult)).toEqual(termToString(evaluateSync(arg.expression, bindings, {
+      ...syncConfig || {},
+      enableExtendedXsdTypes: true,
+    })));
+  }
   if (arg.expectEquality || arg.expectEquality === undefined) {
     expect(termToString(asyncResult)).toEqual(termToString(syncResult));
   }

@@ -6,12 +6,12 @@ import type { ISuperTypeProvider, SuperTypeCallback, TypeCache } from './TypeHan
 
 // Determine the relative numerical order of the two given terms.
 export function orderTypes(litA: RDF.Term | undefined, litB: RDF.Term | undefined, isAscending: boolean,
-  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache): -1 | 0 | 1 {
+  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean): -1 | 0 | 1 {
   const openWorldType: ISuperTypeProvider = {
     discoverer: typeDiscoveryCallback || (() => 'term'),
     cache: typeCache || new LRUCache(),
   };
-  const termTransformer = new TermTransformer(openWorldType);
+  const termTransformer = new TermTransformer(openWorldType, enableExtendedXSDTypes || false);
   if (litA && litA.termType === 'Literal' && litB && litB.termType === 'Literal') {
     const myLitA = termTransformer.transformLiteral(litA);
     const myLitB = termTransformer.transformLiteral(litB);

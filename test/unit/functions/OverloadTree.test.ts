@@ -1,7 +1,7 @@
 import * as LRUCache from 'lru-cache';
 import type { ICompleteSharedContext } from '../../../lib/evaluators/evaluatorHelpers/BaseExpressionEvaluator';
-import { isLiteralTermExpression, Literal, StringLiteral } from '../../../lib/expressions';
-import { OverloadTree } from '../../../lib/functions';
+import { IntegerLiteral, isLiteralTermExpression, Literal, StringLiteral } from '../../../lib/expressions';
+import { OverloadTree, regularFunctions } from '../../../lib/functions';
 import type { OverLoadCache } from '../../../lib/functions/OverloadTree';
 import type { KnownLiteralTypes } from '../../../lib/util/Consts';
 import { TypeURL } from '../../../lib/util/Consts';
@@ -12,7 +12,7 @@ describe('OverloadTree', () => {
   let sharedContext: ICompleteSharedContext;
   beforeEach(() => {
     emptyTree = new OverloadTree('Non cacheable');
-    sharedContext = getDefaultSharedContext();
+    sharedContext = { ...getDefaultSharedContext(), enableExtendedXsdTypes: true };
   });
 
   function typePromotionTest<T>(tree: OverloadTree, promoteFrom: KnownLiteralTypes, promoteTo: KnownLiteralTypes,
@@ -86,6 +86,18 @@ describe('OverloadTree', () => {
     expect(res).toBeTruthy();
     expect(res!.dataType).toEqual(dataType);
     expect(res!.typedValue).toEqual(litValue);
+  });
+
+  it('will cache addition function', () => {
+    const one = new IntegerLiteral(1);
+    const two = new IntegerLiteral(2);
+    const spy = jest.spyOn(sharedContext.overloadCache, 'get');
+    regularFunctions['+'].apply([ one, two ], sharedContext);
+    expect(spy).toBeCalledTimes(0);
+    regularFunctions['+'].apply([ two, one ], sharedContext);
+    expect(spy).toBeCalledTimes(1);
+    regularFunctions['+'].apply([ two, one ], sharedContext);
+    expect(spy).toBeCalledTimes(2);
   });
 
   it('will cache an undefined function', () => {

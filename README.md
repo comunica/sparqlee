@@ -63,6 +63,7 @@ interface AsyncEvaluatorContext {
   overloadCache?: LRUCache<string, SomeInternalType>;
   typeCache?: LRUCache<string, SomeInternalType>;
   getSuperType?: (unknownType: string) => string;
+  enableExtendedXsdTypes?: boolean;
 }
 ```
 
@@ -154,16 +155,25 @@ config.extensionFunctionCreator = (functionName: RDF.NamedNode) => {
 }
 ```
 
+### Extended Xsd Types
+
+Using this flag we can use `Overload function caching` and `Super type discovery`.
+This flag makes the type system more powerful and reliable. In most cases however the old system works perfectly.
+Using this experimental system makes sparqlee a bit slower but more reliable using type promotion for example.
+
 ### Overload function caching
 
 An overloadcache allows Sparqlee to cache the implementation of a function provided the argument types. 
-This cache is only used when provided to the context.
-It can speed up execution time significantly especially when adding evaluating a lot of bindings that mostly have the same types.
+The cache is only used when setting the `enableExtendedXsdTypes` flag to true.
+When not providing a cache in the context, sparqlee will create one.
+The cache speeds up execution time significantly especially when evaluating a lot of bindings that mostly have the same types.
 This statement is backed up by the [integer addition benchmark](/benchmarks/integerAddition.ts).
 
 This cache can be reused across multiple evaluators. We don't recommend manual modification.
 
 ### Super type discovery
+
+This is a feature only available using when `enableExtendedXsdTypes` is active.
 
 The `getSuperType` allow a user to use custom types and define their super relationship to other types.
 Example:

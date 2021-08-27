@@ -326,7 +326,8 @@ const notInSPARQL: ISpecialDefinition = {
 /**
  * This OverloadTree with the constant function will handle both type promotion and subtype-substitution
  */
-const concatTree: OverloadTree = declare(C.SpecialOperator.CONCAT).onStringly1(() => expr => expr).collect();
+const concatTree: OverloadTree = declare(C.SpecialOperator.CONCAT).onStringly1(() => expr => expr)
+  .collect().experimentalTree;
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-concat
@@ -382,7 +383,7 @@ function langAllEqual(lits: E.Literal<string>[]): boolean {
 /**
  * This OverloadTree with the constant function will handle both type promotion and subtype-substitution
  */
-const bnodeTree = declare(C.SpecialOperator.BNODE).onString1(() => arg => arg).collect();
+const bnodeTree = declare(C.SpecialOperator.BNODE).onString1(() => arg => arg).collect().experimentalTree;
 
 /**
  * https://www.w3.org/TR/sparql11-query/#func-bnode

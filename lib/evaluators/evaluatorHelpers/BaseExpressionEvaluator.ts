@@ -11,6 +11,13 @@ export interface ISharedContext {
   overloadCache?: OverLoadCache;
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
+  /**
+   * This feature is opt in. It activates the use of a new 'experimental' type system.
+   * This system is needed when using typeCache, overloadCache or getSuperType.
+   * The system is more powerful and reliable. In most cases however the old system works perfectly.
+   * Using this experimental system makes sparqlee a bit slower but more reliable using type promotion for example.
+   */
+  enableExtendedXsdTypes?: boolean;
 }
 
 export interface ICompleteSharedContext {
@@ -18,6 +25,7 @@ export interface ICompleteSharedContext {
   baseIRI?: string;
   overloadCache: OverLoadCache;
   superTypeProvider: ISuperTypeProvider;
+  enableExtendedXsdTypes: boolean;
 }
 
 export class BaseExpressionEvaluator {

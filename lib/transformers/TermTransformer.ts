@@ -14,8 +14,8 @@ export interface ITermTransformer {
 }
 
 export class TermTransformer implements ITermTransformer {
-  public constructor(protected readonly superTypeProvider: ISuperTypeProvider) {
-  }
+  public constructor(protected readonly superTypeProvider: ISuperTypeProvider,
+    protected readonly enableExtendedXSDTypes: boolean) { }
 
   /**
    * Transforms an RDF term to the internal representation of a term,
@@ -50,10 +50,108 @@ export class TermTransformer implements ITermTransformer {
     }
   }
 
+  private legacyTransformLiteral(lit: RDF.Literal): E.Literal<any> {
+    // We transform to StringLiteral when we detect a simple literal being used.
+    // Original issue regarding this behaviour: https://github.com/w3c/sparql-12/issues/112
+
+    if (!lit.datatype) {
+      return lit.language ?
+        new E.LangStringLiteral(lit.value, lit.language) :
+        new E.StringLiteral(lit.value);
+    }
+    const dataType = lit.datatype.value;
+    switch (dataType) {
+      case null:
+      case undefined:
+      case '': {
+        return lit.language ?
+          new E.LangStringLiteral(lit.value, lit.language) :
+          new E.StringLiteral(lit.value);
+      }
+      case TypeURL.XSD_ANY_URI:
+      case TypeURL.XSD_NORMALIZED_STRING:
+      case TypeURL.XSD_TOKEN:
+      case TypeURL.XSD_LANGUAGE:
+      case TypeURL.XSD_NM_TOKEN:
+      case TypeURL.XSD_NAME:
+      case TypeURL.XSD_ENTITY:
+      case TypeURL.XSD_ID:
+      case TypeURL.XSD_ID_REF:
+      case TypeURL.XSD_STRING: return new E.StringLiteral(lit.value, dataType);
+
+      case TypeURL.RDF_LANG_STRING: return new E.LangStringLiteral(lit.value, lit.language);
+
+      case TypeURL.XSD_DATE_TIME_STAMP:
+      case TypeURL.XSD_DATE_TIME: {
+        const dateVal: Date = new Date(lit.value);
+        if (Number.isNaN(dateVal.getTime())) {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        return new E.DateTimeLiteral(new Date(lit.value), lit.value, dataType);
+      }
+
+      case TypeURL.XSD_BOOLEAN: {
+        if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value, dataType);
+      }
+
+      case TypeURL.XSD_DECIMAL: {
+        const decimalVal: number | undefined = P.parseXSDDecimal(lit.value);
+        if (decimalVal === undefined) {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        return new E.DecimalLiteral(decimalVal, dataType, lit.value);
+      }
+      case TypeURL.XSD_FLOAT: {
+        const floatVal: number | undefined = P.parseXSDFloat(lit.value);
+        if (floatVal === undefined) {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        return new E.FloatLiteral(floatVal, dataType, lit.value);
+      }
+
+      case TypeURL.XSD_DOUBLE: {
+        const doubleVal: number | undefined = P.parseXSDFloat(lit.value);
+        if (doubleVal === undefined) {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        return new E.DoubleLiteral(doubleVal, dataType, lit.value);
+      }
+
+      case TypeURL.XSD_NON_POSITIVE_INTEGER:
+      case TypeURL.XSD_NEGATIVE_INTEGER:
+      case TypeURL.XSD_LONG:
+      case TypeURL.XSD_INT:
+      case TypeURL.XSD_SHORT:
+      case TypeURL.XSD_BYTE:
+      case TypeURL.XSD_NON_NEGATIVE_INTEGER:
+      case TypeURL.XSD_POSITIVE_INTEGER:
+      case TypeURL.XSD_UNSIGNED_LONG:
+      case TypeURL.XSD_UNSIGNED_INT:
+      case TypeURL.XSD_UNSIGNED_SHORT:
+      case TypeURL.XSD_UNSIGNED_BYTE:
+      case TypeURL.XSD_INTEGER: {
+        const intVal: number | undefined = P.parseXSDDecimal(lit.value);
+        if (intVal === undefined) {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        return new E.IntegerLiteral(intVal, dataType, lit.value);
+      }
+
+      default: return new E.Literal<string>(lit.value, dataType, lit.value);
+    }
+  }
+
+  public transformLiteral(lit: RDF.Literal): E.Literal<any> {
+    return this.enableExtendedXSDTypes ? this.experimentalTransformLiteral(lit) : this.legacyTransformLiteral(lit);
+  }
+
   /**
    * @param lit the rdf literal we want to transform to an internal Literal expression.
    */
-  public transformLiteral(lit: RDF.Literal): E.Literal<any> {
+  private experimentalTransformLiteral(lit: RDF.Literal): E.Literal<any> {
     // Both here and within the switch we transform to LangStringLiteral or StringLiteral.
     // We do this when we detect a simple literal being used.
     // Original issue regarding this behaviour: https://github.com/w3c/sparql-12/issues/112
