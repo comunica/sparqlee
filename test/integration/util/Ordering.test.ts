@@ -111,9 +111,9 @@ describe('ordering literals', () => {
     const someType = 'https://example.org/some-decimal';
     const numA = decimal('11', someType);
     const numB = decimal('2', someType);
-    expect(orderTypes(numA, numB, true, discover, cache)).toEqual(1);
-    expect(orderTypes(numB, numA, true, discover, cache)).toEqual(-1);
-    expect(orderTypes(numA, numB, false, discover, cache)).toEqual(-1);
-    expect(orderTypes(numB, numA, false, discover, cache)).toEqual(1);
+    expect(orderTypes(numA, numB, true, discover, cache, true)).toEqual(1);
+    expect(orderTypes(numB, numA, true, discover, cache, true)).toEqual(-1);
+    expect(orderTypes(numA, numB, false, discover, cache, true)).toEqual(-1);
+    expect(orderTypes(numB, numA, false, discover, cache, true)).toEqual(1);
   });
 });

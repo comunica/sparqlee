@@ -2,15 +2,29 @@ import * as LRUCache from 'lru-cache';
 import { TypeURL } from '../../../lib/util/Consts';
 import { bool, int, numeric } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
+import type { ITestTableConfigBase } from '../../util/utils';
 import { runTestTable } from '../../util/utils';
 
 describe('string functions', () => {
   describe('evaluation of \'strlen\' like', () => {
-    runTestTable({
+    const baseConfig: ITestTableConfigBase = {
       arity: 1,
       operation: 'strlen',
       notation: Notation.Function,
       aliases: numeric,
+    };
+    runTestTable({
+      ...baseConfig,
+      testTable: `
+        "aaa" = 3i
+        "aaaa"@en = 4i
+        "aa"^^xsd:string = 2i
+        "👪"^^xsd:string = 1i
+        "👨‍👩‍👧‍👦"^^xsd:string = ${int('7')}
+      `,
+    });
+    runTestTable({
+      ...baseConfig,
       config: {
         type: 'sync',
         config: {
@@ -21,14 +35,10 @@ describe('string functions', () => {
             return TypeURL.XSD_STRING;
           },
           overloadCache: new LRUCache(),
+          enableExtendedXSDTypes: true,
         },
       },
       testTable: `
-      "aaa" = 3i
-      "aaaa"@en = 4i
-      "aa"^^xsd:string = 2i
-      "👪"^^xsd:string = 1i
-      "👨‍👩‍👧‍👦"^^xsd:string = ${int('7')}
       '"custom type"^^example:string' = ${int('11')}
       "apple"^^example:specialString = ${int('5')}
       `,

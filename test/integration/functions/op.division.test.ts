@@ -1,27 +1,18 @@
 import { TypeURL } from '../../../lib/util/Consts';
-import { decimal, merge, numeric } from '../../util/Aliases';
+import { decimal, numeric } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
+import type { ITestTableConfigBase } from '../../util/utils';
 import { runTestTable } from '../../util/utils';
 
-const config = {
-  arity: 2,
-  op: '/',
-  aliases: merge(numeric),
-  notation: Notation.Infix,
-};
-
 describe('evaluation of \'/\' like', () => {
-  runTestTable({
+  const config: ITestTableConfigBase = {
     arity: 2,
     operation: '/',
     aliases: numeric,
     notation: Notation.Infix,
-    config: {
-      type: 'sync',
-      config: {
-        getSuperType: unknownType => TypeURL.XSD_INTEGER,
-      },
-    },
+  };
+  runTestTable({
+    ...config,
     testTable: `
       0i   1i  = 0d
       2i   1i  = 2d
@@ -42,13 +33,26 @@ describe('evaluation of \'/\' like', () => {
       NaN    NaN    = NaN
       NaN    anyNum = NaN
       anyNum NaN    = NaN
-      
-      "2"^^example:int "2"^^example:int = ${decimal('1')}
     `,
     errorTable: `
       0i 0i = 'Integer division by 0'
       3i 0i = 'Integer division by 0'
+    `,
+  });
+  runTestTable({
+    ...config,
+    config: {
+      type: 'sync',
+      config: {
+        getSuperType: unknownType => TypeURL.XSD_INTEGER,
+        enableExtendedXSDTypes: true,
+      },
+    },
+    testTable: `
+      "2"^^example:int "2"^^example:int = ${decimal('1')}
+    `,
+    errorTable: `
       "2"^^example:int "0"^^example:int = 'Integer division by 0'
-          `,
+    `,
   });
 });

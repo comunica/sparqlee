@@ -3,7 +3,18 @@ import type { ArgumentType } from '../functions';
 import type { KnownLiteralTypes } from './Consts';
 import { TypeAlias, TypeURL } from './Consts';
 
-export function mainSparqlType(typeURL: string): { types: (ArgumentType)[]; prio: number } {
+export interface IMainTypeHolder {
+  types: (ArgumentType)[];
+  prio: number;
+}
+
+/**
+ * This function return a list of ArgumentTypes and the priority this list has.
+ * This priority can be matched with other values returned by this function.
+ * This function needs to be in line with the @see extensionTableInput.
+ * @param typeURL This will most likely be a @see ExperimentalArgumentType
+ */
+export function mainSparqlType(typeURL: string): IMainTypeHolder {
   // We transform to StringLiteral when we detect a simple literal being used.
   // Original issue regarding this behaviour: https://github.com/w3c/sparql-12/issues/112
   switch (typeURL) {
@@ -89,6 +100,8 @@ export type OverrideType = KnownLiteralTypes | 'term';
  * e.g. when saying something like string -> stringly -> anyUri -> term.
  * This would make substitution on types that promote to each other possible. We and the specs don't want that!
  * A DAG will be created based on this. Make sure it doesn't have any cycles!
+ *
+ * This needs to be in line with the @see mainSparqlType function.
  */
 export const extensionTableInput: Record<KnownLiteralTypes, OverrideType> = {
   // Datetime types

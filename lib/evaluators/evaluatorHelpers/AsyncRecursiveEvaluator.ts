@@ -38,7 +38,7 @@ export class AsyncRecursiveEvaluator extends BaseExpressionEvaluator
   };
 
   public constructor(private readonly context: ICompleteAsyncEvaluatorContext, termTransformer?: ITermTransformer) {
-    super(termTransformer || new TermTransformer(context.superTypeProvider));
+    super(termTransformer || new TermTransformer(context.superTypeProvider, context.enableExtendedXSDTypes));
   }
 
   public async evaluate(expr: E.Expression, mapping: Bindings): Promise<E.Term> {

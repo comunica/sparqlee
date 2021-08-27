@@ -15,7 +15,7 @@ export abstract class BaseAggregator<State> {
   public constructor(expr: Algebra.AggregateExpression, protected sharedContext: ICompleteSharedContext) {
     this.distinct = expr.distinct;
     this.separator = expr.separator || ' ';
-    this.termTransformer = new TermTransformer(sharedContext.superTypeProvider);
+    this.termTransformer = new TermTransformer(sharedContext.superTypeProvider, sharedContext.enableExtendedXSDTypes);
   }
 
   protected termToNumericOrError(term: RDF.Term): E.NumericLiteral {

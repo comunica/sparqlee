@@ -37,7 +37,7 @@ export class SyncRecursiveEvaluator extends BaseExpressionEvaluator
   };
 
   public constructor(private readonly context: ICompleteSyncEvaluatorContext, termTransformer?: ITermTransformer) {
-    super(termTransformer || new TermTransformer(context.superTypeProvider));
+    super(termTransformer || new TermTransformer(context.superTypeProvider, context.enableExtendedXSDTypes));
   }
 
   public evaluate(expr: E.Expression, mapping: Bindings): E.Term {
