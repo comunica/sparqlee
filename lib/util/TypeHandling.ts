@@ -290,17 +290,8 @@ export function getSuperTypeDict(baseType: string, superTypeProvider: ISuperType
  */
 export function isSubTypeOf(baseType: string, argumentType: KnownLiteralTypes,
   superTypeProvider: ISuperTypeProvider): boolean {
-  const concreteType: OverrideType | undefined = isOverrideType(baseType);
-  let subExtensionTable: GeneralSuperTypeDict;
-  if (concreteType === 'term' || baseType === 'term') {
+  if (baseType === 'term') {
     return false;
   }
-  if (concreteType) {
-    // Concrete dataType is known by sparqlee.
-    subExtensionTable = superTypeDictTable[concreteType];
-  } else {
-    // Datatype is a custom datatype
-    subExtensionTable = getSuperTypes(baseType, superTypeProvider);
-  }
-  return subExtensionTable[argumentType] !== undefined;
+  return getSuperTypeDict(baseType, superTypeProvider)[argumentType] !== undefined;
 }
