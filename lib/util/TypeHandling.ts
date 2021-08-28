@@ -269,15 +269,27 @@ export function isInternalSubType(baseType: OverrideType, argumentType: KnownLit
     (superTypeDictTable[baseType] && superTypeDictTable[baseType][argumentType] !== undefined);
 }
 
+export function getSuperTypeDict(baseType: string, superTypeProvider: ISuperTypeProvider): GeneralSuperTypeDict {
+  const concreteType: KnownLiteralTypes | undefined = isKnownLiteralType(baseType);
+  if (concreteType) {
+    // Concrete dataType is known by sparqlee.
+    return superTypeDictTable[concreteType];
+  }
+  // Datatype is a custom datatype
+  return getSuperTypes(baseType, superTypeProvider);
+}
+
 /**
  * This function needs do be O(1)! The execution time of this function is vital!
  * We define typeA isSubtypeOf typeA as true.
+ * When you find yourself calling this function a lot (e.g. in a case statement),
+ * you probably want to use getSuperTypeDict instead. (Check the get of argumentType on the dict is defined).
  * @param baseType type you want to provide.
  * @param argumentType type you want to provide @param baseType to.
- * @param openWorldEnabler the enabler to discover super types of unknown types.
+ * @param superTypeProvider the enabler to discover super types of unknown types.
  */
 export function isSubTypeOf(baseType: string, argumentType: KnownLiteralTypes,
-  openWorldEnabler: ISuperTypeProvider): boolean {
+  superTypeProvider: ISuperTypeProvider): boolean {
   const concreteType: OverrideType | undefined = isOverrideType(baseType);
   let subExtensionTable: GeneralSuperTypeDict;
   if (concreteType === 'term' || baseType === 'term') {
@@ -288,7 +300,7 @@ export function isSubTypeOf(baseType: string, argumentType: KnownLiteralTypes,
     subExtensionTable = superTypeDictTable[concreteType];
   } else {
     // Datatype is a custom datatype
-    subExtensionTable = getSuperTypes(baseType, openWorldEnabler);
+    subExtensionTable = getSuperTypes(baseType, superTypeProvider);
   }
   return subExtensionTable[argumentType] !== undefined;
 }
