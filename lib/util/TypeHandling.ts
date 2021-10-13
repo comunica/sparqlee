@@ -1,4 +1,6 @@
 import type * as LRUCache from 'lru-cache';
+import type { TermType } from '../expressions';
+import { isTermType } from '../expressions';
 import type { ArgumentType } from '../functions';
 import type { KnownLiteralTypes } from './Consts';
 import { TypeAlias, TypeURL } from './Consts';
@@ -250,6 +252,13 @@ export function isKnownLiteralType(type: string): KnownLiteralTypes | undefined 
 export function isOverrideType(type: string): OverrideType | undefined {
   if (isKnownLiteralType(type) || type === 'term') {
     return <OverrideType> type;
+  }
+  return undefined;
+}
+
+export function isGeneralType(type: string): 'term' | TermType | undefined {
+  if (type === 'term' || isTermType(type)) {
+    return <'term' | TermType> type;
   }
   return undefined;
 }

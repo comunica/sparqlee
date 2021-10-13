@@ -9,7 +9,7 @@ import type { ISuperTypeProvider, OverrideType,
 import {
   superTypeDictTable,
   getSuperTypes,
-  isKnownLiteralType, isOverrideType,
+  isKnownLiteralType, isOverrideType, isGeneralType,
 } from '../util/TypeHandling';
 import type { ExperimentalArgumentType } from './Core';
 import { double, float, string } from './Helpers';
@@ -26,16 +26,32 @@ export class OverloadTree {
   // We need this field. e.g. decimal decimal should be kept even when double double is added.
   // We use promotion count to check priority.
   private promotionCount?: number | undefined;
-  private readonly subTrees: Record<ExperimentalArgumentType, OverloadTree>;
-  private readonly overLoads: [OverrideType, OverloadTree][];
+  private readonly generalOverloads: Record<'term' | E.TermType, OverloadTree>;
+  private readonly literalOverLoads: [OverrideType, OverloadTree][];
   private readonly depth: number;
 
   public constructor(private readonly identifier: string, depth?: number) {
     this.implementation = undefined;
-    this.subTrees = Object.create(null);
-    this.overLoads = [];
+    this.generalOverloads = Object.create(null);
+    this.literalOverLoads = [];
     this.depth = depth || 0;
     this.promotionCount = undefined;
+  }
+
+  private getSubtree(overrideType: ExperimentalArgumentType): OverloadTree | undefined {
+    const generalType = isGeneralType(overrideType);
+    if (generalType) {
+      return this.generalOverloads[generalType];
+    }
+    let i = 0;
+    while (i < this.literalOverLoads.length && this.literalOverLoads[i][0] !== overrideType) {
+      i++;
+    }
+    const match = this.literalOverLoads[i];
+    if (match) {
+      return match[1];
+    }
+    return undefined;
   }
 
   /**
@@ -43,9 +59,9 @@ export class OverloadTree {
    */
   public getImplementationExact(args: ExperimentalArgumentType[]): ImplementationFunction | undefined {
     // eslint-disable-next-line @typescript-eslint/no-this-alias,consistent-this
-    let node: OverloadTree = this;
+    let node: OverloadTree | undefined = this;
     for (const expression of args) {
-      node = node.subTrees[expression];
+      node = node.getSubtree(expression);
       if (!node) {
         return undefined;
       }
@@ -121,14 +137,18 @@ export class OverloadTree {
       }
       return;
     }
-    if (!this.subTrees[experimentalArgumentType]) {
-      this.subTrees[experimentalArgumentType] = new OverloadTree(this.identifier, this.depth + 1);
+    if (!this.getSubtree(experimentalArgumentType)) {
+      const newNode = new OverloadTree(this.identifier, this.depth + 1);
+      const generalType = isGeneralType(experimentalArgumentType);
+      if (generalType) {
+        this.generalOverloads[generalType] = newNode;
+      }
       const overrideType = isOverrideType(experimentalArgumentType);
       if (overrideType) {
-        this.overLoads.push([ overrideType, this.subTrees[overrideType] ]);
+        this.literalOverLoads.push([ overrideType, newNode ]);
       }
     }
-    this.subTrees[experimentalArgumentType]._addOverload(_experimentalArgumentTypes, func, promotionCount);
+    this.getSubtree(experimentalArgumentType)!._addOverload(_experimentalArgumentTypes, func, promotionCount);
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
     // e.g. When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
     // TODO: When promoting decimal type a cast needs to be preformed.
@@ -152,11 +172,11 @@ export class OverloadTree {
   private addPromotedOverload(typeToPromote: OverrideType, func: ImplementationFunction,
     conversionFunction: (arg: E.TermExpression) => E.TermExpression,
     ExperimentalArgumentTypes: ExperimentalArgumentType[], promotionCount: number): void {
-    if (!this.subTrees[typeToPromote]) {
-      this.subTrees[typeToPromote] = new OverloadTree(this.identifier, this.depth + 1);
-      this.overLoads.push([ typeToPromote, this.subTrees[typeToPromote] ]);
+    if (!this.getSubtree(typeToPromote)) {
+      const newNode = new OverloadTree(this.identifier, this.depth + 1);
+      this.literalOverLoads.push([ typeToPromote, newNode ]);
     }
-    this.subTrees[typeToPromote]._addOverload(ExperimentalArgumentTypes, funcConf => args => func(funcConf)([
+    this.getSubtree(typeToPromote)!._addOverload(ExperimentalArgumentTypes, funcConf => args => func(funcConf)([
       ...args.slice(0, this.depth),
       conversionFunction(args[this.depth]),
       ...args.slice(this.depth + 1, args.length),
@@ -171,12 +191,12 @@ export class OverloadTree {
     const res: SearchStack = [];
     const literalExpression = isLiteralTermExpression(arg);
     // These types refer to Type exported by lib/util/Consts.ts
-    if (this.subTrees.term) {
-      res.push(this.subTrees.term);
+    if (this.generalOverloads.term) {
+      res.push(this.generalOverloads.term);
     }
     // TermTypes are defined in E.TermType.
-    if (this.subTrees[arg.termType]) {
-      res.push(this.subTrees[arg.termType]);
+    if (this.generalOverloads[arg.termType]) {
+      res.push(this.generalOverloads[arg.termType]);
     }
     if (literalExpression) {
       // Defending implementation. Mainly the scary sort.
@@ -192,7 +212,7 @@ export class OverloadTree {
         // Datatype is a custom datatype
         subExtensionTable = getSuperTypes(literalExpression.dataType, openWorldType);
       }
-      const matches: [number, OverloadTree][] = this.overLoads.filter(([ matchType, _ ]) =>
+      const matches: [number, OverloadTree][] = this.literalOverLoads.filter(([ matchType, _ ]) =>
         matchType in subExtensionTable)
         .map(([ matchType, tree ]) => [ subExtensionTable[<KnownLiteralTypes> matchType], tree ]);
       matches.sort(([ prioA, matchTypeA ], [ prioB, matchTypeB ]) => prioA - prioB);
