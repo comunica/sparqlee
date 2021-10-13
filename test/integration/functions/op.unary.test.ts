@@ -30,8 +30,8 @@ describe('unary functions', () => {
   });
 
   describe('evaluation of \'+ (unary)\' like', () => {
-    // TODO: PR why does this test not run over the unary plus operator?
-    //  Also add '"-6"^^<${TypeURL.XSD_NEGATIVE_INTEGER}>' = -6i when it does
+    // TODO: This test does not use the unary plus operator from regular functions.
+    //  When it does, the test '"-6"^^<${TypeURL.XSD_NEGATIVE_INTEGER}>' = -6i should be added.
     runTestTable({
       arity: 1,
       aliases: numeric,

@@ -52,7 +52,7 @@ describe('string functions', () => {
       arity: 'vary',
       notation: Notation.Function,
       testTable: `
-      "apple" "a" "A" "g" = "Apple"
+      "aApple" "a" "b" "i" = "bbpple"
     `,
     });
   });

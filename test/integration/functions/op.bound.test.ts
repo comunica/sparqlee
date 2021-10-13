@@ -20,7 +20,6 @@ describe('evaluation of \'bound\' like', () => {
     '?x' = true
     '?y' = false
     `,
-    // TODO: PR: this is handled in a module, do we need the check on line 37 of SpecialFunctions?
     errorTable: `
      'apple' = 'Parse error'
     `,
