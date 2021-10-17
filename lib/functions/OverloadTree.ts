@@ -9,7 +9,7 @@ import type { ISuperTypeProvider, OverrideType,
 import {
   superTypeDictTable,
   getSuperTypes,
-  isKnownLiteralType, isOverrideType, isGeneralType,
+  asKnownLiteralType, asOverrideType, asGeneralType,
 } from '../util/TypeHandling';
 import type { ExperimentalArgumentType } from './Core';
 import { double, float, string } from './Helpers';
@@ -39,17 +39,14 @@ export class OverloadTree {
   }
 
   private getSubtree(overrideType: ExperimentalArgumentType): OverloadTree | undefined {
-    const generalType = isGeneralType(overrideType);
+    const generalType = asGeneralType(overrideType);
     if (generalType) {
       return this.generalOverloads[generalType];
     }
-    let i = 0;
-    while (i < this.literalOverLoads.length && this.literalOverLoads[i][0] !== overrideType) {
-      i++;
-    }
-    const match = this.literalOverLoads[i];
-    if (match) {
-      return match[1];
+    for (const [ type, overloadTree ] of this.literalOverLoads) {
+      if (overrideType === type) {
+        return overloadTree;
+      }
     }
     return undefined;
   }
@@ -137,18 +134,20 @@ export class OverloadTree {
       }
       return;
     }
-    if (!this.getSubtree(experimentalArgumentType)) {
+    let nextTree = this.getSubtree(experimentalArgumentType);
+    if (!nextTree) {
       const newNode = new OverloadTree(this.identifier, this.depth + 1);
-      const generalType = isGeneralType(experimentalArgumentType);
+      const generalType = asGeneralType(experimentalArgumentType);
       if (generalType) {
         this.generalOverloads[generalType] = newNode;
       }
-      const overrideType = isOverrideType(experimentalArgumentType);
+      const overrideType = asOverrideType(experimentalArgumentType);
       if (overrideType) {
         this.literalOverLoads.push([ overrideType, newNode ]);
       }
+      nextTree = newNode;
     }
-    this.getSubtree(experimentalArgumentType)!._addOverload(_experimentalArgumentTypes, func, promotionCount);
+    nextTree._addOverload(_experimentalArgumentTypes, func, promotionCount);
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
     // e.g. When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
     // TODO: When promoting decimal type a cast needs to be preformed.
@@ -172,11 +171,13 @@ export class OverloadTree {
   private addPromotedOverload(typeToPromote: OverrideType, func: ImplementationFunction,
     conversionFunction: (arg: E.TermExpression) => E.TermExpression,
     ExperimentalArgumentTypes: ExperimentalArgumentType[], promotionCount: number): void {
-    if (!this.getSubtree(typeToPromote)) {
+    let nextTree = this.getSubtree(typeToPromote);
+    if (!nextTree) {
       const newNode = new OverloadTree(this.identifier, this.depth + 1);
       this.literalOverLoads.push([ typeToPromote, newNode ]);
+      nextTree = newNode;
     }
-    this.getSubtree(typeToPromote)!._addOverload(ExperimentalArgumentTypes, funcConf => args => func(funcConf)([
+    nextTree._addOverload(ExperimentalArgumentTypes, funcConf => args => func(funcConf)([
       ...args.slice(0, this.depth),
       conversionFunction(args[this.depth]),
       ...args.slice(this.depth + 1, args.length),
@@ -203,7 +204,7 @@ export class OverloadTree {
       // This function has cost O(n) + O(m * log(m)) with n = amount of overloads and m = amount of matched overloads
       // We map over each of the overloads, filter only the once that can be used (this is normally 1 or 2).
       // The sort function on an array with 1 or 2 arguments will be negligible.
-      const concreteType = isKnownLiteralType(literalExpression.dataType);
+      const concreteType = asKnownLiteralType(literalExpression.dataType);
       let subExtensionTable: GeneralSuperTypeDict;
       if (concreteType) {
         // Concrete dataType is known by sparqlee.
