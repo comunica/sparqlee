@@ -1,4 +1,6 @@
 import type * as LRUCache from 'lru-cache';
+import type { TermType } from '../expressions';
+import { asTermType } from '../expressions';
 import type { ArgumentType } from '../functions';
 import type { KnownLiteralTypes } from './Consts';
 import { TypeAlias, TypeURL } from './Consts';
@@ -184,7 +186,7 @@ export function getSuperTypes(type: string, openWorldType: ISuperTypeProvider): 
     return res;
   }
   let subExtension: GeneralSuperTypeDict;
-  const knownValue = isKnownLiteralType(value);
+  const knownValue = asKnownLiteralType(value);
   if (knownValue) {
     subExtension = { ...superTypeDictTable[knownValue] };
   } else {
@@ -233,23 +235,30 @@ function initTypeAliasCheck(): void {
 }
 initTypeAliasCheck();
 
-export function isTypeAlias(type: string): TypeAlias | undefined {
+export function asTypeAlias(type: string): TypeAlias | undefined {
   if (type in typeAliasCheck) {
     return <TypeAlias> type;
   }
   return undefined;
 }
 
-export function isKnownLiteralType(type: string): KnownLiteralTypes | undefined {
+export function asKnownLiteralType(type: string): KnownLiteralTypes | undefined {
   if (type in superTypeDictTable) {
     return <KnownLiteralTypes> type;
   }
   return undefined;
 }
 
-export function isOverrideType(type: string): OverrideType | undefined {
-  if (isKnownLiteralType(type) || type === 'term') {
+export function asOverrideType(type: string): OverrideType | undefined {
+  if (asKnownLiteralType(type) || type === 'term') {
     return <OverrideType> type;
+  }
+  return undefined;
+}
+
+export function asGeneralType(type: string): 'term' | TermType | undefined {
+  if (type === 'term' || asTermType(type)) {
+    return <'term' | TermType> type;
   }
   return undefined;
 }
@@ -270,7 +279,7 @@ export function isInternalSubType(baseType: OverrideType, argumentType: KnownLit
 }
 
 export function getSuperTypeDict(baseType: string, superTypeProvider: ISuperTypeProvider): GeneralSuperTypeDict {
-  const concreteType: KnownLiteralTypes | undefined = isKnownLiteralType(baseType);
+  const concreteType: KnownLiteralTypes | undefined = asKnownLiteralType(baseType);
   if (concreteType) {
     // Concrete dataType is known by sparqlee.
     return superTypeDictTable[concreteType];
@@ -282,8 +291,6 @@ export function getSuperTypeDict(baseType: string, superTypeProvider: ISuperType
 /**
  * This function needs do be O(1)! The execution time of this function is vital!
  * We define typeA isSubtypeOf typeA as true.
- * When you find yourself calling this function a lot (e.g. in a case statement),
- * you probably want to use getSuperTypeDict instead. (Check the get of argumentType on the dict is defined).
  * @param baseType type you want to provide.
  * @param argumentType type you want to provide @param baseType to.
  * @param superTypeProvider the enabler to discover super types of unknown types.
