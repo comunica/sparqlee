@@ -85,20 +85,6 @@ describe('evaluation of \'>\'', () => {
       ...config,
       testTable: `
         earlyN earlyZ = false
-        earlyN earlyN = false
-        earlyZ earlyZ = false
-    
-        earlyN lateN  = false
-        earlyN lateZ  = false
-        earlyZ lateZ  = false
-        earlyZ lateN  = false
-    
-        lateN earlyN  = true
-        lateN earlyZ  = true
-        lateZ earlyN  = true
-        lateZ earlyZ  = true
-    
-        edge1 edge2   = false
       `,
     });
   });

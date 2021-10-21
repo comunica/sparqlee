@@ -164,6 +164,7 @@ export const extensionTableInput: Record<KnownLiteralTypes, OverrideType> = {
 };
 type SuperTypeDict = Record<KnownLiteralTypes, number> & { __depth: number };
 type SuperTypeDictTable = Record<KnownLiteralTypes, SuperTypeDict>;
+// The key 'term' is not included in these keys. Something that is just a term will map to number 0.
 export type GeneralSuperTypeDict = Record<string, number> & { __depth: number };
 export let superTypeDictTable: SuperTypeDictTable;
 
@@ -278,6 +279,13 @@ export function isInternalSubType(baseType: OverrideType, argumentType: KnownLit
     (superTypeDictTable[baseType] && superTypeDictTable[baseType][argumentType] !== undefined);
 }
 
+/**
+ * This function can be used to check the base type is a restriction on a type in the dict.
+ * If we want to check if type x is a restriction on string we do this by calling:
+ * 'http://www.w3.org/2001/XMLSchema#string' in getSuperTypeDict(X, superTypeProvider)
+ * @param baseType
+ * @param superTypeProvider
+ */
 export function getSuperTypeDict(baseType: string, superTypeProvider: ISuperTypeProvider): GeneralSuperTypeDict {
   const concreteType: KnownLiteralTypes | undefined = asKnownLiteralType(baseType);
   if (concreteType) {
@@ -291,6 +299,7 @@ export function getSuperTypeDict(baseType: string, superTypeProvider: ISuperType
 /**
  * This function needs do be O(1)! The execution time of this function is vital!
  * We define typeA isSubtypeOf typeA as true.
+ * If you find yourself using this function a lot (e.g. in a case) please use getSuperTypeDict instead.
  * @param baseType type you want to provide.
  * @param argumentType type you want to provide @param baseType to.
  * @param superTypeProvider the enabler to discover super types of unknown types.

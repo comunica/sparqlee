@@ -165,18 +165,18 @@ export class TermTransformer implements ITermTransformer {
     const dataType = lit.datatype.value;
     const superTypeDict: GeneralSuperTypeDict = getSuperTypeDict(dataType, this.superTypeProvider);
 
-    if (superTypeDict[TypeURL.XSD_STRING] !== undefined) {
+    if (TypeURL.XSD_STRING in superTypeDict) {
       return new E.StringLiteral(lit.value, dataType);
     }
-    if (superTypeDict[DT.RDF_LANG_STRING] !== undefined) {
+    if (DT.RDF_LANG_STRING in superTypeDict) {
       return new E.LangStringLiteral(lit.value, lit.language);
     }
-    if (superTypeDict[DT.XSD_DATE_TIME] !== undefined) {
+    if (DT.XSD_DATE_TIME in superTypeDict) {
       // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
       // This is because sparql functions don't care about the timezone.
       // It's also doesn't break the specs because we keep the string representation stored,
       // that way we can always give it back. There are also no sparql functions that alter a date.
-      // (So the representation initial representation always stays valid)
+      // (So the initial representation always stays valid)
       // https://github.com/comunica/sparqlee/pull/103#discussion_r688462368
       const dateVal: Date = new Date(lit.value);
       if (Number.isNaN(dateVal.getTime())) {
@@ -184,25 +184,25 @@ export class TermTransformer implements ITermTransformer {
       }
       return new E.DateTimeLiteral(new Date(lit.value), lit.value, dataType);
     }
-    if (superTypeDict[DT.XSD_BOOLEAN] !== undefined) {
+    if (DT.XSD_BOOLEAN in superTypeDict) {
       if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
         return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
       }
       return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
     }
-    if (superTypeDict[DT.XSD_DECIMAL] !== undefined) {
+    if (DT.XSD_DECIMAL in superTypeDict) {
       const intVal: number | undefined = P.parseXSDDecimal(lit.value);
       if (intVal === undefined) {
         return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
       }
-      if (superTypeDict[DT.XSD_INTEGER] !== undefined) {
+      if (DT.XSD_INTEGER in superTypeDict) {
         return new E.IntegerLiteral(intVal, dataType, lit.value);
       }
       // If type is not an integer it's just a decimal.
       return new E.DecimalLiteral(intVal, dataType, lit.value);
     }
-    const isFloat = superTypeDict[DT.XSD_FLOAT] !== undefined;
-    const isDouble = superTypeDict[DT.XSD_DOUBLE] !== undefined;
+    const isFloat = DT.XSD_FLOAT in superTypeDict;
+    const isDouble = DT.XSD_DOUBLE in superTypeDict;
     if (isFloat || isDouble) {
       const doubleVal: number | undefined = P.parseXSDFloat(lit.value);
       if (doubleVal === undefined) {
