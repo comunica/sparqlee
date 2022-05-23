@@ -108,7 +108,7 @@ export class Literal<T extends { toString: () => string }> extends Term {
 
 export abstract class NumericLiteral extends Literal<number> {
   public readonly mainSparqlType: MainNumericSparqlType;
-  public constructor(
+  protected constructor(
     public typedValue: number,
     dataType: string,
     public strValue?: string,
@@ -226,7 +226,7 @@ export class BooleanLiteral extends Literal<boolean> {
   }
 
   public coerceEBV(): boolean {
-    return !!this.typedValue;
+    return this.typedValue;
   }
 }
 
