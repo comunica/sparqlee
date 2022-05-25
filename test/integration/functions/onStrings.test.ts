@@ -92,6 +92,7 @@ describe('string functions', () => {
        "aa" "b" = false
        "aa"@en "a"@en = true
        "aa"@en "b"@en = false
+       '"some string"' '"e s"' = true
       `,
       errorTable: `
        "aa"@en "a"@fr = 'Operation on incompatible language literals'
@@ -121,62 +122,7 @@ describe('string functions', () => {
     });
   });
 
-  describe('evaluations of \'STRSTARTS\' like', () => {
-    runTestTable({
-      arity: 2,
-      aliases: bool,
-      operation: 'STRSTARTS',
-      notation: Notation.Function,
-      testTable: `
-        '"some string"' "some" = true
-        '"some string"' "Some" = false
-        "aaaa"@en "a"@en = true
-        "aaaa"@en "b"@en = false
-      `,
-      errorTable: `
-        "aaaa"@en "a"@fr = 'Operation on incompatible language literals'
-      `,
-    });
-  });
-
-  describe('evaluations of \'STRENDS\' like', () => {
-    runTestTable({
-      arity: 2,
-      aliases: bool,
-      operation: 'STRENDS',
-      notation: Notation.Function,
-      testTable: `
-        '"some string"' "string" = true
-        '"some string"' "strinG" = false
-        "aaaa"@en "a"@en = true
-        "aaaa"@en "b"@en = false
-      `,
-      errorTable: `
-        "aaaa"@en "a"@fr = 'Operation on incompatible language literals'
-      `,
-    });
-  });
-
-  describe('evaluations of \'CONTAINS\' like', () => {
-    runTestTable({
-      arity: 2,
-      aliases: bool,
-      operation: 'CONTAINS',
-      notation: Notation.Function,
-      testTable: `
-        '"some string"' "string" = true
-        '"some string"' "strinG" = false
-        '"some string"' '"e s"' = true
-        "aaaa"@en "a"@en = true
-        "aaaa"@en "b"@en = false
-      `,
-      errorTable: `
-        "aaaa"@en "a"@fr = 'Operation on incompatible language literals'
-      `,
-    });
-  });
-
-  describe('evaluations of \'STRBEFORE\' like', () => {
+  describe('evaluations of \'strbefore\' like', () => {
     // Inspired on the specs: https://www.w3.org/TR/sparql11-query/#func-strbefore
     runTestTable({
       arity: 2,
@@ -199,7 +145,7 @@ describe('string functions', () => {
     });
   });
 
-  describe('evaluations of \'STRAFTER\' like', () => {
+  describe('evaluations of \'strafter\' like', () => {
     // Inspired on the specs: https://www.w3.org/TR/sparql11-query/#func-strafter
     runTestTable({
       arity: 2,
