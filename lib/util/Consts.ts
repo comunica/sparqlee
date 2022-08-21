@@ -204,9 +204,22 @@ export enum SpecialOperator {
   BNODE = 'bnode',
 }
 
+export enum SparqlStarOperator {
+  // Functions on RDF-star terms
+  TRIPLE = 'triple',
+  SUBJECT = 'subject',
+  PREDICATE = 'predicate',
+  OBJECT = 'object',
+  IS_TRIPLE = 'istriple',
+  // TODO: See if 4.4.6 Quoted Triple Expression is needed here
+  // TODO: Work out how to properly handle 4.4.7 sameTerm onwards.
+
+}
+
 export const RegularOperators: Set<string> = new Set(Object.values(RegularOperator));
 export const SpecialOperators: Set<string> = new Set(Object.values(SpecialOperator));
-export const Operators = new Set([ ...RegularOperators, ...SpecialOperators ]);
+export const SparqlStarOperators: Set<string> = new Set(Object.values(SparqlStarOperator));
+export const Operators = new Set([ ...RegularOperators, ...SpecialOperators, ...SparqlStarOperators ]);
 
 export enum SetFunction {
   COUNT = 'count',

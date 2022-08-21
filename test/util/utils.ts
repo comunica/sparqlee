@@ -65,6 +65,8 @@ export function getDefaultSharedContext(): ICompleteSharedContext {
     },
     overloadCache: new LRUCache(),
     enableExtendedXsdTypes: false,
+    // TODO: Double check that this should be the default
+    sparqlStar: false,
   };
 }
 

@@ -36,6 +36,7 @@ export class AsyncEvaluator {
       aggregate: context.aggregate,
       bnode: context.bnode,
       enableExtendedXsdTypes: context.enableExtendedXsdTypes || false,
+      sparqlStar: context.sparqlStar || false,
     };
   }
 

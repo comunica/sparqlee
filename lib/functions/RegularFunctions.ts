@@ -1,3 +1,4 @@
+import type * as RDF from '@rdfjs/types';
 import { BigNumber } from 'bignumber.js';
 import { sha1, sha256, sha384, sha512 } from 'hash.js';
 import { DataFactory } from 'rdf-data-factory';
@@ -16,7 +17,7 @@ import type { IOverloadedDefinition } from './Core';
 import { bool, decimal, declare, double, integer, langString, string } from './Helpers';
 import * as X from './XPathFunctions';
 
-const DF = new DataFactory();
+const DF = new DataFactory<RDF.BaseQuad>();
 
 type Term = E.TermExpression;
 
@@ -108,6 +109,7 @@ function RDFTermEqual(_left: Term, _right: Term): boolean {
   const right = _right.toRDF();
   const val = left.equals(right);
   if ((left.termType === 'Literal') && (right.termType === 'Literal')) {
+    // TODO: Double check this
     throw new Err.RDFEqualTypeError([ _left, _right ]);
   }
   return val;
@@ -271,9 +273,10 @@ const STRDT = {
   arity: 2,
   overloads: declare(C.RegularOperator.STRDT).set(
     [ TypeURL.XSD_STRING, 'namedNode' ],
-    ({ superTypeProvider, enableExtendedXsdTypes }) => ([ str, iri ]: [E.StringLiteral, E.NamedNode]) => {
+    // TODO: Re-apply this pattern to all other functions that have been modified by sparqlStar
+    ({ superTypeProvider, enableExtendedXsdTypes, sparqlStar }) => ([ str, iri ]: [E.StringLiteral, E.NamedNode]) => {
       const lit = DF.literal(str.typedValue, DF.namedNode(iri.value));
-      return new TermTransformer(superTypeProvider, enableExtendedXsdTypes).transformLiteral(lit);
+      return new TermTransformer(superTypeProvider, enableExtendedXsdTypes, sparqlStar).transformLiteral(lit);
     },
   ).collect(),
 };

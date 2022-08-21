@@ -6,6 +6,8 @@ import type { ITermTransformer } from '../../transformers/TermTransformer';
 import * as Err from '../../util/Errors';
 import type { SuperTypeCallback, TypeCache, ISuperTypeProvider } from '../../util/TypeHandling';
 
+// TODO: Work out why ISharedContext and ICompleteSharedContext exist.
+
 export interface ISharedContext {
   now?: Date;
   baseIRI?: string;
@@ -19,6 +21,10 @@ export interface ISharedContext {
    * Using this experimental system makes sparqlee a bit slower but more reliable using type promotion for example.
    */
   enableExtendedXsdTypes?: boolean;
+  /**
+   * Opt into supporting SPARQL-star features
+   */
+  sparqlStar?: boolean;
 }
 
 export interface ICompleteSharedContext {
@@ -27,6 +33,10 @@ export interface ICompleteSharedContext {
   overloadCache: OverLoadCache;
   superTypeProvider: ISuperTypeProvider;
   enableExtendedXsdTypes: boolean;
+  /**
+   * Opt into supporting SPARQL-star features
+   */
+  sparqlStar: boolean;
 }
 
 export class BaseExpressionEvaluator {

@@ -38,7 +38,7 @@ const DF = new DataFactory();
 describe('TermTransformer', () => {
   let termTransformer: TermTransformer;
   beforeEach(() => {
-    termTransformer = new TermTransformer(getDefaultSharedContext().superTypeProvider, true);
+    termTransformer = new TermTransformer(getDefaultSharedContext().superTypeProvider, true, false);
   });
 
   function simpleLiteralCreator(value: string, dataType?: string, language?: string): RDF.Literal {
@@ -279,7 +279,7 @@ describe('TermTransformer', () => {
   describe('legacy literal transformer', () => {
     let legacyTermTransformer: TermTransformer;
     beforeEach(() => {
-      legacyTermTransformer = new TermTransformer(getDefaultSharedContext().superTypeProvider, false);
+      legacyTermTransformer = new TermTransformer(getDefaultSharedContext().superTypeProvider, false, false);
     });
 
     it('string', () => {

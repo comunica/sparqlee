@@ -23,7 +23,7 @@ export interface IAlgebraTransformer extends ITermTransformer{
 export class AlgebraTransformer extends TermTransformer implements IAlgebraTransformer {
   private readonly creatorConfig: FunctionCreatorConfig;
   public constructor(protected readonly algebraConfig: AlgebraTransformConfig) {
-    super(algebraConfig.superTypeProvider, algebraConfig.enableExtendedXsdTypes);
+    super(algebraConfig.superTypeProvider, algebraConfig.enableExtendedXsdTypes, algebraConfig.sparqlStar);
     this.creatorConfig = <FunctionCreatorConfig> { type: algebraConfig.type, creator: algebraConfig.creator };
   }
 

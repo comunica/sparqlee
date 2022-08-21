@@ -7,7 +7,8 @@ import type { ISuperTypeProvider, SuperTypeCallback, TypeCache } from './TypeHan
 
 // Determine the relative numerical order of the two given terms.
 export function orderTypes(termA: RDF.Term | undefined, termB: RDF.Term | undefined, isAscending: boolean,
-  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean): -1 | 0 | 1 {
+  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean,
+  sparqlStar?: boolean): -1 | 0 | 1 {
   if (termA === termB) {
     return 0;
   }
@@ -24,28 +25,34 @@ export function orderTypes(termA: RDF.Term | undefined, termB: RDF.Term | undefi
   if (termA.equals(termB)) {
     return 0;
   }
-  return isTermLowerThan(termA, termB, typeDiscoveryCallback, typeCache, enableExtendedXSDTypes) === isAscending ?
+  return isTermLowerThan(
+    termA, termB, typeDiscoveryCallback, typeCache, enableExtendedXSDTypes, sparqlStar,
+  ) === isAscending ?
     -1 :
     1;
 }
 
 function isTermLowerThan(termA: RDF.Term, termB: RDF.Term,
-  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean): boolean {
+  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean,
+  sparqlStar?: boolean): boolean {
   if (termA.termType !== termB.termType) {
     return _TERM_ORDERING_PRIORITY[termA.termType] < _TERM_ORDERING_PRIORITY[termB.termType];
   }
   return termA.termType === 'Literal' ?
-    isLiteralLowerThan(termA, <RDF.Literal>termB, typeDiscoveryCallback, typeCache, enableExtendedXSDTypes) :
+    isLiteralLowerThan(
+      termA, <RDF.Literal>termB, typeDiscoveryCallback, typeCache, enableExtendedXSDTypes, sparqlStar,
+    ) :
     termA.value < termB.value;
 }
 
 function isLiteralLowerThan(litA: RDF.Literal, litB: RDF.Literal,
-  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean): boolean {
+  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean,
+  sparqlStar?: boolean): boolean {
   const openWorldType: ISuperTypeProvider = {
     discoverer: typeDiscoveryCallback || (() => 'term'),
     cache: typeCache || new LRUCache(),
   };
-  const termTransformer = new TermTransformer(openWorldType, enableExtendedXSDTypes || false);
+  const termTransformer = new TermTransformer(openWorldType, enableExtendedXSDTypes || false, sparqlStar || false);
   const myLitA = termTransformer.transformLiteral(litA);
   const myLitB = termTransformer.transformLiteral(litB);
   const typeA = _SPARQL_TYPE_NORMALIZATION[myLitA.mainSparqlType];

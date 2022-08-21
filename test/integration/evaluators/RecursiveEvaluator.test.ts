@@ -22,6 +22,7 @@ describe('recursive evaluators', () => {
         discoverer: _ => 'term',
       },
       enableExtendedXsdTypes: false,
+      sparqlStar: false,
     });
 
     it('is able to evaluate operator', () => {
@@ -51,6 +52,7 @@ describe('recursive evaluators', () => {
         },
         enableExtendedXsdTypes: false,
         exists: _ => true,
+        sparqlStar: false,
       });
 
       expect(customEvaluator.evaluate(new E.Existence({
@@ -89,6 +91,7 @@ describe('recursive evaluators', () => {
         },
         enableExtendedXsdTypes: false,
         aggregate: _ => DF.literal('42'),
+        sparqlStar: false,
       });
 
       expect(customEvaluator.evaluate(new E.Aggregate('count', {
@@ -123,6 +126,7 @@ describe('recursive evaluators', () => {
         discoverer: _ => 'term',
       },
       enableExtendedXsdTypes: false,
+      sparqlStar: false,
     });
 
     it('is able to evaluate operator', async() => {
@@ -152,6 +156,7 @@ describe('recursive evaluators', () => {
         },
         enableExtendedXsdTypes: false,
         exists: async _ => true,
+        sparqlStar: false,
       });
 
       expect(await customEvaluator.evaluate(new E.Existence({
@@ -190,6 +195,7 @@ describe('recursive evaluators', () => {
         },
         enableExtendedXsdTypes: false,
         aggregate: async _ => DF.literal('42'),
+        sparqlStar: false,
       });
 
       expect(await customEvaluator.evaluate(new E.Aggregate('count', {

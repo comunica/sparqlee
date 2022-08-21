@@ -1,6 +1,8 @@
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 
+import { stringToTerm, termToString } from 'rdf-string';
+import { TermTransformer } from '../transformers/TermTransformer';
 import type { MainSparqlType, MainNumericSparqlType } from '../util/Consts';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
@@ -11,6 +13,7 @@ import type { TermExpression, TermType } from './Expressions';
 import { ExpressionType } from './Expressions';
 
 const DF = new DataFactory();
+const DEFAULT_GRAPH = DF.defaultGraph();
 
 export abstract class Term implements TermExpression {
   public expressionType: ExpressionType.Term = ExpressionType.Term;
@@ -24,6 +27,94 @@ export abstract class Term implements TermExpression {
 
   public coerceEBV(): boolean {
     throw new Err.EBVCoercionError(this);
+  }
+}
+
+// Triples -----------------------------------------------------------------
+export class Triple extends Term {
+  public termType: TermType = 'triple';
+  private readonly transformer: TermTransformer;
+  private _rdf?: RDF.BaseQuad;
+  private _value?: string;
+
+  public get value(): string {
+    if (this._value) {
+      return this._value;
+    }
+    if (this._rdf) {
+      this._value = termToString(this._rdf);
+      return this._value;
+    }
+    throw new Error('Internal error - there is a bug in @comunica/sparqlee, please report');
+  }
+
+  public set value(value: string) {
+    this._value = value;
+    this._rdf = undefined;
+  }
+
+  public get subject(): Term {
+    return this.transformer.transformRDFTermUnsafe(this.RDFsubject);
+  }
+
+  public get predicate(): Term {
+    return this.transformer.transformRDFTermUnsafe(this.RDFpredicate);
+  }
+
+  public get object(): Term {
+    return this.transformer.transformRDFTermUnsafe(this.RDFobject);
+  }
+
+  public get RDFsubject(): RDF.Term {
+    return this.toRDF().subject;
+  }
+
+  public get RDFpredicate(): RDF.Term {
+    return this.toRDF().predicate;
+  }
+
+  public get RDFobject(): RDF.Term {
+    return this.toRDF().object;
+  }
+
+  // TODO: See if we should do stricter validation on the RDF.BaseQuad
+  public constructor(
+    input: string | RDF.BaseQuad,
+    superTypeProvider: ISuperTypeProvider,
+    enableExtendedXSDTypes: boolean,
+    sparqlStar: boolean,
+  ) {
+    super();
+    this.transformer = new TermTransformer(superTypeProvider, enableExtendedXSDTypes, sparqlStar);
+
+    // TODO: Do the validation in toRDF upfront.
+    if (typeof input === 'string') {
+      this._value = input;
+    } else {
+      this._rdf = input;
+    }
+  }
+
+  public toRDF(): RDF.BaseQuad {
+    if (this._rdf) {
+      return this._rdf;
+    }
+
+    const term = stringToTerm(this.value);
+    if (term.termType !== 'Quad') {
+      throw new Error(`Expected ${this.value} to be of type Quad but received ${this.termType}`);
+    }
+    // TODO: Create an issue in the rdf-dataset-factory repo
+    // that the library does set the .graph term
+    if (!term.graph.equals(DEFAULT_GRAPH)) {
+      throw new Error(`Expected quad to have DEFAULT_GRAPH but received ${term.graph.value}`);
+    }
+    this._rdf = term;
+    return term;
+  }
+
+  public str(): string {
+    return this.value;
   }
 }
 

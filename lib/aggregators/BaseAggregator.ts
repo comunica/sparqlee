@@ -15,7 +15,9 @@ export abstract class BaseAggregator<State> {
   public constructor(expr: Algebra.AggregateExpression, protected sharedContext: ICompleteSharedContext) {
     this.distinct = expr.distinct;
     this.separator = expr.separator || ' ';
-    this.termTransformer = new TermTransformer(sharedContext.superTypeProvider, sharedContext.enableExtendedXsdTypes);
+    this.termTransformer = new TermTransformer(
+      sharedContext.superTypeProvider, sharedContext.enableExtendedXsdTypes, sharedContext.sparqlStar,
+    );
   }
 
   protected termToNumericOrError(term: RDF.Term): E.NumericLiteral {
@@ -25,7 +27,9 @@ export abstract class BaseAggregator<State> {
     } else if (
       !isSubTypeOf(term.datatype.value, TypeAlias.SPARQL_NUMERIC, this.sharedContext.superTypeProvider)
     ) {
-      throw new Error(`Term datatype ${term.datatype.value} with value ${term.value} has type ${term.termType} and is not a numeric literal`);
+      throw new Error(
+        `Term datatype ${term.datatype.value} with value ${term.value} has type ${term.termType} and is not a numeric literal`,
+      );
     }
     return <E.NumericLiteral> this.termTransformer.transformLiteral(term);
   }

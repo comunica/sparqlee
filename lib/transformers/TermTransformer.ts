@@ -10,6 +10,7 @@ import { getSuperTypeDict } from '../util/TypeHandling';
 import type { ISuperTypeProvider,
   GeneralSuperTypeDict } from '../util/TypeHandling';
 
+// TODO See why this interface is needed
 export interface ITermTransformer {
   transformRDFTermUnsafe: (term: RDF.Term) => E.Term;
   transformLiteral: (lit: RDF.Literal) => E.Literal<any>;
@@ -17,7 +18,7 @@ export interface ITermTransformer {
 
 export class TermTransformer implements ITermTransformer {
   public constructor(protected readonly superTypeProvider: ISuperTypeProvider,
-    protected readonly enableExtendedXSDTypes: boolean) { }
+    protected readonly enableExtendedXSDTypes: boolean, protected readonly sparqlStar: boolean) { }
 
   /**
    * Transforms an RDF term to the internal representation of a term,
@@ -47,6 +48,14 @@ export class TermTransformer implements ITermTransformer {
         return new E.NamedNode(term.term.value);
       case 'BlankNode':
         return new E.BlankNode(term.term.value);
+      case 'Quad':
+        // TODO:
+        // 1 - Add a sparql-star check
+        // 2 - Add a check for default graph if not already done by E.Triple
+        if (this.sparqlStar) {
+          return new E.Triple(term.term, this.superTypeProvider, this.enableExtendedXSDTypes, this.sparqlStar);
+        }
+        throw new Err.InvalidTermType(term);
       default:
         throw new Err.InvalidTermType(term);
     }

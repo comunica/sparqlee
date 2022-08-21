@@ -5,7 +5,7 @@
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
-import type { Literal, NumericLiteral } from '../expressions';
+import type { Literal, NumericLiteral, Triple } from '../expressions';
 import * as E from '../expressions';
 import { DecimalLiteral, DoubleLiteral, FloatLiteral, IntegerLiteral } from '../expressions';
 import type { MainNumericSparqlType } from '../util/Consts';
@@ -113,6 +113,10 @@ export class Builder {
 
   public onTerm1(op: (context: ICompleteSharedContext) => (term: Term) => Term): Builder {
     return this.set([ 'term' ], context => ([ term ]: [Term]) => op(context)(term));
+  }
+
+  public onTriple1(op: (context: ICompleteSharedContext) => (term: Term & Triple) => Term): Builder {
+    return this.set([ 'triple' ], context => ([ term ]: [Term & Triple]) => op(context)(term));
   }
 
   public onLiteral1<T>(op: (context: ICompleteSharedContext) => (lit: E.Literal<T>) => Term): Builder {
