@@ -1,4 +1,4 @@
-import type * as LRUCache from 'lru-cache';
+import * as LRUCache from 'lru-cache';
 import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type * as E from '../expressions';
 import { isLiteralTermExpression } from '../expressions';
@@ -16,7 +16,10 @@ import { double, float, string } from './Helpers';
 
 export type SearchStack = OverloadTree[];
 export type ImplementationFunction = (sharedContext: ICompleteSharedContext) => E.SimpleApplication;
-export type OverLoadCache = LRUCache<string, ImplementationFunction | undefined>;
+interface IOverLoadCacheObj {
+  func?: ImplementationFunction; cache?: OverLoadCache;
+}
+export type OverLoadCache = LRUCache<string, IOverLoadCacheObj>;
 /**
  * Maps argument types on their specific implementation in a tree like structure.
  * When adding any functionality to this class, make sure you add it to SpecialFunctions as well.
@@ -66,13 +69,6 @@ export class OverloadTree {
     return node.implementation;
   }
 
-  private getOverloadCacheIdentifier(args: E.TermExpression[]): string {
-    return this.identifier + args.map(term => {
-      const literalExpression = isLiteralTermExpression(term);
-      return literalExpression ? literalExpression.dataType : term.termType;
-    }).join('');
-  }
-
   /**
    * Searches in a depth first way for the best matching overload. considering this a the tree's root.
    * @param args:
@@ -81,10 +77,18 @@ export class OverloadTree {
    */
   public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider, overloadCache: OverLoadCache):
   ImplementationFunction | undefined {
-    const identifier = this.getOverloadCacheIdentifier(args);
-    if (overloadCache.has(identifier)) {
-      return overloadCache.get(identifier);
+    let cacheIter = overloadCache.get(this.identifier);
+    let searchIndex = 0;
+    while (searchIndex < args.length && cacheIter?.cache) {
+      const term = args[searchIndex];
+      const literalExpression = isLiteralTermExpression(term);
+      cacheIter = cacheIter.cache.get(literalExpression ? literalExpression.dataType : term.termType);
+      searchIndex++;
     }
+    if (searchIndex === args.length && cacheIter) {
+      return cacheIter.func;
+    }
+
     // SearchStack is a stack of all node's that need to be checked for implementation.
     // It provides an easy way to keep order in our search.
     const searchStack: { node: OverloadTree; index: number }[] = [];
@@ -102,7 +106,7 @@ export class OverloadTree {
       // We check the implementation because it would be possible a path is created but not implemented.
       // ex: f(double, double, double) and f(term, term). and calling f(double, double).
       if (index === args.length && node.implementation) {
-        overloadCache.set(identifier, node.implementation);
+        this.addToCache(overloadCache, args, node.implementation);
         return node.implementation;
       }
       searchStack.push(...node.getSubTreeWithArg(args[index], superTypeProvider).map(item =>
@@ -110,8 +114,26 @@ export class OverloadTree {
     }
     // Calling a function with one argument but finding no implementation should return no implementation.
     // Not even the one with no arguments.
-    overloadCache.set(identifier, undefined);
+    this.addToCache(overloadCache, args);
     return undefined;
+  }
+
+  private addToCache(overloadCache: OverLoadCache, args: E.TermExpression[],
+    func?: ImplementationFunction | undefined): void {
+    function getDefault(lruCache: OverLoadCache, key: string): IOverLoadCacheObj {
+      if (!lruCache.has(key)) {
+        lruCache.set(key, { });
+      }
+      return lruCache.get(key)!;
+    }
+    let cache = getDefault(overloadCache, this.identifier);
+    for (const term of args) {
+      const literalExpression = isLiteralTermExpression(term);
+      const key = literalExpression ? literalExpression.dataType : term.termType;
+      cache.cache = new LRUCache();
+      cache = getDefault(cache.cache, key);
+    }
+    cache.func = func;
   }
 
   /**

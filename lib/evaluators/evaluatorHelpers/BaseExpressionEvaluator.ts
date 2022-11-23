@@ -9,7 +9,7 @@ import type { SuperTypeCallback, TypeCache, ISuperTypeProvider } from '../../uti
 export interface ISharedContext {
   now?: Date;
   baseIRI?: string;
-  overloadCache?: OverLoadCache;
+  overloadCache?: OverLoadCache; // TODO: geef een creator mee die naargelang de diepte zijn size bepaald?
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
   /**
