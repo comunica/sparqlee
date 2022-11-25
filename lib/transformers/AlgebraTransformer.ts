@@ -68,7 +68,7 @@ export class AlgebraTransformer extends TermTransformer implements IAlgebraTrans
     const regularArgs = expr.args.map(arg => this.transformAlgebra(arg));
     let regularFunc = regularFunctions[regularOp];
     if (typeof regularFunc === 'undefined' && this.sparqlStar) {
-      regularFunc = sparqlStarFunctions[regularOp]
+      regularFunc = sparqlStarFunctions[regularOp];
     }
     if (!AlgebraTransformer.hasCorrectArity(regularArgs, regularFunc.arity)) {
       throw new Err.InvalidArity(regularArgs, regularOp);

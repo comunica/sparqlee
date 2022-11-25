@@ -49,12 +49,11 @@ export class TermTransformer implements ITermTransformer {
       case 'BlankNode':
         return new E.BlankNode(term.term.value);
       case 'Quad':
-        // TODO:
-        // 1 - Add a sparql-star check
-        // 2 - Add a check for default graph if not already done by E.Triple
+        // TODO: Add a check for default graph if not already done by E.Triple
         if (this.sparqlStar) {
           return new E.Triple(term.term, this.superTypeProvider, this.enableExtendedXSDTypes, this.sparqlStar);
         }
+        throw new Err.InvalidTermType(term);
       default:
         throw new Err.InvalidTermType(term);
     }

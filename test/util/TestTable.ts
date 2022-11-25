@@ -39,7 +39,10 @@ abstract class Table<RowType extends Row> {
     const aliases = this.def.aliases || {};
     result = aliases[result] || result;
     const evaluated = await generalEvaluate({
-      expression: template(expr, additionalPrefixes), expectEquality: true, generalEvaluationConfig: config, parserOptions
+      expression: template(expr, additionalPrefixes),
+      expectEquality: true,
+      generalEvaluationConfig: config,
+      parserOptions,
     });
     expect(evaluated.asyncResult).toEqual(stringToTermPrefix(result, additionalPrefixes));
   }
@@ -47,7 +50,10 @@ abstract class Table<RowType extends Row> {
   protected async testErrorExpression(expr: string, error: string) {
     const { config, additionalPrefixes, parserOptions } = this.def;
     const result = await generalErrorEvaluation({
-      expression: template(expr, additionalPrefixes), expectEquality: false, generalEvaluationConfig: config, parserOptions
+      expression: template(expr, additionalPrefixes),
+      expectEquality: false,
+      generalEvaluationConfig: config,
+      parserOptions,
     });
     expect(result).not.toBeUndefined();
     expect(() => { throw result?.asyncError; }).toThrow(error);
@@ -196,12 +202,12 @@ abstract class TableParser<RowType extends Row> {
 
   private toTable(table?: string | RowType[]): RowType[] {
     if (typeof table === 'string')
-      return this.splitTable(table).map(row => this.parseRow(row));
+    { return this.splitTable(table).map(row => this.parseRow(row)); }
 
     if (Array.isArray(table))
-      return table;
+    { return table; }
 
-    return []
+    return [];
   }
 
   protected abstract parseRow(row: string): RowType;

@@ -86,6 +86,7 @@
     "relative-to-absolute-iri": "^1.0.6",
     "spark-md5": "^3.0.1",
     "sparqlalgebrajs": "^4.0.3",
+    "sparqljs": "../SPARQL.js/",
     "uuid": "^8.0.0"
   },
   "jest": {
@@ -110,5 +111,8 @@
         "statements": 100
       }
     }
+  },
+  "overrides": {
+    "sparqljs": "$sparqljs"
   }
 }

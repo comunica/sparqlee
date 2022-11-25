@@ -1,5 +1,5 @@
 import * as LRUCache from 'lru-cache';
-import { translate } from 'sparqlalgebrajs';
+import type { translate } from 'sparqlalgebrajs';
 import type { ICompleteSharedContext } from '../../lib/evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type { AliasMap } from './Aliases';
 import type { GeneralEvaluationConfig } from './generalEvaluation';
