@@ -4,7 +4,7 @@ import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/Base
 import type { SyncExtensionFunction, SyncExtensionFunctionCreator } from '../evaluators/SyncEvaluator';
 import * as E from '../expressions';
 import type { AsyncExtensionApplication, SimpleApplication } from '../expressions';
-import { namedFunctions, regularFunctions, specialFunctions } from '../functions';
+import { namedFunctions, regularFunctions, sparqlStarFunctions, specialFunctions } from '../functions';
 import * as C from '../util/Consts';
 import * as Err from '../util/Errors';
 import { ExtensionFunctionError } from '../util/Errors';
@@ -66,7 +66,10 @@ export class AlgebraTransformer extends TermTransformer implements IAlgebraTrans
     }
     const regularOp = <C.RegularOperator>operator;
     const regularArgs = expr.args.map(arg => this.transformAlgebra(arg));
-    const regularFunc = regularFunctions[regularOp];
+    let regularFunc = regularFunctions[regularOp];
+    if (typeof regularFunc === 'undefined' && this.sparqlStar) {
+      regularFunc = sparqlStarFunctions[regularOp]
+    }
     if (!AlgebraTransformer.hasCorrectArity(regularArgs, regularFunc.arity)) {
       throw new Err.InvalidArity(regularArgs, regularOp);
     }

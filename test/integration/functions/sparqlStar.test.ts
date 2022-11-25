@@ -7,10 +7,6 @@ import { runTestTable } from '../../util/utils';
 
 describe('sparqlStar functions', () => {
   describe('evaluation of \'isTriple\'', () => {
-    // it('truthy', () => {
-    //   expect(true).toBeTruthy();
-    // });
-    // TODO: Finish these tests once new sparqlparser is complete.
     const baseConfig: ITestTableConfigBase = {
       arity: 1,
       operation: 'istriple',
@@ -19,246 +15,161 @@ describe('sparqlStar functions', () => {
     };
     runTestTable({
       ...baseConfig,
-      // testTable: `
-      //   "aaa" = 3i
-      //   "aaaa"@en = 4i
-      //   "aa"^^xsd:string = 2i
-      //   "👪"^^xsd:string = 1i
-      //   "👨‍👩‍👧‍👦"^^xsd:string = ${int('7')}
-      // `,
+      parserOptions: {
+        sparqlStar: true
+      },
+      config: {
+        type: 'sync',
+        config: {
+          sparqlStar: true
+        }
+      },
+      testTable: [
+        ['<< <http://example.com> a "a" >>', '"true"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['<http://example.com>', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['<http://example.com/é>', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['1', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['1', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['true', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['false', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['"a"', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['"a"^^xsd:string', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['"a"@en', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['"a"@en-US', '"false"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['<< <http://example.com> <http://example.com> <http://example.com> >>', '"true"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['<< <http://example.com> a <http://example.com> >>', '"true"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['<< <http://example.com> a true >>', '"true"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['<< <http://example.com> a "a"^^xsd:string >>', '"true"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['<< <http://example.com> a "a"@en-US >>', '"true"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['<< <http://example.com> a "a" >>', '"true"^^http://www.w3.org/2001/XMLSchema#boolean'],
+      ],
     });
   });
 
-  // describe('evaluation of \'strlen\' like', () => {
-    // const baseConfig: ITestTableConfigBase = {
-    //   arity: 1,
-    //   operation: 'strlen',
-    //   notation: Notation.Function,
-    //   aliases: numeric,
-    // };
-    // runTestTable({
-    //   ...baseConfig,
-    //   testTable: `
-    //     "aaa" = 3i
-    //     "aaaa"@en = 4i
-    //     "aa"^^xsd:string = 2i
-    //     "👪"^^xsd:string = 1i
-    //     "👨‍👩‍👧‍👦"^^xsd:string = ${int('7')}
-    //   `,
-    // });
-  //   runTestTable({
-  //     ...baseConfig,
-  //     config: {
-  //       type: 'sync',
-  //       config: {
-  //         getSuperType(unknownType) {
-  //           if (unknownType.includes('specialString')) {
-  //             return 'https://example.org/string';
-  //           }
-  //           return TypeURL.XSD_STRING;
-  //         },
-  //         overloadCache: new LRUCache(),
-  //         enableExtendedXsdTypes: true,
-  //       },
-  //     },
-  //     testTable: `
-  //     '"custom type"^^example:string' = ${int('11')}
-  //     "apple"^^example:specialString = ${int('5')}
-  //     `,
-  //   });
-  // });
+  describe('evaluation of \'subject\'', () => {
+    const baseConfig: ITestTableConfigBase = {
+      arity: 1,
+      operation: 'subject',
+      notation: Notation.Function,
+      aliases: numeric,
+    };
+    runTestTable({
+      ...baseConfig,
+      parserOptions: {
+        sparqlStar: true
+      },
+      config: {
+        type: 'sync',
+        config: {
+          sparqlStar: true
+        }
+      },
+      testTable: [
+        ['<< <http://example.com> a "a" >>', 'http://example.com'],
+        ['<< <http://example.com> <http://example.com> <http://example.com> >>', 'http://example.com'],
+        ['<< <http://example.com> a <http://example.com> >>', 'http://example.com'],
+        ['<< <http://example.com> a true >>', 'http://example.com'],
+        ['<< <http://example.com> a "a"^^xsd:string >>', 'http://example.com'],
+        ['<< <http://example.com> a "a"@en-US >>', 'http://example.com'],
+        ['<< <http://example.com> a "a" >>', 'http://example.com'],
+      ],
+      errorTable: [
+        ['<http://example.com>', 'Operator \"subject\" expects a Triple as input, received NamedNode'],
+        ['<http://example.com/é>', 'Operator \"subject\" expects a Triple as input, received NamedNode'],
+        ['1', 'Operator \"subject\" expects a Triple as input, received Literal'],
+        ['1', 'Operator \"subject\" expects a Triple as input, received Literal'],
+        ['true', 'Operator \"subject\" expects a Triple as input, received Literal'],
+        ['false', 'Operator \"subject\" expects a Triple as input, received Literal'],
+        ['"a"', 'Operator \"subject\" expects a Triple as input, received Literal'],
+        ['"a"^^xsd:string', 'Operator \"subject\" expects a Triple as input, received Literal'],
+        ['"a"@en', 'Operator \"subject\" expects a Triple as input, received Literal'],
+        ['"a"@en-US', 'Operator \"subject\" expects a Triple as input, received Literal'],
+      ],
+    });
+  });
 
-  // describe('evaluation of \'strstarts\' like', () => {
-  //   runTestTable({
-  //     arity: 2,
-  //     operation: 'strstarts',
-  //     notation: Notation.Function,
-  //     aliases: bool,
-  //     testTable: `
-  //      "ab" "a" = true
-  //      "ab" "c" = false
-  //      "ab"@en "a"@en = true
-  //      "ab"@en "c"@en = false
-  //     `,
-  //     errorTable: `
-  //      "ab"@en "a"@fr = 'Operation on incompatible language literals'
-  //     `,
-  //   });
-  // });
 
-  // describe('evaluation of \'strends\' like', () => {
-  //   runTestTable({
-  //     arity: 2,
-  //     operation: 'strends',
-  //     notation: Notation.Function,
-  //     aliases: bool,
-  //     testTable: `
-  //      "ab" "b" = true
-  //      "ab" "c" = false
-  //      "ab"@en "b"@en = true
-  //      "ab"@en "c"@en = false
-  //     `,
-  //     errorTable: `
-  //      "ab"@en "b"@fr = 'Operation on incompatible language literals'
-  //     `,
-  //   });
-  // });
+  describe('evaluation of \'predicate\'', () => {
+    const baseConfig: ITestTableConfigBase = {
+      arity: 1,
+      operation: 'predicate',
+      notation: Notation.Function,
+      aliases: numeric,
+    };
+    runTestTable({
+      ...baseConfig,
+      parserOptions: {
+        sparqlStar: true
+      },
+      config: {
+        type: 'sync',
+        config: {
+          sparqlStar: true
+        }
+      },
+      testTable: [
+        ['<< <http://example.com> a "a" >>', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'],
+        ['<< <http://example.com> <http://example.com> <http://example.com> >>', 'http://example.com'],
+        ['<< <http://example.com> a <http://example.com> >>', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'],
+        ['<< <http://example.com> a true >>', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'],
+        ['<< <http://example.com> a "a"^^xsd:string >>', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'],
+        ['<< <http://example.com> a "a"@en-US >>', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'],
+        ['<< <http://example.com> a "a" >>', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'],
+      ],
+      errorTable: [
+        ['<http://example.com>', 'Operator \"predicate\" expects a Triple as input, received NamedNode'],
+        ['<http://example.com/é>', 'Operator \"predicate\" expects a Triple as input, received NamedNode'],
+        ['1', 'Operator \"predicate\" expects a Triple as input, received Literal'],
+        ['1', 'Operator \"predicate\" expects a Triple as input, received Literal'],
+        ['true', 'Operator \"predicate\" expects a Triple as input, received Literal'],
+        ['false', 'Operator \"predicate\" expects a Triple as input, received Literal'],
+        ['"a"', 'Operator \"predicate\" expects a Triple as input, received Literal'],
+        ['"a"^^xsd:string', 'Operator \"predicate\" expects a Triple as input, received Literal'],
+        ['"a"@en', 'Operator \"predicate\" expects a Triple as input, received Literal'],
+        ['"a"@en-US', 'Operator \"predicate\" expects a Triple as input, received Literal'],
+      ],
+    });
+  });
 
-  // describe('evaluation of \'contains\' like', () => {
-  //   runTestTable({
-  //     arity: 2,
-  //     operation: 'contains',
-  //     notation: Notation.Function,
-  //     aliases: bool,
-  //     testTable: `
-  //      "aa" "a" = true
-  //      "aa" "b" = false
-  //      "aa"@en "a"@en = true
-  //      "aa"@en "b"@en = false
-  //      '"some string"' '"e s"' = true
-  //     `,
-  //     errorTable: `
-  //      "aa"@en "a"@fr = 'Operation on incompatible language literals'
-  //     `,
-  //   });
-  // });
-
-  // // TODO: Add errors for when non BCP47 strings are passed
-  // describe('evaluation of \'langMatches\' like', () => {
-  //   runTestTable({
-  //     arity: 2,
-  //     operation: 'langMatches',
-  //     notation: Notation.Function,
-  //     aliases: bool,
-  //     testTable: `
-  //      "de-DE" "de-*-DE" = true
-  //      "de-de" "de-*-DE" = true
-  //      "de-Latn-DE" "de-*-DE" = true
-  //      "de-Latf-DE" "de-*-DE" = true
-  //      "de-DE-x-goethe" "de-*-DE" = true
-  //      "de-Latn-DE-1996" "de-*-DE" = true
-  //      "de" "de-*-DE" = false
-  //      "de-X-De" "de-*-DE" = false
-  //      "de-Deva" "de-*-DE" = false
-  //      "de" "fr" = false
-  //     `,
-  //   });
-  // });
-
-  // describe('evaluations of \'strbefore\' like', () => {
-  //   // Inspired on the specs: https://www.w3.org/TR/sparql11-query/#func-strbefore
-  //   runTestTable({
-  //     arity: 2,
-  //     aliases: bool,
-  //     operation: 'STRBEFORE',
-  //     notation: Notation.Function,
-  //     testTable: `
-  //       "abc" "b" = "a"
-  //       "abc"@en "bc" = "a"@en
-  //       "abc"^^xsd:string "" = ""^^xsd:string
-  //       "abc" "xyz" = ""
-  //       "abc"@en "z"@en = ""
-  //       "abc" "z" = ""
-  //       "abc"@en ""@en = ""@en
-  //       "abc"@en "" = ""@en
-  //     `,
-  //     errorTable: `
-  //       "abc"@en "b"@cy = 'Operation on incompatible language literals'
-  //     `,
-  //   });
-  // });
-
-  // describe('evaluations of \'strafter\' like', () => {
-  //   // Inspired on the specs: https://www.w3.org/TR/sparql11-query/#func-strafter
-  //   runTestTable({
-  //     arity: 2,
-  //     aliases: bool,
-  //     operation: 'STRAFTER',
-  //     notation: Notation.Function,
-  //     testTable: `
-  //       "abc" "b" = "c"
-  //       "abc"@en "ab" = "c"@en
-  //       "abc"^^xsd:string "" = "abc"^^xsd:string
-  //       "abc" "xyz" = ""
-  //       "abc"@en "z"@en = ""
-  //       "abc" "z" = ""
-  //       "abc"@en ""@en = "abc"@en
-  //       "abc"@en "" = "abc"@en
-  //     `,
-  //     errorTable: `
-  //       "abc"@en "b"@cy = 'Operation on incompatible language literals'
-  //     `,
-  //   });
-  // });
-
-  // describe('evaluations of \'substr\' like', () => {
-  //   // Last test is dedicated to type promotion
-  //   runTestTable({
-  //     arity: 'vary',
-  //     operation: 'substr',
-  //     notation: Notation.Function,
-  //     config: {
-  //       type: 'sync',
-  //       config: {
-  //         getSuperType: unknownType => TypeURL.XSD_STRING,
-  //         enableExtendedXsdTypes: true,
-  //       },
-  //     },
-  //     testTable: `
-  //     "bar" 1 1 = "b"
-  //     "bar" 2 = "ar"
-  //     "👪" 2 = ""
-  //     "👨‍👩‍👧‍👦" 2 = "‍👩‍👧‍👦"
-  //     "👪" 1 1 = "👪"
-  //     "👨‍👩‍👧‍👦" 1 1 = "👨"
-  //     "bar"@en 1 1 = "b"@en
-  //     "bar"@en 2 = "ar"@en
-  //     "👪"@en 2 = ""@en
-  //     "👨‍👩‍👧‍👦"@en 2 = "‍👩‍👧‍👦"@en
-  //     "👪"@en 1 1 = "👪"@en
-  //     "👨‍👩‍👧‍👦"@en 1 1 = "👨"@en
-  //     "apple"@en 2 1 = "p"@en
-  //     '"type promotion"^^xsd:anyURI' 2 3 = "ype"
-  //     '"type promotion"^^xsd:anyURI' 6 5 = "promo"
-  //     '"type promotion"^^xsd:anyURI' 6 1 = "p"
-  //     '"custom type"^^example:string' 3 15 = '"stom type"'
-  //     `,
-  //   });
-  // });
-
-  // describe('evaluation of \'regex\' like', () => {
-  //   // TODO: Test better
-  //   runTestTable({
-  //     arity: 'vary',
-  //     operation: 'regex',
-  //     notation: Notation.Function,
-  //     aliases: bool,
-  //     testTable: `
-  //     "simple" "simple" = true
-  //     "aaaaaa" "a" = true
-  //     "simple" "blurgh" = false
-  //     "aaa" "a+" = true
-  //     "AAA" "a+" = false
-  //     "AAA" "a+" "i" = true
-  //     "a\\na" ".+" "s" = true
-  //     "a\\nb\\nc" "^b$" = false
-  //     "a\\nb\\nc" "^b$" "m" = true
-  //     `,
-  //   });
-  // });
-
-  // describe('evaluation of \'replace\' like', () => {
-  //   runTestTable({
-  //     arity: 'vary',
-  //     operation: 'replace',
-  //     notation: Notation.Function,
-  //     testTable: `
-  //     "baaab" "a+" "c" = "bcb"
-  //     "bAAAb" "a+" "c" = "bAAAb"
-  //     "bAAAb" "a+" "c" "i" = "bcb"
-  //     "baaab"@en "a+" "c" = "bcb"@en
-  //     "bAAAb"@en "a+" "c" "i" = "bcb"@en
-  //     `,
-  //   });
-  // });
+  describe('evaluation of \'object\'', () => {
+    const baseConfig: ITestTableConfigBase = {
+      arity: 1,
+      operation: 'object',
+      notation: Notation.Function,
+      aliases: numeric,
+    };
+    runTestTable({
+      ...baseConfig,
+      parserOptions: {
+        sparqlStar: true
+      },
+      config: {
+        type: 'sync',
+        config: {
+          sparqlStar: true
+        }
+      },
+      testTable: [
+        ['<< <http://example.com> a "a" >>', '"a"'],
+        ['<< <http://example.com> <http://example.com> <http://example.com> >>', 'http://example.com'],
+        ['<< <http://example.com> a <http://example.com> >>', 'http://example.com'],
+        ['<< <http://example.com> a true >>', '"true"^^http://www.w3.org/2001/XMLSchema#boolean'],
+        ['<< <http://example.com> a "a"^^xsd:string >>', '"a"^^xsd:string'],
+        ['<< <http://example.com> a "a"@en-US >>', '"a"@en-US'],
+        ['<< <http://example.com> a "a" >>', '"a"'],
+      ],
+      errorTable: [
+        ['<http://example.com>', 'Operator \"object\" expects a Triple as input, received NamedNode'],
+        ['<http://example.com/é>', 'Operator \"object\" expects a Triple as input, received NamedNode'],
+        ['1', 'Operator \"object\" expects a Triple as input, received Literal'],
+        ['1', 'Operator \"object\" expects a Triple as input, received Literal'],
+        ['true', 'Operator \"object\" expects a Triple as input, received Literal'],
+        ['false', 'Operator \"object\" expects a Triple as input, received Literal'],
+        ['"a"', 'Operator \"object\" expects a Triple as input, received Literal'],
+        ['"a"^^xsd:string', 'Operator \"object\" expects a Triple as input, received Literal'],
+        ['"a"@en', 'Operator \"object\" expects a Triple as input, received Literal'],
+        ['"a"@en-US', 'Operator \"object\" expects a Triple as input, received Literal'],
+      ],
+    });
+  });
 });

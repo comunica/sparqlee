@@ -22,18 +22,22 @@ export interface IGeneralEvaluationArg {
    * Default: Check / true
    */
   expectEquality?: boolean;
+  /**
+   * Options to pass to sparqlalgebrajs
+   */
+  parserOptions?: Parameters<typeof translate>[1];
 }
 
 export async function generalEvaluate(arg: IGeneralEvaluationArg):
 Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
   const bindings: RDF.Bindings = arg.bindings ? arg.bindings : BF.bindings();
   if (arg.generalEvaluationConfig?.type === 'async') {
-    const asyncResultLegacy = await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config);
+    const asyncResultLegacy = await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config, arg.parserOptions);
     if (!arg.generalEvaluationConfig.config.enableExtendedXsdTypes) {
       const asyncResultNewSystem = await evaluateAsync(arg.expression, bindings, {
         ...arg.generalEvaluationConfig.config,
         enableExtendedXsdTypes: true,
-      });
+      }, arg.parserOptions);
       expect(termToString(asyncResultLegacy)).toEqual(termToString(asyncResultNewSystem));
     }
     return { asyncResult: asyncResultLegacy };
@@ -44,17 +48,18 @@ Promise<{ asyncResult: RDF.Term; syncResult?: RDF.Term }> {
     arg.expression,
     bindings,
     convertedConfig,
+    arg.parserOptions
   );
-  const syncResult = evaluateSync(arg.expression, bindings, syncConfig);
+  const syncResult = evaluateSync(arg.expression, bindings, syncConfig, arg.parserOptions);
   if (!arg.generalEvaluationConfig || !arg.generalEvaluationConfig.config.enableExtendedXsdTypes) {
     expect(termToString(asyncResult)).toEqual(termToString(await evaluateAsync(arg.expression, bindings, {
       ...convertedConfig || {},
       enableExtendedXsdTypes: true,
-    })));
+    }, arg.parserOptions)));
     expect(termToString(syncResult)).toEqual(termToString(evaluateSync(arg.expression, bindings, {
       ...syncConfig || {},
       enableExtendedXsdTypes: true,
-    })));
+    }, arg.parserOptions)));
   }
   if (arg.expectEquality || arg.expectEquality === undefined) {
     expect(termToString(asyncResult)).toEqual(termToString(syncResult));
@@ -67,7 +72,7 @@ Promise<{ asyncError: unknown; syncError?: unknown } | undefined > {
   const bindings: RDF.Bindings = arg.bindings ? arg.bindings : BF.bindings();
   if (arg.generalEvaluationConfig?.type === 'async') {
     try {
-      await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config);
+      await evaluateAsync(arg.expression, bindings, arg.generalEvaluationConfig.config, arg.parserOptions);
       return undefined;
     } catch (error: unknown) {
       return { asyncError: error };
@@ -80,13 +85,14 @@ Promise<{ asyncError: unknown; syncError?: unknown } | undefined > {
       arg.expression,
       bindings,
       syncConfigToAsyncConfig(syncConfig),
+      arg.parserOptions
     );
     return undefined;
   } catch (error: unknown) {
     res.asyncError = error;
   }
   try {
-    evaluateSync(arg.expression, bindings, syncConfig);
+    evaluateSync(arg.expression, bindings, syncConfig, arg.parserOptions);
     return undefined;
   } catch (error: unknown) {
     res.syncError = error;
@@ -130,18 +136,18 @@ function syncCallbackWrapper(f: SyncExtensionFunctionCreator | undefined): Async
   };
 }
 
-function parse(query: string) {
-  const sparqlQuery = translate(query);
+function parse(...args: Parameters<typeof translate>) {
+  const sparqlQuery = translate(...args);
   // Extract filter expression from complete query
   return sparqlQuery.input.expression;
 }
 
-function evaluateAsync(expr: string, bindings: RDF.Bindings, config?: IAsyncEvaluatorContext): Promise<RDF.Term> {
-  const evaluator = new AsyncEvaluator(parse(expr), config);
+function evaluateAsync(expr: string, bindings: RDF.Bindings, config?: IAsyncEvaluatorContext, parserOptions?: Parameters<typeof translate>[1]): Promise<RDF.Term> {
+  const evaluator = new AsyncEvaluator(parse(expr, parserOptions), config);
   return evaluator.evaluate(bindings);
 }
 
-function evaluateSync(expr: string, bindings: RDF.Bindings, config?: ISyncEvaluatorContext): RDF.Term {
-  const evaluator = new SyncEvaluator(parse(expr), config);
+function evaluateSync(expr: string, bindings: RDF.Bindings, config?: ISyncEvaluatorContext, parserOptions?: Parameters<typeof translate>[1]): RDF.Term {
+  const evaluator = new SyncEvaluator(parse(expr, parserOptions), config);
   return evaluator.evaluate(bindings);
 }

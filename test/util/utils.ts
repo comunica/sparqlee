@@ -1,4 +1,5 @@
 import * as LRUCache from 'lru-cache';
+import { translate } from 'sparqlalgebrajs';
 import type { ICompleteSharedContext } from '../../lib/evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type { AliasMap } from './Aliases';
 import type { GeneralEvaluationConfig } from './generalEvaluation';
@@ -31,12 +32,16 @@ export type TestTableConfig = ITestTableConfigBase & {
   /**
    * TestTable that will check equality;
    */
-  testTable?: string;
+  testTable?: string | string[][];
   /**
    * TestTable that will check if a given error is thrown.
    * Result can be '' if the message doesn't need to be checked.
    */
-  errorTable?: string;
+  errorTable?: string | string[][];
+  /**
+   * Options to pass to sparqlalgebrajs
+   */
+  parserOptions?: Parameters<typeof translate>[1];
 };
 
 export function runTestTable(arg: TestTableConfig): void {

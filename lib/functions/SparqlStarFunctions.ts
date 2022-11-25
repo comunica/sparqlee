@@ -2,6 +2,8 @@ import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 
 import * as E from '../expressions';
+import { Term } from '../expressions';
+import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import type { IOverloadedDefinition } from './Core';
 import { bool, declare } from './Helpers';
@@ -38,7 +40,35 @@ const subject = {
   arity: 1,
   overloads: declare(C.SparqlStarOperator.SUBJECT)
     // TODO: See if any other 'on's are required
-    .onTriple1(() => term => term.subject)
+    // .onTriple1(() => term => {
+
+
+    //   console.log('on triple called with', term);
+    //   throw new Error('boo')
+    // })
+    .onTerm1((args) => (term) => {
+      const elem = term.toRDF();
+      if (elem.termType !== 'Quad') {
+        throw new Error(`Operator "subject" expects a Triple as input, received ${elem.termType}`);
+      }
+      const transformer = new TermTransformer(args.superTypeProvider, args.enableExtendedXsdTypes, args.sparqlStar);
+      return transformer.transformRDFTermUnsafe(elem.subject);
+    })
+    //   if (term.termType === 'triple') {
+    //     return term.s
+    //   }
+
+    //   // console.log('on term')
+    //   // const elem = term.toRDF();
+    //   // console.log('the elem is', elem)
+    //   // if (elem.termType === 'Quad') {
+        
+    //   //   return elem.subject as any
+    //   // }
+    //   // if (term.termType === 'triple') {
+    //     // return term.toRDF().
+    //   // }
+    // })
     .collect(),
 };
 
@@ -49,7 +79,15 @@ const predicate = {
   arity: 1,
   overloads: declare(C.SparqlStarOperator.PREDICATE)
     // TODO: See if any other 'on's are required
-    .onTriple1(() => term => term.predicate)
+    // .onTriple1(() => term => term.predicate)
+    .onTerm1((args) => (term) => {
+      const elem = term.toRDF();
+      if (elem.termType !== 'Quad') {
+        throw new Error(`Operator "predicate" expects a Triple as input, received ${elem.termType}`);
+      }
+      const transformer = new TermTransformer(args.superTypeProvider, args.enableExtendedXsdTypes, args.sparqlStar);
+      return transformer.transformRDFTermUnsafe(elem.predicate);
+    })
     .collect(),
 };
 
@@ -60,7 +98,15 @@ const object = {
   arity: 1,
   overloads: declare(C.SparqlStarOperator.OBJECT)
     // TODO: See if any other 'on's are required
-    .onTriple1(() => term => term.object)
+    // .onTriple1(() => term => term.object)
+    .onTerm1((args) => (term) => {
+      const elem = term.toRDF();
+      if (elem.termType !== 'Quad') {
+        throw new Error(`Operator "object" expects a Triple as input, received ${elem.termType}`);
+      }
+      const transformer = new TermTransformer(args.superTypeProvider, args.enableExtendedXsdTypes, args.sparqlStar);
+      return transformer.transformRDFTermUnsafe(elem.object);
+    })
     .collect(),
 };
 
@@ -78,7 +124,7 @@ const isTriple = {
 /**
  * Collect all the definitions from above into an object
  */
-export const definitions: Record<C.SparqlStarOperator, IOverloadedDefinition> = {
+export const sparqlStarDefinitions: Record<C.SparqlStarOperator, IOverloadedDefinition> = {
   // // --------------------------------------------------------------------------
   // // Operator Mapping
   // // https://www.w3.org/TR/sparql11-query/#OperatorMapping

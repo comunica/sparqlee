@@ -35,19 +35,19 @@ abstract class Table<RowType extends Row> {
   abstract test(): void;
 
   protected async testExpression(expr: string, result: string) {
-    const { config, additionalPrefixes } = this.def;
+    const { config, additionalPrefixes, parserOptions } = this.def;
     const aliases = this.def.aliases || {};
     result = aliases[result] || result;
     const evaluated = await generalEvaluate({
-      expression: template(expr, additionalPrefixes), expectEquality: true, generalEvaluationConfig: config,
+      expression: template(expr, additionalPrefixes), expectEquality: true, generalEvaluationConfig: config, parserOptions
     });
     expect(evaluated.asyncResult).toEqual(stringToTermPrefix(result, additionalPrefixes));
   }
 
   protected async testErrorExpression(expr: string, error: string) {
-    const { config, additionalPrefixes } = this.def;
+    const { config, additionalPrefixes, parserOptions } = this.def;
     const result = await generalErrorEvaluation({
-      expression: template(expr, additionalPrefixes), expectEquality: false, generalEvaluationConfig: config,
+      expression: template(expr, additionalPrefixes), expectEquality: false, generalEvaluationConfig: config, parserOptions
     });
     expect(result).not.toBeUndefined();
     expect(() => { throw result?.asyncError; }).toThrow(error);
@@ -104,6 +104,7 @@ export class UnaryTable extends Table<[string, string]> {
   public constructor(def: TestTableConfig) {
     super();
     this.def = def;
+    // @ts-expect-error
     this.parser = new UnaryTableParser(def.testTable, def.errorTable);
   }
 
@@ -147,6 +148,7 @@ export class BinaryTable extends Table<[string, string, string]> {
   public constructor(def: TestTableConfig) {
     super();
     this.def = def;
+    // @ts-expect-error
     this.parser = new BinaryTableParser(def.testTable, def.errorTable);
   }
 
@@ -187,13 +189,19 @@ abstract class TableParser<RowType extends Row> {
   public readonly table: RowType[];
   public readonly errorTable: RowType[];
 
-  public constructor(table?: string, errTable?: string) {
-    this.table = table ?
-      this.splitTable(table).map(row => this.parseRow(row)) :
-      [];
-    this.errorTable = (errTable) ?
-      this.splitTable(errTable).map(r => this.parseRow(r)) :
-      [];
+  public constructor(table?: string | RowType[], errTable?: string | RowType[]) {
+    this.table = this.toTable(table);
+    this.errorTable = this.toTable(errTable);
+  }
+
+  private toTable(table?: string | RowType[]): RowType[] {
+    if (typeof table === 'string')
+      return this.splitTable(table).map(row => this.parseRow(row));
+
+    if (Array.isArray(table))
+      return table;
+
+    return []
   }
 
   protected abstract parseRow(row: string): RowType;

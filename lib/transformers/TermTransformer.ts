@@ -55,7 +55,6 @@ export class TermTransformer implements ITermTransformer {
         if (this.sparqlStar) {
           return new E.Triple(term.term, this.superTypeProvider, this.enableExtendedXSDTypes, this.sparqlStar);
         }
-        throw new Err.InvalidTermType(term);
       default:
         throw new Err.InvalidTermType(term);
     }

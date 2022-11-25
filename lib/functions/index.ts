@@ -7,6 +7,7 @@ import {
 } from './Core';
 import { namedDefinitions } from './NamedFunctions';
 import { definitions } from './RegularFunctions';
+import { sparqlStarDefinitions } from './SparqlStarFunctions';
 import { specialDefinitions } from './SpecialFunctions';
 
 export * from './Core';
@@ -20,6 +21,11 @@ export const regularFunctions: RegularFunctionMap = <RegularFunctionMap> Object.
 export type SpecialFunctionAsyncMap = Record<C.SpecialOperator, SpecialFunction>;
 export const specialFunctions: SpecialFunctionAsyncMap = <SpecialFunctionAsyncMap>Object.fromEntries(
   Object.entries(specialDefinitions).map(([ key, val ]) => [ key, new SpecialFunction(<C.SpecialOperator>key, val) ]),
+);
+
+export const sparqlStarFunctions: RegularFunctionMap = <RegularFunctionMap> Object.fromEntries(
+  Object.entries(sparqlStarDefinitions).map(([ key, val ]) =>
+    [ key, new RegularFunction(<C.RegularOperator>key, val) ]),
 );
 
 export type NamedFunctionMap = Record<C.NamedOperator, NamedFunction>;
