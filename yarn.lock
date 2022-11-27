@@ -3835,6 +3835,12 @@ rdf-js@^4.0.2:
   dependencies:
     "@rdfjs/types" "*"
 
+rdf-string@../rdf-string.js/:
+  version "1.6.1"
+  dependencies:
+    "@rdfjs/types" "*"
+    rdf-data-factory "^1.1.0"
+
 rdf-string@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/rdf-string/-/rdf-string-1.6.0.tgz#571436284274b532af72329ff5168da876a4dc32"

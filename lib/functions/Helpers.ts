@@ -115,6 +115,10 @@ export class Builder {
     return this.set([ 'term' ], context => ([ term ]: [Term]) => op(context)(term));
   }
 
+  public onTerm3(op: (context: ICompleteSharedContext) => (t1: Term, t2: Term, t3: Term) => Term): Builder {
+    return this.set([ 'term', 'term', 'term' ], context => ([ t1, t2, t3 ]: [Term, Term, Term]) => op(context)(t1, t2, t3));
+  }
+
   public onTriple1(op: (context: ICompleteSharedContext) => (term: Term & Triple) => Term): Builder {
     return this.set([ 'triple' ], context => ([ term ]: [Term & Triple]) => op(context)(term));
   }

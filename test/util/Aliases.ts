@@ -30,6 +30,7 @@ export const defaultPrefixes: Record<string, string> = {
  */
 export function stringToTermPrefix(str: string, additionalPrefixes?: Record<string, string>): RDF.Term {
   const term = <RDF.Literal> stringToTerm(str);
+  console.log('string to term conversion', str, term)
   if (term.termType !== 'Literal') { return term; }
   if (!term.datatype) { return term; }
 

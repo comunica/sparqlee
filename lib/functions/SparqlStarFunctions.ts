@@ -15,17 +15,21 @@ const DF = new DataFactory<RDF.BaseQuad>();
 const triple = {
   arity: 3,
   overloads: declare(C.SparqlStarOperator.TRIPLE)
-    .onTernaryTyped<E.Term, E.Term, E.Term>(
-    [ 'term', 'term', 'term' ],
+    .onTerm3(
+    // [ 'term', 'term', 'term' ],
     // () => (s, p, o) => E.Term(DF.quad(s, p, o)),
     // TODO: See if we should be limiting to just quads rather than allowing BaseQuads
     // TODO: Avoid the unecessary RDF conversion here
-    context => (subject, predicate, object) => new E.Triple(
-      DF.quad(subject.toRDF(), predicate.toRDF(), object.toRDF()),
+    context => (...args) => {
+      console.log(context, ...args, typeof args[0], typeof args[1], typeof args[2])
+
+      return new E.Triple(
+      DF.quad(args[0].toRDF(), args[1].toRDF(), args[2].toRDF()),
       context.superTypeProvider,
       context.enableExtendedXsdTypes,
       context.sparqlStar,
-    ),
+    )
+  },
   )
     // .onNumeric1(() => term => bool(true))
     // .onTerm1(() => term => bool(term.termType === 'triple'))
