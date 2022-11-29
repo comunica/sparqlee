@@ -3,8 +3,8 @@ import * as LRUCache from 'lru-cache';
 import type { LangStringLiteral } from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import { TypeAlias, TypeURL } from './Consts';
-import type { ISuperTypeProvider, SuperTypeCallback, TypeCache } from './TypeHandling';
-import { isSubTypeOf } from './TypeHandling';
+import type { ISuperTypeProvider, SuperTypeCallback, TypeCache, GeneralSuperTypeDict } from './TypeHandling';
+import { getSuperTypeDict } from './TypeHandling';
 
 // Determine the relative numerical order of the two given terms.
 /**
@@ -54,18 +54,17 @@ function isLiteralLowerThan(litA: RDF.Literal, litB: RDF.Literal,
   const myLitB = termTransformer.transformLiteral(litB);
   const typeA = myLitA.dataType;
   const typeB = myLitB.dataType;
-  if (isSubTypeOf(typeA, TypeURL.XSD_BOOLEAN, openWorldType) &&
-        isSubTypeOf(typeB, TypeURL.XSD_BOOLEAN, openWorldType) ||
-      isSubTypeOf(typeA, TypeURL.XSD_DATE_TIME, openWorldType) &&
-        isSubTypeOf(typeB, TypeURL.XSD_DATE_TIME, openWorldType) ||
-      isSubTypeOf(typeA, TypeAlias.SPARQL_NUMERIC, openWorldType) &&
-        isSubTypeOf(typeB, TypeAlias.SPARQL_NUMERIC, openWorldType) ||
-      isSubTypeOf(typeA, TypeURL.XSD_STRING, openWorldType) &&
-        isSubTypeOf(typeB, TypeURL.XSD_STRING, openWorldType)) {
+
+  const superTypeDictA: GeneralSuperTypeDict = getSuperTypeDict(typeA, openWorldType);
+  const superTypeDictB: GeneralSuperTypeDict = getSuperTypeDict(typeB, openWorldType);
+
+  if (TypeURL.XSD_BOOLEAN in superTypeDictA && TypeURL.XSD_BOOLEAN in superTypeDictB ||
+      TypeURL.XSD_DATE_TIME in superTypeDictA && TypeURL.XSD_DATE_TIME in superTypeDictB ||
+      TypeAlias.SPARQL_NUMERIC in superTypeDictA && TypeAlias.SPARQL_NUMERIC in superTypeDictB ||
+      TypeURL.XSD_STRING in superTypeDictA && TypeURL.XSD_STRING in superTypeDictB) {
     return myLitA.typedValue < myLitB.typedValue;
   }
-  if (isSubTypeOf(typeA, TypeURL.RDF_LANG_STRING, openWorldType) &&
-      isSubTypeOf(typeB, TypeURL.RDF_LANG_STRING, openWorldType)) {
+  if (TypeURL.RDF_LANG_STRING in superTypeDictA && TypeURL.RDF_LANG_STRING in superTypeDictB) {
     return myLitA.typedValue < myLitB.typedValue ||
       (myLitA.typedValue === myLitB.typedValue &&
         (<LangStringLiteral>myLitA).language < (<LangStringLiteral>myLitB).language);

@@ -12,8 +12,6 @@ export type OverrideType = KnownLiteralTypes | 'term';
  * e.g. when saying something like string -> stringly -> anyUri -> term.
  * This would make substitution on types that promote to each other possible. We and the specs don't want that!
  * A DAG will be created based on this. Make sure it doesn't have any cycles!
- *
- * This needs to be in line with the @see mainSparqlType function.
  */
 export const extensionTableInput: Record<KnownLiteralTypes, OverrideType> = {
   // Datetime types
