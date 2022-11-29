@@ -21,7 +21,6 @@ describe('recursive evaluators', () => {
         cache: new LRUCache(),
         discoverer: _ => 'term',
       },
-      enableExtendedXsdTypes: false,
     });
 
     it('is able to evaluate operator', () => {
@@ -49,7 +48,6 @@ describe('recursive evaluators', () => {
           cache: new LRUCache(),
           discoverer: _ => 'term',
         },
-        enableExtendedXsdTypes: false,
         exists: _ => true,
       });
 
@@ -87,7 +85,6 @@ describe('recursive evaluators', () => {
           cache: new LRUCache(),
           discoverer: _ => 'term',
         },
-        enableExtendedXsdTypes: false,
         aggregate: _ => DF.literal('42'),
       });
 
@@ -122,7 +119,6 @@ describe('recursive evaluators', () => {
         cache: new LRUCache(),
         discoverer: _ => 'term',
       },
-      enableExtendedXsdTypes: false,
     });
 
     it('is able to evaluate operator', async() => {
@@ -150,7 +146,6 @@ describe('recursive evaluators', () => {
           cache: new LRUCache(),
           discoverer: _ => 'term',
         },
-        enableExtendedXsdTypes: false,
         exists: async _ => true,
       });
 
@@ -188,7 +183,6 @@ describe('recursive evaluators', () => {
           cache: new LRUCache(),
           discoverer: _ => 'term',
         },
-        enableExtendedXsdTypes: false,
         aggregate: async _ => DF.literal('42'),
       });
 

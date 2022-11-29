@@ -5,15 +5,12 @@
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
-import type { Literal, NumericLiteral } from '../expressions';
+import type { Literal } from '../expressions';
 import * as E from '../expressions';
-import { DecimalLiteral, DoubleLiteral, FloatLiteral, IntegerLiteral } from '../expressions';
-import type { MainNumericSparqlType } from '../util/Consts';
 import * as C from '../util/Consts';
-import { TypeAlias, TypeURL } from '../util/Consts';
+import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 import type { ExperimentalArgumentType } from './Core';
-import { LegacyTree } from './LegacyTree';
 import type { ImplementationFunction } from './OverloadTree';
 import { OverloadTree } from './OverloadTree';
 
@@ -27,37 +24,24 @@ export function declare(identifier: string): Builder {
 
 export class Builder {
   private readonly overloadTree: OverloadTree;
-  private readonly legacyTree: LegacyTree;
   private collected: boolean;
 
   public constructor(identifier: string) {
     this.overloadTree = new OverloadTree(identifier);
-    this.legacyTree = new LegacyTree();
     this.collected = false;
   }
 
-  public collect(): { experimentalTree: OverloadTree; tree: LegacyTree } {
+  public collect(): OverloadTree {
     if (this.collected) {
       // Only 1 time allowed because we can't copy a tree. (And we don't need this).
       throw new Error('Builders can only be collected once!');
     }
     this.collected = true;
-    return { experimentalTree: this.overloadTree, tree: this.legacyTree };
+    return this.overloadTree;
   }
 
   public set(argTypes: ExperimentalArgumentType[], func: ImplementationFunction): Builder {
     this.overloadTree.addOverload(argTypes, func);
-    this.legacyTree.addOverload(argTypes, func);
-    return this;
-  }
-
-  /**
-   * A legacy function should be set only after all other functions are set
-   * @param argTypes
-   * @param func
-   */
-  public setLegacy(argTypes: ExperimentalArgumentType[], func: ImplementationFunction): Builder {
-    this.legacyTree.addLegacyOverload(argTypes, func);
     return this;
   }
 
@@ -186,34 +170,6 @@ export class Builder {
       .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL ], 1);
   }
 
-  private static readonly legacyArithmeticPromotion: Record<MainNumericSparqlType,
-  Record<MainNumericSparqlType, (num: number) => NumericLiteral>> = {
-    integer: {
-      integer: num => new IntegerLiteral(num),
-      decimal: num => new DecimalLiteral(num),
-      float: num => new FloatLiteral(num),
-      double: num => new DoubleLiteral(num),
-    },
-    decimal: {
-      integer: num => new DecimalLiteral(num),
-      decimal: num => new DecimalLiteral(num),
-      float: num => new FloatLiteral(num),
-      double: num => new DoubleLiteral(num),
-    },
-    float: {
-      integer: num => new FloatLiteral(num),
-      decimal: num => new FloatLiteral(num),
-      float: num => new FloatLiteral(num),
-      double: num => new DoubleLiteral(num),
-    },
-    double: {
-      integer: num => new DoubleLiteral(num),
-      decimal: num => new DoubleLiteral(num),
-      float: num => new DoubleLiteral(num),
-      double: num => new DoubleLiteral(num),
-    },
-  };
-
   /**
    * !!! Be aware when using this function, it will create different overloads with different return types !!!
    * Arithmetic operators take 2 numeric arguments, and return a single numerical
@@ -235,12 +191,7 @@ export class Builder {
       .onBinary([ TypeURL.XSD_FLOAT, TypeURL.XSD_FLOAT ], context => (left, right) =>
         float(evalHelper(context)(left, right)))
       .onBinary([ TypeURL.XSD_DOUBLE, TypeURL.XSD_DOUBLE ], context => (left, right) =>
-        double(evalHelper(context)(left, right)))
-      .setLegacy([ TypeAlias.SPARQL_NUMERIC, TypeAlias.SPARQL_NUMERIC ], (context: ICompleteSharedContext) =>
-        ([ left, right ]: [NumericLiteral, NumericLiteral]) =>
-          Builder.legacyArithmeticPromotion[left.mainSparqlType][right.mainSparqlType](
-            op(context)(left.typedValue, right.typedValue),
-          ));
+        double(evalHelper(context)(left, right)));
   }
 
   public numberTest(test: (context: ICompleteSharedContext) => (left: number, right: number) => boolean): Builder {

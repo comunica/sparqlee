@@ -35,7 +35,6 @@ export class AsyncEvaluator {
       exists: context.exists,
       aggregate: context.aggregate,
       bnode: context.bnode,
-      enableExtendedXsdTypes: context.enableExtendedXsdTypes || false,
     };
   }
 

@@ -9,7 +9,8 @@ import type { SuperTypeCallback, TypeCache, ISuperTypeProvider } from '../../uti
 export interface ISharedContext {
   now?: Date;
   baseIRI?: string;
-  overloadCache?: OverLoadCache; // TODO: geef een creator mee die naargelang de diepte zijn size bepaald?
+  // TODO: geef een creator mee die naargelang de diepte zijn size bepaald?
+  overloadCache?: OverLoadCache;
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
   /**
@@ -26,7 +27,6 @@ export interface ICompleteSharedContext {
   baseIRI?: string;
   overloadCache: OverLoadCache;
   superTypeProvider: ISuperTypeProvider;
-  enableExtendedXsdTypes: boolean;
 }
 
 export class BaseExpressionEvaluator {

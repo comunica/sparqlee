@@ -35,17 +35,17 @@ function isTermLowerThan(termA: RDF.Term, termB: RDF.Term,
     return _TERM_ORDERING_PRIORITY[termA.termType] < _TERM_ORDERING_PRIORITY[termB.termType];
   }
   return termA.termType === 'Literal' ?
-    isLiteralLowerThan(termA, <RDF.Literal>termB, typeDiscoveryCallback, typeCache, enableExtendedXSDTypes) :
+    isLiteralLowerThan(termA, <RDF.Literal>termB, typeDiscoveryCallback, typeCache) :
     termA.value < termB.value;
 }
 
 function isLiteralLowerThan(litA: RDF.Literal, litB: RDF.Literal,
-  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean): boolean {
+  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache): boolean {
   const openWorldType: ISuperTypeProvider = {
     discoverer: typeDiscoveryCallback || (() => 'term'),
     cache: typeCache || new LRUCache(),
   };
-  const termTransformer = new TermTransformer(openWorldType, enableExtendedXSDTypes || false);
+  const termTransformer = new TermTransformer(openWorldType);
   const myLitA = termTransformer.transformLiteral(litA);
   const myLitB = termTransformer.transformLiteral(litB);
   const typeA = _SPARQL_TYPE_NORMALIZATION[myLitA.mainSparqlType];

@@ -27,7 +27,7 @@ describe('The function helper file', () => {
     it('defines a function onUnaryTyped', () => {
       const func = fn();
       const args = [ bool(true) ];
-      builder.onUnaryTyped(TypeURL.XSD_BOOLEAN, () => func).collect().experimentalTree
+      builder.onUnaryTyped(TypeURL.XSD_BOOLEAN, () => func).collect()
         .search(args, sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)(args);
       expect(func).toBeCalledTimes(1);
     });
@@ -35,7 +35,7 @@ describe('The function helper file', () => {
     it('defines a function onBoolean1', () => {
       const func = fn();
       const args = [ bool(true) ];
-      builder.onBoolean1(() => func).collect().experimentalTree
+      builder.onBoolean1(() => func).collect()
         .search(args, sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)(args);
       expect(func).toBeCalledTimes(1);
     });

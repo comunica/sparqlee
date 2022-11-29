@@ -4,7 +4,6 @@ import type * as E from '../expressions';
 import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
 import type { ISuperTypeProvider } from '../util/TypeHandling';
-import type { LegacyTree } from './LegacyTree';
 import type { ImplementationFunction, OverloadTree, OverLoadCache } from './OverloadTree';
 
 export interface IEvalSharedContext extends ICompleteSharedContext{
@@ -30,12 +29,12 @@ export type ArgumentType = 'term' | E.TermType | C.MainSparqlType;
 
 export interface IOverloadedDefinition {
   arity: number | number[];
-  overloads: { experimentalTree: OverloadTree; tree: LegacyTree };
+  overloads: OverloadTree;
 }
 
 export abstract class BaseFunction<Operator> {
   public arity: number | number[];
-  private readonly overloads: { experimentalTree: OverloadTree; tree: LegacyTree };
+  private readonly overloads: OverloadTree;
 
   protected constructor(public operator: Operator, definition: IOverloadedDefinition) {
     this.arity = definition.arity;
@@ -50,7 +49,7 @@ export abstract class BaseFunction<Operator> {
   public apply = (args: E.TermExpression[], context: ICompleteSharedContext):
   E.TermExpression => {
     const concreteFunction =
-      this.monomorph(args, context.superTypeProvider, context.overloadCache, context.enableExtendedXsdTypes) ||
+      this.monomorph(args, context.superTypeProvider, context.overloadCache) ||
       this.handleInvalidTypes(args);
     return concreteFunction(context)(args);
   };
@@ -69,10 +68,8 @@ export abstract class BaseFunction<Operator> {
    * terms.
    */
   private monomorph(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
-    overloadCache: OverLoadCache, experimental: boolean): ImplementationFunction | undefined {
-    return experimental ?
-      this.overloads.experimentalTree.search(args, superTypeProvider, overloadCache) :
-      this.overloads.tree.search(args);
+    overloadCache: OverLoadCache): ImplementationFunction | undefined {
+    return this.overloads.search(args, superTypeProvider, overloadCache);
   }
 }
 
