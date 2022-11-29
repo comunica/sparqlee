@@ -19,7 +19,8 @@ const BF = new BindingsFactory();
 function integerTerm(int: number): RDF.Term {
   return DF.literal(int.toString(), DF.namedNode(TypeURL.XSD_INTEGER));
 }
-const cache = new Benchmark('bench addition with overloadCache', () => {
+
+const cache = new Benchmark('bench addition', () => {
   const query = translate(template('?a + ?b = ?c'));
   const evaluator = new SyncEvaluator(query.input.expression);
   const max = 100;
@@ -34,29 +35,9 @@ const cache = new Benchmark('bench addition with overloadCache', () => {
   }
 });
 
-const nonExperimental = new Benchmark('bench addition non experimental', () => {
-  const query = translate(template('?a + ?b = ?c'));
-  const evaluator = new SyncEvaluator(query.input.expression, {
-    enableExtendedXsdTypes: false,
-  });
-  const max = 100;
-  for (let fst = 0; fst < max; fst++) {
-    for (let snd = 0; snd < max; snd++) {
-      evaluator.evaluate(BF.bindings([
-        [ DF.variable('a'), integerTerm(fst) ],
-        [ DF.variable('b'), integerTerm(snd) ],
-        [ DF.variable('c'), integerTerm(fst + snd) ],
-      ]));
-    }
-  }
-});
-
 benchSuite.push(cache);
-benchSuite.push(nonExperimental);
 benchSuite.on('cycle', (event: Event) => {
   console.log(String(event.target));
 }).on('complete', () => {
-  console.log(`Mean execution time with cache ${cache.stats.mean}`);
-  console.log(`Mean execution time with nonExperimental ${nonExperimental.stats.mean}`);
-  console.log(`Fastest is ${benchSuite.filter('fastest').map('name')}`);
+  console.log(`Mean execution time ${cache.stats.mean}`);
 }).run({ async: true });

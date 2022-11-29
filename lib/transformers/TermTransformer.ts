@@ -51,14 +51,10 @@ export class TermTransformer implements ITermTransformer {
     }
   }
 
-  public transformLiteral(lit: RDF.Literal): E.Literal<any> {
-    return this.experimentalTransformLiteral(lit);
-  }
-
   /**
    * @param lit the rdf literal we want to transform to an internal Literal expression.
    */
-  private experimentalTransformLiteral(lit: RDF.Literal): E.Literal<any> {
+  public transformLiteral(lit: RDF.Literal): E.Literal<any> {
     // Both here and within the switch we transform to LangStringLiteral or StringLiteral.
     // We do this when we detect a simple literal being used.
     // Original issue regarding this behaviour: https://github.com/w3c/sparql-12/issues/112

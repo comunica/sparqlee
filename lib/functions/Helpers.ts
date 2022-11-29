@@ -10,7 +10,7 @@ import * as E from '../expressions';
 import * as C from '../util/Consts';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
-import type { ExperimentalArgumentType } from './Core';
+import type { ArgumentType } from './Core';
 import type { ImplementationFunction } from './OverloadTree';
 import { OverloadTree } from './OverloadTree';
 
@@ -40,12 +40,12 @@ export class Builder {
     return this.overloadTree;
   }
 
-  public set(argTypes: ExperimentalArgumentType[], func: ImplementationFunction): Builder {
+  public set(argTypes: ArgumentType[], func: ImplementationFunction): Builder {
     this.overloadTree.addOverload(argTypes, func);
     return this;
   }
 
-  public copy({ from, to }: { from: ExperimentalArgumentType[]; to: ExperimentalArgumentType[] }): Builder {
+  public copy({ from, to }: { from: ArgumentType[]; to: ArgumentType[] }): Builder {
     const impl = this.overloadTree.getImplementationExact(from);
     if (!impl) {
       throw new Err.UnexpectedError(
@@ -56,39 +56,39 @@ export class Builder {
     return this.set(to, impl);
   }
 
-  public onUnary<T extends Term>(type: ExperimentalArgumentType, op: (context: ICompleteSharedContext) =>
+  public onUnary<T extends Term>(type: ArgumentType, op: (context: ICompleteSharedContext) =>
   (val: T) => Term): Builder {
     return this.set([ type ], context => ([ val ]: [T]) => op(context)(val));
   }
 
-  public onUnaryTyped<T>(type: ExperimentalArgumentType,
+  public onUnaryTyped<T>(type: ArgumentType,
     op: (context: ICompleteSharedContext) => (val: T) => Term): Builder {
     return this.set([ type ], context => ([ val ]: [E.Literal<T>]) => op(context)(val.typedValue));
   }
 
-  public onBinary<L extends Term, R extends Term>(types: ExperimentalArgumentType[],
+  public onBinary<L extends Term, R extends Term>(types: ArgumentType[],
     op: (context: ICompleteSharedContext) => (left: L, right: R) => Term): Builder {
     return this.set(types, context => ([ left, right ]: [L, R]) => op(context)(left, right));
   }
 
-  public onBinaryTyped<L, R>(types: ExperimentalArgumentType[],
+  public onBinaryTyped<L, R>(types: ArgumentType[],
     op: (context: ICompleteSharedContext) => (left: L, right: R) => Term): Builder {
     return this.set(types, context =>
       ([ left, right ]: [E.Literal<L>, E.Literal<R>]) => op(context)(left.typedValue, right.typedValue));
   }
 
-  public onTernaryTyped<A1, A2, A3>(types: ExperimentalArgumentType[],
+  public onTernaryTyped<A1, A2, A3>(types: ArgumentType[],
     op: (context: ICompleteSharedContext) => (a1: A1, a2: A2, a3: A3) => Term): Builder {
     return this.set(types, context => ([ a1, a2, a3 ]: [E.Literal<A1>, E.Literal<A2>, E.Literal<A3>]) =>
       op(context)(a1.typedValue, a2.typedValue, a3.typedValue));
   }
 
-  public onTernary<A1 extends Term, A2 extends Term, A3 extends Term>(types: ExperimentalArgumentType[],
+  public onTernary<A1 extends Term, A2 extends Term, A3 extends Term>(types: ArgumentType[],
     op: (context: ICompleteSharedContext) => (a1: A1, a2: A2, a3: A3) => Term): Builder {
     return this.set(types, context => ([ a1, a2, a3 ]: [A1, A2, A3]) => op(context)(a1, a2, a3));
   }
 
-  public onQuaternaryTyped<A1, A2, A3, A4>(types: ExperimentalArgumentType[],
+  public onQuaternaryTyped<A1, A2, A3, A4>(types: ArgumentType[],
     op: (context: ICompleteSharedContext) => (a1: A1, a2: A2, a3: A3, a4: A4) => Term): Builder {
     return this.set(types, context =>
       ([ a1, a2, a3, a4 ]: [E.Literal<A1>, E.Literal<A2>, E.Literal<A3>, E.Literal<A4>]) =>
@@ -247,7 +247,7 @@ export class Builder {
       .invalidLexicalForm([ C.TypeAlias.SPARQL_NON_LEXICAL, C.TypeAlias.SPARQL_NUMERIC ], 1);
   }
 
-  public invalidLexicalForm(types: ExperimentalArgumentType[], index: number): Builder {
+  public invalidLexicalForm(types: ArgumentType[], index: number): Builder {
     return this.set(types, () => (args: Term[]): E.TermExpression => {
       throw new Err.InvalidLexicalForm(args[index - 1].toRDF());
     });

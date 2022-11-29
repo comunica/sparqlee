@@ -11,7 +11,7 @@ import {
   getSuperTypes,
   superTypeDictTable,
 } from '../util/TypeHandling';
-import type { ExperimentalArgumentType } from './Core';
+import type { ArgumentType } from './Core';
 import { double, float, string } from './Helpers';
 
 export type SearchStack = OverloadTree[];
@@ -41,7 +41,7 @@ export class OverloadTree {
     this.promotionCount = undefined;
   }
 
-  private getSubtree(overrideType: ExperimentalArgumentType): OverloadTree | undefined {
+  private getSubtree(overrideType: ArgumentType): OverloadTree | undefined {
     const generalType = asGeneralType(overrideType);
     if (generalType) {
       return this.generalOverloads[generalType];
@@ -57,7 +57,7 @@ export class OverloadTree {
   /**
    * Get the implementation for the types that exactly match @param args .
    */
-  public getImplementationExact(args: ExperimentalArgumentType[]): ImplementationFunction | undefined {
+  public getImplementationExact(args: ArgumentType[]): ImplementationFunction | undefined {
     // eslint-disable-next-line @typescript-eslint/no-this-alias,consistent-this
     let node: OverloadTree | undefined = this;
     for (const expression of args) {
@@ -138,68 +138,68 @@ export class OverloadTree {
 
   /**
    * Adds an overload to the tree structure considering this as the tree's root.
-   * @param ExperimentalArgumentTypes a list of ExperimentalArgumentTypes that would need to be provided in
+   * @param argumentTypes a list of argumentTypes that would need to be provided in
    * the same order to get the implementation.
    * @param func the implementation for this overload.
    */
-  public addOverload(ExperimentalArgumentTypes: ExperimentalArgumentType[], func: ImplementationFunction): void {
-    this._addOverload([ ...ExperimentalArgumentTypes ], func, 0);
+  public addOverload(argumentTypes: ArgumentType[], func: ImplementationFunction): void {
+    this._addOverload([ ...argumentTypes ], func, 0);
   }
 
-  private _addOverload(ExperimentalArgumentTypes: ExperimentalArgumentType[],
+  private _addOverload(argumentTypes: ArgumentType[],
     func: ImplementationFunction, promotionCount: number): void {
-    const [ experimentalArgumentType, ..._experimentalArgumentTypes ] = ExperimentalArgumentTypes;
-    if (!experimentalArgumentType) {
+    const [ argumentType, ..._argumentTypes ] = argumentTypes;
+    if (!argumentType) {
       if (this.promotionCount === undefined || promotionCount <= this.promotionCount) {
         this.promotionCount = promotionCount;
         this.implementation = func;
       }
       return;
     }
-    let nextTree = this.getSubtree(experimentalArgumentType);
+    let nextTree = this.getSubtree(argumentType);
     if (!nextTree) {
       const newNode = new OverloadTree(this.identifier, this.depth + 1);
-      const generalType = asGeneralType(experimentalArgumentType);
+      const generalType = asGeneralType(argumentType);
       if (generalType) {
         this.generalOverloads[generalType] = newNode;
       }
-      const overrideType = asOverrideType(experimentalArgumentType);
+      const overrideType = asOverrideType(argumentType);
       if (overrideType) {
         this.literalOverLoads.push([ overrideType, newNode ]);
       }
       nextTree = newNode;
     }
-    nextTree._addOverload(_experimentalArgumentTypes, func, promotionCount);
+    nextTree._addOverload(_argumentTypes, func, promotionCount);
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
     // e.g. When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
     // TODO: When promoting decimal type a cast needs to be preformed.
-    if (experimentalArgumentType === TypeURL.XSD_STRING) {
+    if (argumentType === TypeURL.XSD_STRING) {
       this.addPromotedOverload(TypeURL.XSD_ANY_URI, func, arg =>
-        string(arg.str()), _experimentalArgumentTypes, promotionCount);
+        string(arg.str()), _argumentTypes, promotionCount);
     }
     // TODO: in case of decimal a round needs to happen.
-    if (experimentalArgumentType === TypeURL.XSD_DOUBLE) {
+    if (argumentType === TypeURL.XSD_DOUBLE) {
       this.addPromotedOverload(TypeURL.XSD_FLOAT, func, arg =>
-        double((<E.NumericLiteral>arg).typedValue), _experimentalArgumentTypes, promotionCount);
+        double((<E.NumericLiteral>arg).typedValue), _argumentTypes, promotionCount);
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        double((<E.NumericLiteral>arg).typedValue), _experimentalArgumentTypes, promotionCount);
+        double((<E.NumericLiteral>arg).typedValue), _argumentTypes, promotionCount);
     }
-    if (experimentalArgumentType === TypeURL.XSD_FLOAT) {
+    if (argumentType === TypeURL.XSD_FLOAT) {
       this.addPromotedOverload(TypeURL.XSD_DECIMAL, func, arg =>
-        float((<E.NumericLiteral>arg).typedValue), _experimentalArgumentTypes, promotionCount);
+        float((<E.NumericLiteral>arg).typedValue), _argumentTypes, promotionCount);
     }
   }
 
   private addPromotedOverload(typeToPromote: OverrideType, func: ImplementationFunction,
     conversionFunction: (arg: E.TermExpression) => E.TermExpression,
-    ExperimentalArgumentTypes: ExperimentalArgumentType[], promotionCount: number): void {
+    argumentTypes: ArgumentType[], promotionCount: number): void {
     let nextTree = this.getSubtree(typeToPromote);
     if (!nextTree) {
       const newNode = new OverloadTree(this.identifier, this.depth + 1);
       this.literalOverLoads.push([ typeToPromote, newNode ]);
       nextTree = newNode;
     }
-    nextTree._addOverload(ExperimentalArgumentTypes, funcConf => args => func(funcConf)([
+    nextTree._addOverload(argumentTypes, funcConf => args => func(funcConf)([
       ...args.slice(0, this.depth),
       conversionFunction(args[this.depth]),
       ...args.slice(this.depth + 1, args.length),

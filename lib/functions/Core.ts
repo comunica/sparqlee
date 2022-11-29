@@ -24,8 +24,7 @@ export type EvalContextSync = IEvalContext<E.TermExpression, RDF.BlankNode>;
 
 // Function and operator arguments are 'flattened' in the SPARQL spec.
 // If the argument is a literal, the datatype often also matters.
-export type ExperimentalArgumentType = 'term' | E.TermType | C.TypeURL | C.TypeAlias;
-export type ArgumentType = 'term' | E.TermType | C.MainSparqlType;
+export type ArgumentType = 'term' | E.TermType | C.TypeURL | C.TypeAlias;
 
 export interface IOverloadedDefinition {
   arity: number | number[];
