@@ -1,15 +1,15 @@
-import * as LRUCache from 'lru-cache';
 import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import type * as E from '../expressions';
 import { isLiteralTermExpression } from '../expressions';
 import type { KnownLiteralTypes } from '../util/Consts';
 import { TypeURL } from '../util/Consts';
-import type { ISuperTypeProvider, OverrideType,
-  GeneralSuperTypeDict } from '../util/TypeHandling';
+import type { GeneralSuperTypeDict, ISuperTypeProvider, OverrideType } from '../util/TypeHandling';
 import {
-  superTypeDictTable,
+  asGeneralType,
+  asKnownLiteralType,
+  asOverrideType,
   getSuperTypes,
-  asKnownLiteralType, asOverrideType, asGeneralType,
+  superTypeDictTable,
 } from '../util/TypeHandling';
 import type { ExperimentalArgumentType } from './Core';
 import { double, float, string } from './Helpers';
@@ -19,7 +19,7 @@ export type ImplementationFunction = (sharedContext: ICompleteSharedContext) => 
 interface IOverLoadCacheObj {
   func?: ImplementationFunction; cache?: OverLoadCache;
 }
-export type OverLoadCache = LRUCache<string, IOverLoadCacheObj>;
+export type OverLoadCache = Record<string, IOverLoadCacheObj>;
 /**
  * Maps argument types on their specific implementation in a tree like structure.
  * When adding any functionality to this class, make sure you add it to SpecialFunctions as well.
@@ -77,12 +77,12 @@ export class OverloadTree {
    */
   public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider, overloadCache: OverLoadCache):
   ImplementationFunction | undefined {
-    let cacheIter = overloadCache.get(this.identifier);
+    let cacheIter = overloadCache[this.identifier];
     let searchIndex = 0;
     while (searchIndex < args.length && cacheIter?.cache) {
       const term = args[searchIndex];
       const literalExpression = isLiteralTermExpression(term);
-      cacheIter = cacheIter.cache.get(literalExpression ? literalExpression.dataType : term.termType);
+      cacheIter = cacheIter.cache[literalExpression ? literalExpression.dataType : term.termType];
       searchIndex++;
     }
     if (searchIndex === args.length && cacheIter) {
@@ -121,16 +121,16 @@ export class OverloadTree {
   private addToCache(overloadCache: OverLoadCache, args: E.TermExpression[],
     func?: ImplementationFunction | undefined): void {
     function getDefault(lruCache: OverLoadCache, key: string): IOverLoadCacheObj {
-      if (!lruCache.has(key)) {
-        lruCache.set(key, { });
+      if (!(key in lruCache)) {
+        lruCache[key] = { };
       }
-      return lruCache.get(key)!;
+      return lruCache[key]!;
     }
     let cache = getDefault(overloadCache, this.identifier);
     for (const term of args) {
       const literalExpression = isLiteralTermExpression(term);
       const key = literalExpression ? literalExpression.dataType : term.termType;
-      cache.cache = new LRUCache();
+      cache.cache = {};
       cache = getDefault(cache.cache, key);
     }
     cache.func = func;

@@ -1,4 +1,5 @@
 import type * as RDF from '@rdfjs/types';
+import type * as LRUCache from 'lru-cache';
 import type * as E from '../../expressions';
 import { expressionToVar } from '../../functions/Helpers';
 import type { OverLoadCache } from '../../functions/OverloadTree';
@@ -9,15 +10,14 @@ import type { SuperTypeCallback, TypeCache, ISuperTypeProvider } from '../../uti
 export interface ISharedContext {
   now?: Date;
   baseIRI?: string;
-  // TODO: geef een creator mee die naargelang de diepte zijn size bepaald?
-  overloadCache?: OverLoadCache;
+  /**
+   * @deprecated Deprecated since version ... provided value will be ignored.
+   */
+  overloadCache?: LRUCache<string, any>;
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
   /**
-   * This feature is opt in. It activates the use of a new 'experimental' type system.
-   * This system is needed when using typeCache, overloadCache or getSuperType.
-   * The system is more powerful and reliable. In most cases however the old system works perfectly.
-   * Using this experimental system makes sparqlee a bit slower but more reliable using type promotion for example.
+   * @deprecated Deprecated since version ... . The type 'experimental' system is always used.
    */
   enableExtendedXsdTypes?: boolean;
 }

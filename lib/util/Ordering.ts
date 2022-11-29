@@ -35,12 +35,12 @@ function isTermLowerThan(termA: RDF.Term, termB: RDF.Term,
     return _TERM_ORDERING_PRIORITY[termA.termType] < _TERM_ORDERING_PRIORITY[termB.termType];
   }
   return termA.termType === 'Literal' ?
-    isLiteralLowerThan(termA, <RDF.Literal>termB, typeDiscoveryCallback, typeCache) :
+    isLiteralLowerThan(termA, <RDF.Literal>termB, typeDiscoveryCallback, typeCache, enableExtendedXSDTypes) :
     termA.value < termB.value;
 }
 
 function isLiteralLowerThan(litA: RDF.Literal, litB: RDF.Literal,
-  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache): boolean {
+  typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean): boolean {
   const openWorldType: ISuperTypeProvider = {
     discoverer: typeDiscoveryCallback || (() => 'term'),
     cache: typeCache || new LRUCache(),

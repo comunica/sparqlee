@@ -1,4 +1,3 @@
-import * as LRUCache from 'lru-cache';
 import type { ICompleteSharedContext } from '../../../lib/evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import { IntegerLiteral, isLiteralTermExpression, Literal, StringLiteral } from '../../../lib/expressions';
 import { OverloadTree, regularFunctions } from '../../../lib/functions';
@@ -9,9 +8,10 @@ import { getDefaultSharedContext } from '../../util/utils';
 
 describe('OverloadTree', () => {
   let emptyTree: OverloadTree;
+  const emptyID = 'Non cacheable';
   let sharedContext: ICompleteSharedContext;
   beforeEach(() => {
-    emptyTree = new OverloadTree('Non cacheable');
+    emptyTree = new OverloadTree(emptyID);
     sharedContext = { ...getDefaultSharedContext() };
   });
 
@@ -91,25 +91,26 @@ describe('OverloadTree', () => {
   it('will cache addition function', () => {
     const one = new IntegerLiteral(1);
     const two = new IntegerLiteral(2);
-    const spy = jest.spyOn(sharedContext.overloadCache, 'get');
+    expect(sharedContext.overloadCache['+']).toBeUndefined();
     const res = regularFunctions['+'].apply([ one, two ], sharedContext);
     expect(res.str()).toEqual('3');
     // One time lookup + one time add
-    expect(spy).toBeCalledTimes(2);
+    expect(sharedContext.overloadCache['+']).not.toBeUndefined();
     regularFunctions['+'].apply([ two, one ], sharedContext);
-    // Now just lookup
-    expect(spy).toBeCalledTimes(3);
-    regularFunctions['+'].apply([ two, one ], sharedContext);
-    expect(spy).toBeCalledTimes(4);
+
+    const innerSpy = jest.fn();
+    const spy = jest.fn(() => innerSpy);
+    sharedContext.overloadCache['+']!.cache![TypeURL.XSD_INTEGER].cache![TypeURL.XSD_INTEGER]!.func = spy;
+    regularFunctions['+'].apply([ one, two ], sharedContext);
+    expect(spy).toHaveBeenCalled();
+    expect(innerSpy).toHaveBeenCalled();
   });
 
   it('will cache an undefined function', () => {
-    const cache: OverLoadCache = new LRUCache();
-    const spy = jest.spyOn(cache, 'get');
+    const cache: OverLoadCache = {};
     const args = [ new StringLiteral('some str') ];
     emptyTree.search(args, sharedContext.superTypeProvider, cache);
-    expect(spy).toBeCalledTimes(2);
-    emptyTree.search(args, sharedContext.superTypeProvider, cache);
-    expect(spy).toBeCalledTimes(3);
+    expect(cache[emptyID]).not.toBeUndefined();
+    expect(cache[emptyID].cache![TypeURL.XSD_STRING]!.func).toBeUndefined();
   });
 });
