@@ -8,7 +8,7 @@ import { getSuperTypeDict } from './TypeHandling';
 
 // Determine the relative numerical order of the two given terms.
 /**
- * @param enableExtendedXSDTypes deprecated since version ... . System will behave like when this was true.
+ * @param enableExtendedXSDTypes System will behave like when this was true. @deprecated
  */
 export function orderTypes(termA: RDF.Term | undefined, termB: RDF.Term | undefined, isAscending: boolean,
   typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache, enableExtendedXSDTypes?: boolean): -1 | 0 | 1 {

@@ -20,7 +20,7 @@ function integerTerm(int: number): RDF.Term {
   return DF.literal(int.toString(), DF.namedNode(TypeURL.XSD_INTEGER));
 }
 
-const cache = new Benchmark('bench addition', () => {
+const benchmark = new Benchmark('bench addition', () => {
   const query = translate(template('?a + ?b = ?c'));
   const evaluator = new SyncEvaluator(query.input.expression);
   const max = 100;
@@ -35,9 +35,9 @@ const cache = new Benchmark('bench addition', () => {
   }
 });
 
-benchSuite.push(cache);
+benchSuite.push(benchmark);
 benchSuite.on('cycle', (event: Event) => {
   console.log(String(event.target));
 }).on('complete', () => {
-  console.log(`Mean execution time ${cache.stats.mean}`);
+  console.log(`Mean execution time ${benchmark.stats.mean}`);
 }).run({ async: true });

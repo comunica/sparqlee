@@ -11,13 +11,13 @@ export interface ISharedContext {
   now?: Date;
   baseIRI?: string;
   /**
-   * @deprecated Deprecated since version ... provided value will be ignored.
+   * @deprecated This value is unused, will be removed in the next major version.
    */
   overloadCache?: LRUCache<string, any>;
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
   /**
-   * @deprecated Deprecated since version ... . The type 'experimental' system is always used.
+   * @deprecated This value is unused (extended XSD types is always enabled), will be removed in the next major version.
    */
   enableExtendedXsdTypes?: boolean;
 }
