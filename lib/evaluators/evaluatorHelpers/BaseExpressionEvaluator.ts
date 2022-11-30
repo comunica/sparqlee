@@ -1,11 +1,10 @@
 import type * as RDF from '@rdfjs/types';
-import type * as LRUCache from 'lru-cache';
 import type * as E from '../../expressions';
 import { expressionToVar } from '../../functions/Helpers';
 import type { OverLoadCache } from '../../functions/OverloadTree';
 import type { ITermTransformer } from '../../transformers/TermTransformer';
 import * as Err from '../../util/Errors';
-import type { SuperTypeCallback, TypeCache, ISuperTypeProvider } from '../../util/TypeHandling';
+import type { ISuperTypeProvider, SuperTypeCallback, TypeCache } from '../../util/TypeHandling';
 
 export interface ISharedContext {
   now?: Date;
@@ -13,7 +12,7 @@ export interface ISharedContext {
   /**
    * @deprecated This value is unused, will be removed in the next major version.
    */
-  overloadCache?: LRUCache<string, any>;
+  overloadCache?: any;
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
   /**
