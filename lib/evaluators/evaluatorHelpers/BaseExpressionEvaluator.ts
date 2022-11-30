@@ -1,4 +1,5 @@
 import type * as RDF from '@rdfjs/types';
+import type * as LRUCache from 'lru-cache';
 import type * as E from '../../expressions';
 import { expressionToVar } from '../../functions/Helpers';
 import type { OverLoadCache } from '../../functions/OverloadTree';
@@ -12,7 +13,7 @@ export interface ISharedContext {
   /**
    * @deprecated This value is unused, will be removed in the next major version.
    */
-  overloadCache?: any;
+  overloadCache?: LRUCache<string, any>;
   typeCache?: TypeCache;
   getSuperType?: SuperTypeCallback;
   /**
