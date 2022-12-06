@@ -26,7 +26,7 @@ export class SyncEvaluator {
     return {
       now: context.now || new Date(Date.now()),
       baseIRI: context.baseIRI || undefined,
-      overloadCache: {},
+      overloadCache: context.functionArgumentsCache || {},
       superTypeProvider: {
         cache: context.typeCache || new LRUCache(),
         discoverer: context.getSuperType || (() => 'term'),

@@ -20,6 +20,9 @@ export interface ISharedContext {
    * @deprecated This value is unused (extended XSD types is always enabled), will be removed in the next major version.
    */
   enableExtendedXsdTypes?: boolean;
+  // This name is chosen because overloadCache was already taken by previous version.
+  // On a major release it might be best to alter the name to OverLoadCache again.
+  functionArgumentsCache?: OverLoadCache;
 }
 
 export interface ICompleteSharedContext {
