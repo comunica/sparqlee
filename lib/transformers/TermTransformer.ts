@@ -115,6 +115,9 @@ export class TermTransformer implements ITermTransformer {
       }
       return new E.DoubleLiteral(doubleVal, dataType, lit.value);
     }
+    if (DT.XSD_DURATION in superTypeDict) {
+      return new E.Literal<number>(0, dataType);
+    }
     return new E.Literal<string>(lit.value, dataType, lit.value);
   }
 }

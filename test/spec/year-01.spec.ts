@@ -72,7 +72,7 @@ describe('Year', () => {
    * </sparql>
    */
 
-  describe('We should allow YEAR on xsd:date', () => {
+  describe('We should allow YEAR on xsd:dateTime', () => {
     const { dr1, dr2, dr3, dr4 } = Data.data();
     runTestTable({
       operation: 'YEAR',

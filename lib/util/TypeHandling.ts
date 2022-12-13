@@ -1,6 +1,8 @@
 import type * as LRUCache from 'lru-cache';
-import type { TermType } from '../expressions';
+import type * as E from '../expressions';
 import { asTermType } from '../expressions';
+import type { ArgumentType } from '../functions';
+import { double, float, string } from '../functions/Helpers';
 import type { KnownLiteralTypes } from './Consts';
 import { TypeAlias, TypeURL } from './Consts';
 
@@ -55,6 +57,7 @@ export const extensionTableInput: Record<KnownLiteralTypes, OverrideType> = {
   [TypeURL.XSD_BYTE]: TypeURL.XSD_SHORT,
 
   [TypeURL.XSD_NON_NEGATIVE_INTEGER]: TypeURL.XSD_INTEGER,
+  [TypeURL.XSD_NON_NEGATIVE_INTEGER]: TypeURL.XSD_INTEGER,
   [TypeURL.XSD_POSITIVE_INTEGER]: TypeURL.XSD_NON_NEGATIVE_INTEGER,
   [TypeURL.XSD_UNSIGNED_LONG]: TypeURL.XSD_NON_NEGATIVE_INTEGER,
   [TypeURL.XSD_UNSIGNED_INT]: TypeURL.XSD_UNSIGNED_LONG,
@@ -64,6 +67,12 @@ export const extensionTableInput: Record<KnownLiteralTypes, OverrideType> = {
   [TypeURL.XSD_DATE_TIME]: 'term',
   [TypeURL.XSD_BOOLEAN]: 'term',
   [TypeURL.XSD_DATE]: 'term',
+  [TypeURL.XSD_G_MONTH]: 'term',
+  [TypeURL.XSD_G_MONTHDAY]: 'term',
+  [TypeURL.XSD_G_YEAR]: 'term',
+  [TypeURL.XSD_G_YEAR_MONTH]: 'term',
+  [TypeURL.XSD_TIME]: 'term',
+  [TypeURL.XSD_G_DAY]: 'term',
   [TypeURL.XSD_DURATION]: 'term',
   [TypeAlias.SPARQL_NUMERIC]: 'term',
   [TypeAlias.SPARQL_STRINGLY]: 'term',
@@ -75,6 +84,29 @@ type SuperTypeDictTable = Record<KnownLiteralTypes, SuperTypeDict>;
 // The key 'term' is not included in these keys. Something that is just a term will map to number 0.
 export type GeneralSuperTypeDict = Record<string, number> & { __depth: number };
 export let superTypeDictTable: SuperTypeDictTable;
+
+// Defined by https://www.w3.org/TR/xpath-31/#promotion .
+// e.g. When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
+export const typePromotion: Partial<Record<ArgumentType,
+{ typeToPromote: KnownLiteralTypes; conversionFunction: (arg: E.TermExpression) => E.TermExpression }[]>> = {
+  [TypeURL.XSD_STRING]: [
+    { typeToPromote: TypeURL.XSD_ANY_URI, conversionFunction: arg => string(arg.str()) },
+  ],
+  [TypeURL.XSD_DOUBLE]: [
+    { typeToPromote: TypeURL.XSD_FLOAT, conversionFunction: arg => double((<E.NumericLiteral>arg).typedValue) },
+    // TODO: in case of decimal a round needs to happen.
+    { typeToPromote: TypeURL.XSD_DECIMAL, conversionFunction: arg => double((<E.NumericLiteral>arg).typedValue) },
+  ],
+  [TypeURL.XSD_FLOAT]: [
+    // TODO: in case of decimal a round needs to happen.
+    { typeToPromote: TypeURL.XSD_DECIMAL, conversionFunction: arg => float((<E.NumericLiteral>arg).typedValue) },
+  ],
+  // [TypeURL.XSD_DATE_TIME]: [
+  //   { typeToPromote: TypeURL.XSD_DATE, conversionFunction: arg => dateTime(new Date(arg.str()), arg.str()) },
+  //   { typeToPromote: TypeURL.XSD_G_YEAR, conversionFunction: arg => dateTime(new Date(arg.str()), arg.str()) },
+  //   { typeToPromote: TypeURL.XSD_G_YEAR_MONTH, conversionFunction: arg => dateTime(new Date(arg.str()), arg.str()) },
+  // ],
+};
 
 /**
  * This will return the super types of a type and cache them.
@@ -165,9 +197,9 @@ export function asOverrideType(type: string): OverrideType | undefined {
   return undefined;
 }
 
-export function asGeneralType(type: string): 'term' | TermType | undefined {
+export function asGeneralType(type: string): 'term' | E.TermType | undefined {
   if (type === 'term' || asTermType(type)) {
-    return <'term' | TermType> type;
+    return <'term' | E.TermType> type;
   }
   return undefined;
 }

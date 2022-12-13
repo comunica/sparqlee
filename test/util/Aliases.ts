@@ -93,7 +93,7 @@ export function date(value: string): string {
   return compactTermString(value, 'xsd:dateTime');
 }
 
-function compactTermString(value: string, dataType: string): string {
+export function compactTermString(value: string, dataType: string): string {
   return `"${value}"^^${dataType}`;
 }
 

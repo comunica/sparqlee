@@ -1,4 +1,5 @@
-import type * as E from '../expressions';
+import type { DateTimeLiteral } from '../expressions';
+import * as E from '../expressions';
 import type * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
@@ -154,6 +155,90 @@ const xsdToBoolean = {
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
+function getTimeFromDate(date: Date): number {
+  const milliSecondsInSecond = 1_000;
+  const minuteInSeconds = 60;
+  return date.getUTCMilliseconds() +
+    milliSecondsInSecond * (date.getUTCMinutes() + date.getUTCHours() * minuteInSeconds);
+}
+
+class WrongDateRepresentation extends Error {
+  public constructor(str: string) {
+    super(`Could not convert ${str} to a date`);
+  }
+}
+
+function safelyGetDate(val: string): Date {
+  const giveDate = new Date(val);
+  if (Number.isNaN(giveDate.valueOf())) {
+    throw new WrongDateRepresentation(val);
+  }
+  return giveDate;
+}
+
+function safelyGetDateFromTime(val: string): Date {
+  const values = val.split(':').map(x => Number(x));
+  const giveDate = new Date(val);
+  if (Number.isNaN(giveDate.valueOf()) || values.length !== 3 || values[2] >= 60) {
+    throw new WrongDateRepresentation(val);
+  }
+  return giveDate;
+}
+
+// Additional definitions to implement https://github.com/w3c/sparql-12/blob/main/SEP/SEP-0002/sep-0002.md
+const xsdToTime = {
+  arity: 1,
+  overloads: declare(TypeURL.XSD_TIME)
+    .onUnary(TypeURL.XSD_TIME, () => (val: DateTimeLiteral) => val)
+    .onUnary(TypeURL.XSD_DATE_TIME, () => (val: Term) => {
+      const giveDate = safelyGetDate(val.str());
+      const date = new Date(getTimeFromDate(giveDate));
+      return new E.DateTimeLiteral(date, val.str(), TypeURL.XSD_TIME);
+    })
+    .onStringly1(() => (val: Term) => {
+      const giveDate = safelyGetDateFromTime(val.str());
+      const date = new Date(getTimeFromDate(giveDate));
+      return new E.DateTimeLiteral(date, val.str(), TypeURL.XSD_TIME);
+    })
+    .collect(),
+};
+
+const xsdToDate = {
+  arity: 1,
+  overloads: declare(TypeURL.XSD_DATE)
+    .onUnary(TypeURL.XSD_DATE, () => (val: DateTimeLiteral) => val)
+    .onUnary(TypeURL.XSD_DATE_TIME, () => (val: Term) => {
+      const giveDate = safelyGetDate(val.str());
+      const date = new Date(giveDate.getTime() - getTimeFromDate(giveDate));
+      return new E.DateTimeLiteral(date, val.str(), TypeURL.XSD_DATE);
+    })
+    .onStringly1(() => (val: E.Term) => {
+      const giveDate = safelyGetDate(val.str());
+      const date = new Date(giveDate.getTime() - getTimeFromDate(giveDate));
+      return new E.DateTimeLiteral(date, val.str(), TypeURL.XSD_DATE);
+    })
+    .collect(),
+};
+
+const xsdToDuration = {
+  arity: 1,
+  overloads: declare(TypeURL.XSD_DURATION)
+    .onUnary(TypeURL.XSD_DURATION, () => (val: E.DecimalLiteral) => val)
+    .onStringly1(() => (val: Term) => {
+      val.str().split('T')[0].replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$1S:$2:$3:$4');
+      'P3Y1DT2H7S'.split('T')[1].replace(/^(\d+H)?(\d+M)?(\d+\.?\d*S)?$/gu, '$1:$2:$3');
+      return new E.Literal<number>(0, TypeURL.XSD_DURATION);
+    }).collect(),
+};
+
+const xsdToDateTimeDuration = {
+
+};
+
+const xsdToYearMonthDuration = {
+
+};
+
 export const namedDefinitions: Record<C.NamedOperator, IOverloadedDefinition> = {
   // --------------------------------------------------------------------------
   // XPath Constructor functions
@@ -165,6 +250,8 @@ export const namedDefinitions: Record<C.NamedOperator, IOverloadedDefinition> = 
   [TypeURL.XSD_DECIMAL]: xsdToDecimal,
   [TypeURL.XSD_INTEGER]: xsdToInteger,
   [TypeURL.XSD_DATE_TIME]: xsdToDatetime,
-  [TypeURL.XSD_DATE]: xsdToDatetime,
+  [TypeURL.XSD_DATE]: xsdToDate,
   [TypeURL.XSD_BOOLEAN]: xsdToBoolean,
+  [TypeURL.XSD_TIME]: xsdToTime,
+  [TypeURL.XSD_DURATION]: xsdToDuration,
 };
