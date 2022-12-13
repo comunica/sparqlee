@@ -734,7 +734,7 @@ const timezone = {
         if (!duration) {
           throw new Err.InvalidTimezoneCall(date.strValue);
         }
-        return new E.Literal(duration, TypeURL.XSD_DAYTIME_DURATION, duration);
+        return new E.Literal(duration, TypeURL.XSD_DAY_TIME_DURATION, duration);
       },
     )
     .collect(),
@@ -749,6 +749,23 @@ const tz = {
     .onDateTime1(
       () => date => string(parseDate(date).timezone),
     )
+    .collect(),
+};
+
+// ----------------------------------------------------------------------------
+// Additional functions on Dates and Times: sparql 1.2
+// https://github.com/w3c/sparql-12/blob/main/SEP/SEP-0002/sep-0002.md
+// ----------------------------------------------------------------------------
+
+const adjust = {
+  arity: 2,
+  overloads: declare(C.RegularOperator.ADJUST)
+    .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
+      () => ([ dateLit, durationLit ]: [E.DateTimeLiteral, E.DayTimeDurationLiteral]) => {
+        const date = dateLit.typedValue;
+
+        return new E.DateTimeLiteral(new Date(), '');
+      })
     .collect(),
 };
 
@@ -896,6 +913,11 @@ export const definitions: Record<C.RegularOperator, IOverloadedDefinition> = {
   seconds,
   timezone,
   tz,
+  // --------------------------------------------------------------------------
+  // Aditional functions on Dates and Times: sparqlee 1.2
+  // https://www.w3.org/TR/sparql11-query/#func-date-time
+  // --------------------------------------------------------------------------
+  adjust,
 
   // --------------------------------------------------------------------------
   // Hash functions

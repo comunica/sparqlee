@@ -20,7 +20,7 @@ export const extensionTableInput: Record<KnownLiteralTypes, OverrideType> = {
   [TypeURL.XSD_DATE_TIME_STAMP]: TypeURL.XSD_DATE_TIME,
 
   // Duration types
-  [TypeURL.XSD_DAYTIME_DURATION]: TypeURL.XSD_DURATION,
+  [TypeURL.XSD_DAY_TIME_DURATION]: TypeURL.XSD_DURATION,
   [TypeURL.XSD_YEAR_MONTH_DURATION]: TypeURL.XSD_DURATION,
 
   // Stringly types

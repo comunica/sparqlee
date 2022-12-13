@@ -223,6 +223,25 @@ export class DateTimeLiteral extends Literal<Date> {
   }
 }
 
+export type DurationRepresentationType = [number, number, number, number, number, number, number];
+export class DurationLiteral extends Literal<DurationRepresentationType> {
+  public constructor(public typedValue: DurationRepresentationType, public strValue?: string, dataType?: string) {
+    super(typedValue, dataType || TypeURL.XSD_DURATION, strValue);
+  }
+}
+
+export class YearMonthDurationLiteral extends DurationLiteral {
+  public constructor(public typedValue: DurationRepresentationType, public strValue?: string, dataType?: string) {
+    super(typedValue, dataType || TypeURL.XSD_YEAR_MONTH_DURATION, strValue);
+  }
+}
+
+export class DayTimeDurationLiteral extends DurationLiteral {
+  public constructor(public typedValue: DurationRepresentationType, public strValue?: string, dataType?: string) {
+    super(typedValue, dataType || TypeURL.XSD_DAY_TIME_DURATION, strValue);
+  }
+}
+
 export class LangStringLiteral extends Literal<string> {
   public constructor(public typedValue: string, public language: string, dataType?: string) {
     super(typedValue, dataType || TypeURL.RDF_LANG_STRING, typedValue, language);

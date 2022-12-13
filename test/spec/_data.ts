@@ -1,4 +1,4 @@
-import { date, decimal, int } from '../util/Aliases';
+import { dateTimeNotation, decimal, int } from '../util/Aliases';
 
 // Data ------------------------------------------------------------------------
 // @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -43,15 +43,15 @@ export function data() {
     s6: '"abc"^^xsd:string',
     s7: '"DEF"^^xsd:string',
 
-    d1: date('2010-06-21T11:28:01Z'),
-    d2: date('2010-12-21T15:38:02-08:00'),
-    d3: date('2008-06-20T23:59:00Z'),
-    d4: date('2011-02-01T01:02:03'),
+    d1: dateTimeNotation('2010-06-21T11:28:01Z'),
+    d2: dateTimeNotation('2010-12-21T15:38:02-08:00'),
+    d3: dateTimeNotation('2008-06-20T23:59:00Z'),
+    d4: dateTimeNotation('2011-02-01T01:02:03'),
 
-    dr1: date('2010-06-21'),
-    dr2: date('2010-12-21'),
-    dr3: date('2008-06-20'),
-    dr4: date('2011-02-01'),
+    dr1: dateTimeNotation('2010-06-21'),
+    dr2: dateTimeNotation('2010-12-21'),
+    dr3: dateTimeNotation('2008-06-20'),
+    dr4: dateTimeNotation('2011-02-01'),
   };
 }
 

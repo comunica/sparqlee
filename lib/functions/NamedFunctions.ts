@@ -225,18 +225,26 @@ const xsdToDuration = {
   overloads: declare(TypeURL.XSD_DURATION)
     .onUnary(TypeURL.XSD_DURATION, () => (val: E.DecimalLiteral) => val)
     .onStringly1(() => (val: Term) => {
-      val.str().split('T')[0].replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$1S:$2:$3:$4');
-      'P3Y1DT2H7S'.split('T')[1].replace(/^(\d+H)?(\d+M)?(\d+\.?\d*S)?$/gu, '$1:$2:$3');
-      return new E.Literal<number>(0, TypeURL.XSD_DURATION);
+      const [ dayNotation, timeNotation, _ ] = val.str().split('T');
+      const duration = [
+        ...dayNotation.replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S:$2:$3:$4').split(':'),
+        ...(timeNotation || '').replace(/^(\d+H)?(\d+M)?(\d+\.?\d*S)?$/gu, '$1:$2:$3').split(':'),
+      ]
+        // Map uses fact that Number("") === 0.
+        .map(str => Number(str.slice(0, -1)));
+      // Factor, Year, Month, Day, Hour, Minute, seconds
+      type DurationType = [number, number, number, number, number, number, number];
+      // The regex is constructed in a way that this is 7 big.
+      return new E.Literal<DurationType>(<DurationType> duration, TypeURL.XSD_DURATION, val.str());
     }).collect(),
 };
 
 const xsdToDateTimeDuration = {
-
+  // TODO: implement!
 };
 
 const xsdToYearMonthDuration = {
-
+  // TODO: implement!
 };
 
 export const namedDefinitions: Record<C.NamedOperator, IOverloadedDefinition> = {

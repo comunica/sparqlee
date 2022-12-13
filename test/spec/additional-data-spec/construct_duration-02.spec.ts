@@ -22,7 +22,7 @@ describe('create duration', () => {
       operation: 'xsd:date',
       arity: 1,
       notation: Notation.Function,
-      testTable: `
+      errorTable: `
         '"P"' = ''
         '"-P"' = ''
         '"PT"' = ''

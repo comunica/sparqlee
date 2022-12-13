@@ -69,7 +69,7 @@ export enum TypeURL {
   // Other types
   XSD_DURATION = 'http://www.w3.org/2001/XMLSchema#duration',
   XSD_YEAR_MONTH_DURATION = 'http://www.w3.org/2001/XMLSchema#yearMonthDuration',
-  XSD_DAYTIME_DURATION = 'http://www.w3.org/2001/XMLSchema#dayTimeDuration',
+  XSD_DAY_TIME_DURATION = 'http://www.w3.org/2001/XMLSchema#dayTimeDuration',
 }
 
 // ----------------------------------------------------------------------------
@@ -158,6 +158,9 @@ export enum RegularOperator {
   SECONDS = 'seconds',
   TIMEZONE = 'timezone',
   TZ = 'tz',
+  // Aditional functions on Dates and Times: Sparql 1.2
+  // https://github.com/w3c/sparql-12/blob/main/SEP/SEP-0002/sep-0002.md
+  ADJUST = 'adjust',
 
   // Hash functions
   // https://www.w3.org/TR/sparql11-query/#func-hash

@@ -89,8 +89,16 @@ export function double(value: string): string {
  * '2001-10-26T21:32:52' => "2001-10-26T21:32:52"^^xsd:dateTime
  * @param value string (representing a date)
  */
-export function date(value: string): string {
+export function dateTimeNotation(value: string): string {
   return compactTermString(value, 'xsd:dateTime');
+}
+
+/**
+ * '-PT10H' => "-PT10H"^^xsd:dateTime
+ * @param value string (representing a dayTimeDuration)
+ */
+export function dayTimeDurationNotation(value: string): string {
+  return compactTermString(value, 'xsd:dayTimeDuration');
 }
 
 export function compactTermString(value: string, dataType: string): string {
