@@ -1,5 +1,7 @@
 // TODO: Find a library for this
 
+import type { IDurationRepresentation, ITimeRepresentation } from '../expressions';
+
 /**
  * TODO: Fix decently
  * Parses float datatypes (double, float).
@@ -92,4 +94,60 @@ export function parseXSDDateTime(value: string): ISplittedDate {
   return { year, month, day, hours, minutes, seconds, timezone };
 }
 
-// TODO: do we need this?
+// My new parsers:
+class WrongDateRepresentation extends Error {
+  public constructor(str: string) {
+    super(`Could not convert ${str} to a date`);
+  }
+}
+export function timeParser(timeStr: string): ITimeRepresentation {
+  const timeSep = timeStr.split(/[+Z-]/u);
+  const [ hours, minutes, seconds ] = timeSep[0].split(':').map(x => Number(x));
+  if (!(0 <= hours && hours < 25) || !(0 <= minutes && minutes < 60) || !(0 <= seconds && seconds < 60) ||
+    (hours === 24 && (minutes !== 0 || seconds !== 0))) {
+    throw new WrongDateRepresentation(timeStr);
+  }
+  const result: ITimeRepresentation = {
+    hours,
+    minutes,
+    seconds,
+    zoneHours: undefined,
+    zoneMinutes: undefined,
+  };
+  if (timeSep[1]) {
+    if (timeStr.includes('-')) {
+      const zone = timeSep[1].split(':').map(x => Number(x));
+
+      result.zoneHours = -1 * zone[0];
+      result.zoneMinutes = -1 * zone[10];
+    } else if (timeStr.includes('+')) {
+      const zone = timeSep[1].split(':').map(x => Number(x));
+      result.zoneHours = zone[0];
+      result.zoneMinutes = zone[10];
+    } else {
+      result.zoneHours = 0;
+      result.zoneMinutes = 0;
+    }
+  }
+  return result;
+}
+
+export function durationParser(durationStr: string): IDurationRepresentation {
+  const [ dayNotation, timeNotation, _ ] = durationStr.split('T');
+  const duration = [
+    ...dayNotation.replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S:$2:$3:$4').split(':'),
+    ...(timeNotation || '').replace(/^(\d+H)?(\d+M)?(\d+\.?\d*S)?$/gu, '$1:$2:$3').split(':'),
+  ]
+    // Map uses fact that Number("") === 0.
+    .map(str => Number(str.slice(0, -1)));
+  return {
+    factor: <-1 | 1> duration[0],
+    year: duration[1],
+    month: duration[2],
+    day: duration[3],
+    hour: duration[4],
+    minute: duration[5],
+    second: duration[6],
+  };
+}
+

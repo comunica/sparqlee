@@ -1,10 +1,11 @@
 import type { DateTimeLiteral } from '../expressions';
 import * as E from '../expressions';
+import { DurationLiteral } from '../expressions';
 import type * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
 
-import { parseXSDDecimal, parseXSDFloat, parseXSDInteger } from '../util/Parsing';
+import { durationParser, parseXSDDecimal, parseXSDFloat, parseXSDInteger, timeParser } from '../util/Parsing';
 
 import type { IOverloadedDefinition } from './Core';
 import { bool, dateTime, decimal, declare, double, float, integer, string } from './Helpers';
@@ -195,11 +196,7 @@ const xsdToTime = {
       const date = new Date(getTimeFromDate(giveDate));
       return new E.DateTimeLiteral(date, val.str(), TypeURL.XSD_TIME);
     })
-    .onStringly1(() => (val: Term) => {
-      const giveDate = safelyGetDateFromTime(val.str());
-      const date = new Date(getTimeFromDate(giveDate));
-      return new E.DateTimeLiteral(date, val.str(), TypeURL.XSD_TIME);
-    })
+    .onStringly1(() => (val: Term) => new E.TimeLiteral(timeParser(val.str()), val.str(), TypeURL.XSD_TIME))
     .collect(),
 };
 
@@ -224,19 +221,8 @@ const xsdToDuration = {
   arity: 1,
   overloads: declare(TypeURL.XSD_DURATION)
     .onUnary(TypeURL.XSD_DURATION, () => (val: E.DecimalLiteral) => val)
-    .onStringly1(() => (val: Term) => {
-      const [ dayNotation, timeNotation, _ ] = val.str().split('T');
-      const duration = [
-        ...dayNotation.replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S:$2:$3:$4').split(':'),
-        ...(timeNotation || '').replace(/^(\d+H)?(\d+M)?(\d+\.?\d*S)?$/gu, '$1:$2:$3').split(':'),
-      ]
-        // Map uses fact that Number("") === 0.
-        .map(str => Number(str.slice(0, -1)));
-      // Factor, Year, Month, Day, Hour, Minute, seconds
-      type DurationType = [number, number, number, number, number, number, number];
-      // The regex is constructed in a way that this is 7 big.
-      return new E.Literal<DurationType>(<DurationType> duration, TypeURL.XSD_DURATION, val.str());
-    }).collect(),
+    .onStringly1(() => (val: Term) =>
+      new DurationLiteral(durationParser(val.str()))).collect(),
 };
 
 const xsdToDateTimeDuration = {

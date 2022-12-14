@@ -215,6 +215,22 @@ export class BooleanLiteral extends Literal<boolean> {
   }
 }
 
+export interface IDateRepresentation {
+  year: number;
+  month: number;
+  day: number;
+}
+
+export interface ITimeRepresentation {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  zoneHours: number | undefined;
+  zoneMinutes: number | undefined;
+}
+
+export type IDateTimeRepresentation = IDateRepresentation & ITimeRepresentation;
+
 export class DateTimeLiteral extends Literal<Date> {
   // StrValue is mandatory here because toISOString will always add
   // milliseconds, even if they were not present.
@@ -223,21 +239,37 @@ export class DateTimeLiteral extends Literal<Date> {
   }
 }
 
-export type DurationRepresentationType = [number, number, number, number, number, number, number];
-export class DurationLiteral extends Literal<DurationRepresentationType> {
-  public constructor(public typedValue: DurationRepresentationType, public strValue?: string, dataType?: string) {
+export class TimeLiteral extends Literal<ITimeRepresentation> {
+  // StrValue is mandatory here because toISOString will always add
+  // milliseconds, even if they were not present.
+  public constructor(public typedValue: ITimeRepresentation, public strValue: string, dataType?: string) {
+    super(typedValue, dataType || TypeURL.XSD_TIME, strValue);
+  }
+}
+
+export interface IDurationRepresentation {
+  factor: -1 | 1;
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+}
+export class DurationLiteral extends Literal<IDurationRepresentation> {
+  public constructor(public typedValue: IDurationRepresentation, public strValue?: string, dataType?: string) {
     super(typedValue, dataType || TypeURL.XSD_DURATION, strValue);
   }
 }
 
 export class YearMonthDurationLiteral extends DurationLiteral {
-  public constructor(public typedValue: DurationRepresentationType, public strValue?: string, dataType?: string) {
+  public constructor(public typedValue: IDurationRepresentation, public strValue?: string, dataType?: string) {
     super(typedValue, dataType || TypeURL.XSD_YEAR_MONTH_DURATION, strValue);
   }
 }
 
 export class DayTimeDurationLiteral extends DurationLiteral {
-  public constructor(public typedValue: DurationRepresentationType, public strValue?: string, dataType?: string) {
+  public constructor(public typedValue: IDurationRepresentation, public strValue?: string, dataType?: string) {
     super(typedValue, dataType || TypeURL.XSD_DAY_TIME_DURATION, strValue);
   }
 }
