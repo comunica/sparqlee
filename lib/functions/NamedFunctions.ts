@@ -1,11 +1,12 @@
-import type { DateTimeLiteral } from '../expressions';
+import type { DateTimeLiteral, DateLiteral, TimeLiteral } from '../expressions';
 import * as E from '../expressions';
 import { DurationLiteral } from '../expressions';
 import type * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
+import { dateParser, dateTimeParser, durationParser, timeParser } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 
-import { durationParser, parseXSDDecimal, parseXSDFloat, parseXSDInteger, timeParser } from '../util/Parsing';
+import { parseXSDDecimal, parseXSDFloat, parseXSDInteger } from '../util/Parsing';
 
 import type { IOverloadedDefinition } from './Core';
 import { bool, dateTime, decimal, declare, double, float, integer, string } from './Helpers';
@@ -117,13 +118,8 @@ const xsdToDatetime = {
   arity: 1,
   overloads: declare(TypeURL.XSD_DATE_TIME)
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: E.DateTimeLiteral) => val)
-    .onUnary(TypeURL.XSD_STRING, () => (val: Term) => {
-      const date = new Date(val.str());
-      if (Number.isNaN(date.getTime())) {
-        throw new Err.CastError(val, TypeURL.XSD_DATE_TIME);
-      }
-      return dateTime(date, val.str());
-    })
+    .onUnary(TypeURL.XSD_STRING, () => (val: Term) =>
+      dateTime(dateTimeParser(val.str(), () => new Err.CastError(val, TypeURL.XSD_DATE_TIME)), val.str()))
     .copy({ from: [ TypeURL.XSD_STRING ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
     .collect(),
 };
@@ -190,12 +186,9 @@ function safelyGetDateFromTime(val: string): Date {
 const xsdToTime = {
   arity: 1,
   overloads: declare(TypeURL.XSD_TIME)
-    .onUnary(TypeURL.XSD_TIME, () => (val: DateTimeLiteral) => val)
-    .onUnary(TypeURL.XSD_DATE_TIME, () => (val: Term) => {
-      const giveDate = safelyGetDate(val.str());
-      const date = new Date(getTimeFromDate(giveDate));
-      return new E.DateTimeLiteral(date, val.str(), TypeURL.XSD_TIME);
-    })
+    .onUnary(TypeURL.XSD_TIME, () => (val: TimeLiteral) => val)
+    .onUnary(TypeURL.XSD_DATE_TIME, () => (val: DateTimeLiteral) =>
+      new E.TimeLiteral(val.typedValue, val.str(), TypeURL.XSD_TIME))
     .onStringly1(() => (val: Term) => new E.TimeLiteral(timeParser(val.str()), val.str(), TypeURL.XSD_TIME))
     .collect(),
 };
@@ -203,17 +196,10 @@ const xsdToTime = {
 const xsdToDate = {
   arity: 1,
   overloads: declare(TypeURL.XSD_DATE)
-    .onUnary(TypeURL.XSD_DATE, () => (val: DateTimeLiteral) => val)
-    .onUnary(TypeURL.XSD_DATE_TIME, () => (val: Term) => {
-      const giveDate = safelyGetDate(val.str());
-      const date = new Date(giveDate.getTime() - getTimeFromDate(giveDate));
-      return new E.DateTimeLiteral(date, val.str(), TypeURL.XSD_DATE);
-    })
-    .onStringly1(() => (val: E.Term) => {
-      const giveDate = safelyGetDate(val.str());
-      const date = new Date(giveDate.getTime() - getTimeFromDate(giveDate));
-      return new E.DateTimeLiteral(date, val.str(), TypeURL.XSD_DATE);
-    })
+    .onUnary(TypeURL.XSD_DATE, () => (val: DateLiteral) => val)
+    .onUnary(TypeURL.XSD_DATE_TIME, () => (val: DateTimeLiteral) =>
+      new E.DateLiteral(val.typedValue, val.str(), TypeURL.XSD_DATE))
+    .onStringly1(() => (val: E.Term) => new E.DateLiteral(dateParser(val.str()), val.str(), TypeURL.XSD_DATE))
     .collect(),
 };
 
@@ -222,7 +208,7 @@ const xsdToDuration = {
   overloads: declare(TypeURL.XSD_DURATION)
     .onUnary(TypeURL.XSD_DURATION, () => (val: E.DecimalLiteral) => val)
     .onStringly1(() => (val: Term) =>
-      new DurationLiteral(durationParser(val.str()))).collect(),
+      new DurationLiteral(durationParser(val.str()), val.str())).collect(),
 };
 
 const xsdToDateTimeDuration = {

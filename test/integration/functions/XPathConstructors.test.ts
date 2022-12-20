@@ -234,8 +234,8 @@ describe('evaluation of XPath constructors', () => {
         "1999-03-17T06:00:00Z" = "1999-03-17T06:00:00Z"^^xsd:dateTime
         "1999-03-17T06:00:00+02:30" = "1999-03-17T06:00:00+02:30"^^xsd:dateTime
         "1999-03-17T06:00:00" = "1999-03-17T06:00:00"^^xsd:dateTime
-        "1999-03-17" = "1999-03-17"^^xsd:dateTime
       `,
+      // TODO: Is not a valid dateTime? "1999-03-17" = "1999-03-17"^^xsd:dateTime
       errorTable: `
         "foo" = ''
         "1234567789"^^xsd:integer = ''

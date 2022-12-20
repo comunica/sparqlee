@@ -10,6 +10,7 @@ import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
+import { toDateTimeRepresentation } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import type { IOverloadedDefinition } from './Core';
@@ -95,7 +96,7 @@ const equality = {
     .numberTest(() => (left, right) => left === right)
     .stringTest(() => (left, right) => left.localeCompare(right) === 0)
     .booleanTest(() => (left, right) => left === right)
-    .dateTimeTest(() => (left, right) => left.getTime() === right.getTime())
+    .dateTimeTest(() => (left, right) => false)
     .set(
       [ 'term', 'term' ],
       () => ([ left, right ]) => bool(RDFTermEqual(left, right)),
@@ -119,7 +120,7 @@ const inequality = {
     .numberTest(() => (left, right) => left !== right)
     .stringTest(() => (left, right) => left.localeCompare(right) !== 0)
     .booleanTest(() => (left, right) => left !== right)
-    .dateTimeTest(() => (left, right) => left.getTime() !== right.getTime())
+    .dateTimeTest(() => (left, right) => false)
     .set(
       [ 'term', 'term' ],
       () => ([ left, right ]) => bool(!RDFTermEqual(left, right)),
@@ -133,7 +134,7 @@ const lesserThan = {
     .numberTest(() => (left, right) => left < right)
     .stringTest(() => (left, right) => left.localeCompare(right) === -1)
     .booleanTest(() => (left, right) => left < right)
-    .dateTimeTest(() => (left, right) => left.getTime() < right.getTime())
+    .dateTimeTest(() => (left, right) => false)
     .collect(),
 };
 
@@ -143,7 +144,7 @@ const greaterThan = {
     .numberTest(() => (left, right) => left > right)
     .stringTest(() => (left, right) => left.localeCompare(right) === 1)
     .booleanTest(() => (left, right) => left > right)
-    .dateTimeTest(() => (left, right) => left.getTime() > right.getTime())
+    .dateTimeTest(() => (left, right) => false)
     .collect(),
 };
 
@@ -153,7 +154,7 @@ const lesserThanEqual = {
     .numberTest(() => (left, right) => left <= right)
     .stringTest(() => (left, right) => left.localeCompare(right) !== 1)
     .booleanTest(() => (left, right) => left <= right)
-    .dateTimeTest(() => (left, right) => left.getTime() <= right.getTime())
+    .dateTimeTest(() => (left, right) => false)
     .collect(),
 };
 
@@ -163,7 +164,7 @@ const greaterThanEqual = {
     .numberTest(() => (left, right) => left >= right)
     .stringTest(() => (left, right) => left.localeCompare(right) !== -1)
     .booleanTest(() => (left, right) => left >= right)
-    .dateTimeTest(() => (left, right) => left.getTime() >= right.getTime())
+    .dateTimeTest(() => (left, right) => false)
     .collect(),
 };
 
@@ -651,7 +652,7 @@ function parseDate(dateLit: E.DateTimeLiteral): P.ISplittedDate {
 const now = {
   arity: 0,
   overloads: declare(C.RegularOperator.NOW).set([], (sharedContext: ICompleteSharedContext) => () =>
-    new E.DateTimeLiteral(sharedContext.now, sharedContext.now.toISOString())).collect(),
+    new E.DateTimeLiteral(toDateTimeRepresentation(sharedContext.now), sharedContext.now.toISOString())).collect(),
 };
 
 /**
@@ -761,10 +762,10 @@ const adjust = {
   arity: 2,
   overloads: declare(C.RegularOperator.ADJUST)
     .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
-      () => ([ dateLit, durationLit ]: [E.DateTimeLiteral, E.DayTimeDurationLiteral]) => {
+      () => ([ dateLit, durationLit ]: [E.DateTimeLiteral, E.DateTimeLiteral]) => { // Second should be E.DayTimeDurationLiteral
         const date = dateLit.typedValue;
 
-        return new E.DateTimeLiteral(new Date(), '');
+        return new E.DateTimeLiteral(toDateTimeRepresentation(new Date()), '');
       })
     .collect(),
 };

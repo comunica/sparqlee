@@ -1,4 +1,4 @@
-import { dateTimeNotation, decimal, int } from '../util/Aliases';
+import { dateNotation, dateTimeNotation, decimal, int } from '../util/Aliases';
 
 // Data ------------------------------------------------------------------------
 // @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -48,10 +48,11 @@ export function data() {
     d3: dateTimeNotation('2008-06-20T23:59:00Z'),
     d4: dateTimeNotation('2011-02-01T01:02:03'),
 
-    dr1: dateTimeNotation('2010-06-21'),
-    dr2: dateTimeNotation('2010-12-21'),
-    dr3: dateTimeNotation('2008-06-20'),
-    dr4: dateTimeNotation('2011-02-01'),
+    // TODO: remove this comment: note: this is an illegal data format! date must contain time part
+    dr1: dateNotation('2010-06-21'),
+    dr2: dateNotation('2010-12-21'),
+    dr3: dateNotation('2008-06-20'),
+    dr4: dateNotation('2011-02-01'),
   };
 }
 

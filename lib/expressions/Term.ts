@@ -2,6 +2,12 @@ import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
+import type {
+  IDateRepresentation,
+  IDateTimeRepresentation,
+  IDurationRepresentation,
+  ITimeRepresentation,
+} from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import type { ISuperTypeProvider } from '../util/TypeHandling';
 import { isSubTypeOf } from '../util/TypeHandling';
@@ -215,62 +221,41 @@ export class BooleanLiteral extends Literal<boolean> {
   }
 }
 
-export interface IDateRepresentation {
-  year: number;
-  month: number;
-  day: number;
-}
-
-export interface ITimeRepresentation {
-  hours: number;
-  minutes: number;
-  seconds: number;
-  zoneHours: number | undefined;
-  zoneMinutes: number | undefined;
-}
-
-export type IDateTimeRepresentation = IDateRepresentation & ITimeRepresentation;
-
-export class DateTimeLiteral extends Literal<Date> {
+export class DateTimeLiteral extends Literal<IDateTimeRepresentation> {
   // StrValue is mandatory here because toISOString will always add
   // milliseconds, even if they were not present.
-  public constructor(public typedValue: Date, public strValue: string, dataType?: string) {
+  public constructor(public typedValue: IDateTimeRepresentation, public strValue: string, dataType?: string) {
     super(typedValue, dataType || TypeURL.XSD_DATE_TIME, strValue);
+  }
+
+  public toString(): string {
+    return this.strValue;
   }
 }
 
 export class TimeLiteral extends Literal<ITimeRepresentation> {
-  // StrValue is mandatory here because toISOString will always add
-  // milliseconds, even if they were not present.
   public constructor(public typedValue: ITimeRepresentation, public strValue: string, dataType?: string) {
     super(typedValue, dataType || TypeURL.XSD_TIME, strValue);
   }
+
+  public toString(): string {
+    return this.strValue;
+  }
 }
 
-export interface IDurationRepresentation {
-  factor: -1 | 1;
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  second: number;
+export class DateLiteral extends Literal<IDateRepresentation> {
+  public constructor(public typedValue: IDateRepresentation, public strValue: string, dataType?: string) {
+    super(typedValue, dataType || TypeURL.XSD_DATE, strValue);
+  }
+
+  public toString(): string {
+    return this.strValue;
+  }
 }
+
 export class DurationLiteral extends Literal<IDurationRepresentation> {
-  public constructor(public typedValue: IDurationRepresentation, public strValue?: string, dataType?: string) {
+  public constructor(public typedValue: IDurationRepresentation, public strValue: string, dataType?: string) {
     super(typedValue, dataType || TypeURL.XSD_DURATION, strValue);
-  }
-}
-
-export class YearMonthDurationLiteral extends DurationLiteral {
-  public constructor(public typedValue: IDurationRepresentation, public strValue?: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_YEAR_MONTH_DURATION, strValue);
-  }
-}
-
-export class DayTimeDurationLiteral extends DurationLiteral {
-  public constructor(public typedValue: IDurationRepresentation, public strValue?: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_DAY_TIME_DURATION, strValue);
   }
 }
 
