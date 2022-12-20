@@ -77,7 +77,7 @@ function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): ITimeZ
 
 export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRepresentation {
   // Ugly function, I know, there are just a lot of cases.
-
+  // TODO: this can be done with a regex?
   // Note that -0045-01-01 is a valid date. - But the year 0000 is not valid
   const splittedDate = dateStr.split('-');
   const negativeYear = splittedDate[0] === '' ? 1 : 0;
