@@ -96,6 +96,9 @@ const equality = {
     .numberTest(() => (left, right) => left === right)
     .stringTest(() => (left, right) => left.localeCompare(right) === 0)
     .booleanTest(() => (left, right) => left === right)
+    // TODO: make use of:
+    //  new Date((new Date("2020-02-28T23:59")).getTime() + 60 * 1000)
+    //  new Date((new Date("2022-02-28T23:59")).getTime() + 60 * 1000)
     .dateTimeTest(() => (left, right) => false)
     .set(
       [ 'term', 'term' ],
