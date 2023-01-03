@@ -96,7 +96,8 @@ const equality = {
     .numberTest(() => (left, right) => left === right)
     .stringTest(() => (left, right) => left.localeCompare(right) === 0)
     .booleanTest(() => (left, right) => left === right)
-    .dateTimeTest(() => (left, right) => toUTCDate(left).getTime() === toUTCDate(right).getTime())
+    .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
+      toUTCDate(left, defaultTimeZone).getTime() === toUTCDate(right, defaultTimeZone).getTime())
     .set(
       [ 'term', 'term' ],
       () => ([ left, right ]) => bool(RDFTermEqual(left, right)),
@@ -120,7 +121,8 @@ const inequality = {
     .numberTest(() => (left, right) => left !== right)
     .stringTest(() => (left, right) => left.localeCompare(right) !== 0)
     .booleanTest(() => (left, right) => left !== right)
-    .dateTimeTest(() => (left, right) => false)
+    .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
+      toUTCDate(left, defaultTimeZone).getTime() !== toUTCDate(right, defaultTimeZone).getTime())
     .set(
       [ 'term', 'term' ],
       () => ([ left, right ]) => bool(!RDFTermEqual(left, right)),
@@ -134,7 +136,8 @@ const lesserThan = {
     .numberTest(() => (left, right) => left < right)
     .stringTest(() => (left, right) => left.localeCompare(right) === -1)
     .booleanTest(() => (left, right) => left < right)
-    .dateTimeTest(() => (left, right) => false)
+    .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
+      toUTCDate(left, defaultTimeZone).getTime() < toUTCDate(right, defaultTimeZone).getTime())
     .collect(),
 };
 
@@ -144,7 +147,8 @@ const greaterThan = {
     .numberTest(() => (left, right) => left > right)
     .stringTest(() => (left, right) => left.localeCompare(right) === 1)
     .booleanTest(() => (left, right) => left > right)
-    .dateTimeTest(() => (left, right) => false)
+    .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
+      toUTCDate(left, defaultTimeZone).getTime() > toUTCDate(right, defaultTimeZone).getTime())
     .collect(),
 };
 
@@ -154,7 +158,8 @@ const lesserThanEqual = {
     .numberTest(() => (left, right) => left <= right)
     .stringTest(() => (left, right) => left.localeCompare(right) !== 1)
     .booleanTest(() => (left, right) => left <= right)
-    .dateTimeTest(() => (left, right) => false)
+    .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
+      toUTCDate(left, defaultTimeZone).getTime() <= toUTCDate(right, defaultTimeZone).getTime())
     .collect(),
 };
 
@@ -164,7 +169,8 @@ const greaterThanEqual = {
     .numberTest(() => (left, right) => left >= right)
     .stringTest(() => (left, right) => left.localeCompare(right) !== -1)
     .booleanTest(() => (left, right) => left >= right)
-    .dateTimeTest(() => (left, right) => false)
+    .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
+      toUTCDate(left, defaultTimeZone).getTime() >= toUTCDate(right, defaultTimeZone).getTime())
     .collect(),
 };
 

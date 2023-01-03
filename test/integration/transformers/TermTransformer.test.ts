@@ -173,7 +173,16 @@ describe('TermTransformer', () => {
       expect(res.strValue).toEqual('2022-01-02T03:04:05Z');
       expect(res.termType).toEqual('literal');
       expect(res.dataType).toEqual(DT.XSD_DATE_TIME);
-      expect(res.typedValue).toEqual(new Date('2022-01-02T03:04:05Z'));
+      expect(res.typedValue).toEqual({
+        year: 2_022,
+        month: 1,
+        day: 2,
+        hours: 3,
+        minutes: 4,
+        seconds: 5,
+        zoneHours: 0,
+        zoneMinutes: 0,
+      });
       expect(res.expressionType).toEqual('term');
     });
 

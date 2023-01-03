@@ -53,13 +53,14 @@ export function toDateTimeRepresentation({ date, timeZone }: IInternalJSDate): I
   };
 }
 
-export function toUTCDate(date: IDateTimeRepresentation): Date {
+export function toUTCDate(date: IDateTimeRepresentation, defaultTimezone: ITimeZoneRepresentation): Date {
   // The given hours will be assumed to be local time.
   const localTime = new Date(date.year, date.month, date.day, date.hours, date.minutes, date.seconds);
   // This date has been constructed in machine local time, now we alter it to become UTC and convert to correct timezone
-  const UTCTime = new Date(localTime.getTime() +
-    (localTime.getTimezoneOffset() - (date.zoneHours || 0) * 60 - (date.zoneMinutes || 0)) * 60 * 1_000);
-  return UTCTime;
+  return new Date(
+    localTime.getTime() + (localTime.getTimezoneOffset() - (date.zoneHours || defaultTimezone.zoneHours) * 60 -
+      (date.zoneMinutes || defaultTimezone.zoneMinutes)) * 60 * 1_000,
+  );
 }
 
 export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error): IDateTimeRepresentation {
