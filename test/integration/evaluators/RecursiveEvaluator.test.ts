@@ -16,7 +16,7 @@ describe('recursive evaluators', () => {
   describe('SyncRecursiveEvaluator', () => {
     const evaluator = new SyncRecursiveEvaluator({
       now: new Date(),
-      overloadCache: {},
+      functionArgumentsCache: {},
       superTypeProvider: {
         cache: new LRUCache(),
         discoverer: _ => 'term',
@@ -44,7 +44,7 @@ describe('recursive evaluators', () => {
     it('is able to evaluate existence if configured', () => {
       const customEvaluator = new SyncRecursiveEvaluator({
         now: new Date(),
-        overloadCache: {},
+        functionArgumentsCache: {},
         superTypeProvider: {
           cache: new LRUCache(),
           discoverer: _ => 'term',
@@ -82,7 +82,7 @@ describe('recursive evaluators', () => {
     it('is able to evaluate aggregates if configured', () => {
       const customEvaluator = new SyncRecursiveEvaluator({
         now: new Date(),
-        overloadCache: {},
+        functionArgumentsCache: {},
         superTypeProvider: {
           cache: new LRUCache(),
           discoverer: _ => 'term',
@@ -117,7 +117,7 @@ describe('recursive evaluators', () => {
   describe('AsyncRecursiveEvaluator', () => {
     const evaluator = new AsyncRecursiveEvaluator({
       now: new Date(),
-      overloadCache: {},
+      functionArgumentsCache: {},
       superTypeProvider: {
         cache: new LRUCache(),
         discoverer: _ => 'term',
@@ -145,7 +145,7 @@ describe('recursive evaluators', () => {
     it('is able to evaluate existence if configured', async() => {
       const customEvaluator = new AsyncRecursiveEvaluator({
         now: new Date(),
-        overloadCache: {},
+        functionArgumentsCache: {},
         superTypeProvider: {
           cache: new LRUCache(),
           discoverer: _ => 'term',
@@ -183,7 +183,7 @@ describe('recursive evaluators', () => {
     it('is able to evaluate aggregates if configured', async() => {
       const customEvaluator = new AsyncRecursiveEvaluator({
         now: new Date(),
-        overloadCache: {},
+        functionArgumentsCache: {},
         superTypeProvider: {
           cache: new LRUCache(),
           discoverer: _ => 'term',

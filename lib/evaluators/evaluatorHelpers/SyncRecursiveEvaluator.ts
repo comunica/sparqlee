@@ -62,7 +62,7 @@ export class SyncRecursiveEvaluator extends BaseExpressionEvaluator
       superTypeProvider: this.context.superTypeProvider,
       now: this.context.now,
       baseIRI: this.context.baseIRI,
-      overloadCache: this.context.overloadCache,
+      functionArgumentsCache: this.context.functionArgumentsCache,
 
       evaluate,
       bnode: this.context.bnode,

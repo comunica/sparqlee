@@ -14,10 +14,10 @@ import type { ArgumentType } from './Core';
 
 export type SearchStack = OverloadTree[];
 export type ImplementationFunction = (sharedContext: ICompleteSharedContext) => E.SimpleApplication;
-interface IOverLoadCacheObj {
-  func?: ImplementationFunction; cache?: OverLoadCache;
+interface IFunctionArgumentsCacheObj {
+  func?: ImplementationFunction; cache?: FunctionArgumentsCache;
 }
-export type OverLoadCache = Record<string, IOverLoadCacheObj>;
+export type FunctionArgumentsCache = Record<string, IFunctionArgumentsCacheObj>;
 /**
  * Maps argument types on their specific implementation in a tree like structure.
  * When adding any functionality to this class, make sure you add it to SpecialFunctions as well.
@@ -70,12 +70,13 @@ export class OverloadTree {
   /**
    * Searches in a depth first way for the best matching overload. considering this a the tree's root.
    * @param args:
-   * @param overloadCache
+   * @param functionArgumentsCache
    * @param superTypeProvider
    */
-  public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider, overloadCache: OverLoadCache):
-  ImplementationFunction | undefined {
-    let cacheIter = overloadCache[this.identifier];
+  public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
+    functionArgumentsCache: FunctionArgumentsCache):
+    ImplementationFunction | undefined {
+    let cacheIter = functionArgumentsCache[this.identifier];
     let searchIndex = 0;
     while (searchIndex < args.length && cacheIter?.cache) {
       const term = args[searchIndex];
@@ -104,7 +105,7 @@ export class OverloadTree {
       // We check the implementation because it would be possible a path is created but not implemented.
       // ex: f(double, double, double) and f(term, term). and calling f(double, double).
       if (index === args.length && node.implementation) {
-        this.addToCache(overloadCache, args, node.implementation);
+        this.addToCache(functionArgumentsCache, args, node.implementation);
         return node.implementation;
       }
       searchStack.push(...node.getSubTreeWithArg(args[index], superTypeProvider).map(item =>
@@ -112,19 +113,19 @@ export class OverloadTree {
     }
     // Calling a function with one argument but finding no implementation should return no implementation.
     // Not even the one with no arguments.
-    this.addToCache(overloadCache, args);
+    this.addToCache(functionArgumentsCache, args);
     return undefined;
   }
 
-  private addToCache(overloadCache: OverLoadCache, args: E.TermExpression[],
+  private addToCache(functionArgumentsCache: FunctionArgumentsCache, args: E.TermExpression[],
     func?: ImplementationFunction | undefined): void {
-    function getDefault(lruCache: OverLoadCache, key: string): IOverLoadCacheObj {
+    function getDefault(lruCache: FunctionArgumentsCache, key: string): IFunctionArgumentsCacheObj {
       if (!(key in lruCache)) {
         lruCache[key] = { };
       }
       return lruCache[key]!;
     }
-    let cache = getDefault(overloadCache, this.identifier);
+    let cache = getDefault(functionArgumentsCache, this.identifier);
     for (const term of args) {
       const literalExpression = isLiteralTermExpression(term);
       const key = literalExpression ? literalExpression.dataType : term.termType;

@@ -2,7 +2,7 @@ import type * as RDF from '@rdfjs/types';
 import type * as LRUCache from 'lru-cache';
 import type * as E from '../../expressions';
 import { expressionToVar } from '../../functions/Helpers';
-import type { OverLoadCache } from '../../functions/OverloadTree';
+import type { FunctionArgumentsCache } from '../../functions/OverloadTree';
 import type { ITermTransformer } from '../../transformers/TermTransformer';
 import type { ITimeZoneRepresentation } from '../../util/DateTimeHelpers';
 import * as Err from '../../util/Errors';
@@ -21,15 +21,13 @@ export interface ISharedContext {
    * @deprecated This value is unused (extended XSD types is always enabled), will be removed in the next major version.
    */
   enableExtendedXsdTypes?: boolean;
-  // This name is chosen because overloadCache was already taken by previous version.
-  // On a major release it might be best to alter the name to OverLoadCache again.
-  functionArgumentsCache?: OverLoadCache;
+  functionArgumentsCache?: FunctionArgumentsCache;
 }
 
 export interface ICompleteSharedContext {
   now: Date;
   baseIRI?: string;
-  overloadCache: OverLoadCache;
+  functionArgumentsCache: FunctionArgumentsCache;
   superTypeProvider: ISuperTypeProvider;
   defaultTimeZone: ITimeZoneRepresentation;
 }
