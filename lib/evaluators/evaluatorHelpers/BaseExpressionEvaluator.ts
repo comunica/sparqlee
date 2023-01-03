@@ -4,6 +4,7 @@ import type * as E from '../../expressions';
 import { expressionToVar } from '../../functions/Helpers';
 import type { OverLoadCache } from '../../functions/OverloadTree';
 import type { ITermTransformer } from '../../transformers/TermTransformer';
+import type { ITimeZoneRepresentation } from '../../util/DateTimeHelpers';
 import * as Err from '../../util/Errors';
 import type { ISuperTypeProvider, SuperTypeCallback, TypeCache } from '../../util/TypeHandling';
 
@@ -30,6 +31,7 @@ export interface ICompleteSharedContext {
   baseIRI?: string;
   overloadCache: OverLoadCache;
   superTypeProvider: ISuperTypeProvider;
+  defaultTimeZone: ITimeZoneRepresentation;
 }
 
 export class BaseExpressionEvaluator {

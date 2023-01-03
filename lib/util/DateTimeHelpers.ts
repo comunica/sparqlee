@@ -1,15 +1,15 @@
 export interface ITimeZoneRepresentation {
-  zoneHours: number | undefined;
-  zoneMinutes: number | undefined;
+  zoneHours: number;
+  zoneMinutes: number;
 }
 
-export interface IDateRepresentation extends ITimeZoneRepresentation {
+export interface IDateRepresentation extends Partial<ITimeZoneRepresentation> {
   year: number;
   month: number;
   day: number;
 }
 
-export interface ITimeRepresentation extends ITimeZoneRepresentation{
+export interface ITimeRepresentation extends Partial<ITimeZoneRepresentation>{
   hours: number;
   minutes: number;
   seconds: number;
@@ -27,6 +27,12 @@ export interface IDurationRepresentation {
 
 export type IDateTimeRepresentation = IDateRepresentation & ITimeRepresentation;
 
+// Interface used internally for dates. JS dates are UTC, all you can do is ask your system offset.
+export interface IInternalJSDate {
+  date: Date;
+  timeZone: ITimeZoneRepresentation;
+}
+
 // My new parsers:
 class WrongDateRepresentation extends Error {
   public constructor(str: string) {
@@ -34,7 +40,7 @@ class WrongDateRepresentation extends Error {
   }
 }
 
-export function toDateTimeRepresentation(date: Date): IDateTimeRepresentation {
+export function toDateTimeRepresentation({ date, timeZone }: IInternalJSDate): IDateTimeRepresentation {
   return {
     year: date.getFullYear(),
     month: date.getMonth(),
@@ -42,9 +48,18 @@ export function toDateTimeRepresentation(date: Date): IDateTimeRepresentation {
     hours: date.getHours(),
     minutes: date.getMinutes(),
     seconds: date.getSeconds(),
-    zoneHours: Math.trunc(date.getTimezoneOffset() / 60),
-    zoneMinutes: date.getTimezoneOffset() % 60,
+    zoneHours: timeZone.zoneHours,
+    zoneMinutes: timeZone.zoneMinutes,
   };
+}
+
+export function toUTCDate(date: IDateTimeRepresentation): Date {
+  // The given hours will be assumed to be local time.
+  const localTime = new Date(date.year, date.month, date.day, date.hours, date.minutes, date.seconds);
+  // This date has been constructed in machine local time, now we alter it to become UTC and convert to correct timezone
+  const UTCTime = new Date(localTime.getTime() +
+    (localTime.getTimezoneOffset() - (date.zoneHours || 0) * 60 - (date.zoneMinutes || 0)) * 60 * 1_000);
+  return UTCTime;
 }
 
 export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error): IDateTimeRepresentation {
@@ -52,8 +67,8 @@ export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error):
   return { ...dateParser(date, errorCreator), ...timeParser(time, errorCreator) };
 }
 
-function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): ITimeZoneRepresentation {
-  const result: ITimeZoneRepresentation = {
+function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): Partial<ITimeZoneRepresentation> {
+  const result: Partial<ITimeZoneRepresentation> = {
     zoneHours: undefined,
     zoneMinutes: undefined,
   };
@@ -63,11 +78,11 @@ function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): ITimeZ
     const zone = representation.split(':').map(x => Number(x));
 
     result.zoneHours = -1 * zone[0];
-    result.zoneMinutes = -1 * zone[10];
+    result.zoneMinutes = -1 * zone[1];
   } else if (indicator === '+') {
     const zone = representation.split(':').map(x => Number(x));
     result.zoneHours = zone[0];
-    result.zoneMinutes = zone[10];
+    result.zoneMinutes = zone[1];
   } else {
     result.zoneHours = 0;
     result.zoneMinutes = 0;
@@ -77,7 +92,6 @@ function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): ITimeZ
 
 export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRepresentation {
   // Ugly function, I know, there are just a lot of cases.
-  // TODO: this can be done with a regex?
   // Note that -0045-01-01 is a valid date. - But the year 0000 is not valid
   const splittedDate = dateStr.split('-');
   const negativeYear = splittedDate[0] === '' ? 1 : 0;
@@ -120,7 +134,7 @@ export function timeParser(timeStr: string, errorCreator?: () => Error): ITimeRe
     zoneHours: undefined,
     zoneMinutes: undefined,
   };
-  if (timeSep[1]) {
+  if (timeSep[1] !== undefined) {
     result = { ...result, ...timeZoneParser(timeStr[timeSep[0].length] + timeSep[1], errorCreator) };
   }
   return result;

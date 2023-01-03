@@ -35,6 +35,7 @@ export class SyncEvaluator {
       exists: context.exists,
       aggregate: context.aggregate,
       bnode: context.bnode,
+      defaultTimeZone: { zoneMinutes: 0, zoneHours: 0 },
     };
   }
 

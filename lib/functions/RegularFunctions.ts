@@ -10,7 +10,7 @@ import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
-import { toDateTimeRepresentation } from '../util/DateTimeHelpers';
+import { toDateTimeRepresentation, toUTCDate } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import type { IOverloadedDefinition } from './Core';
@@ -96,10 +96,7 @@ const equality = {
     .numberTest(() => (left, right) => left === right)
     .stringTest(() => (left, right) => left.localeCompare(right) === 0)
     .booleanTest(() => (left, right) => left === right)
-    // TODO: make use of:
-    //  new Date((new Date("2020-02-28T23:59")).getTime() + 60 * 1000)
-    //  new Date((new Date("2022-02-28T23:59")).getTime() + 60 * 1000)
-    .dateTimeTest(() => (left, right) => false)
+    .dateTimeTest(() => (left, right) => toUTCDate(left).getTime() === toUTCDate(right).getTime())
     .set(
       [ 'term', 'term' ],
       () => ([ left, right ]) => bool(RDFTermEqual(left, right)),
@@ -655,7 +652,9 @@ function parseDate(dateLit: E.DateTimeLiteral): P.ISplittedDate {
 const now = {
   arity: 0,
   overloads: declare(C.RegularOperator.NOW).set([], (sharedContext: ICompleteSharedContext) => () =>
-    new E.DateTimeLiteral(toDateTimeRepresentation(sharedContext.now), sharedContext.now.toISOString())).collect(),
+    new E.DateTimeLiteral(toDateTimeRepresentation(
+      { date: sharedContext.now, timeZone: sharedContext.defaultTimeZone },
+    ), sharedContext.now.toISOString())).collect(),
 };
 
 /**
@@ -768,7 +767,7 @@ const adjust = {
       () => ([ dateLit, durationLit ]: [E.DateTimeLiteral, E.DateTimeLiteral]) => { // Second should be E.DayTimeDurationLiteral
         const date = dateLit.typedValue;
 
-        return new E.DateTimeLiteral(toDateTimeRepresentation(new Date()), '');
+        return new E.DateTimeLiteral(toDateTimeRepresentation({ date: new Date(), timeZone: { zoneHours: 0, zoneMinutes: 0 }}), '');
       })
     .collect(),
 };
