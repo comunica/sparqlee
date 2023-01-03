@@ -1,7 +1,7 @@
 import type { ICompleteSharedContext } from '../../../lib/evaluators/evaluatorHelpers/BaseExpressionEvaluator';
 import { IntegerLiteral, isLiteralTermExpression, Literal, StringLiteral } from '../../../lib/expressions';
 import { OverloadTree, regularFunctions } from '../../../lib/functions';
-import type { OverLoadCache } from '../../../lib/functions/OverloadTree';
+import type { FunctionArgumentsCache } from '../../../lib/functions/OverloadTree';
 import type { KnownLiteralTypes } from '../../../lib/util/Consts';
 import { TypeURL } from '../../../lib/util/Consts';
 import { getDefaultSharedContext } from '../../util/utils';
@@ -20,7 +20,7 @@ describe('OverloadTree', () => {
     tree.addOverload([ promoteTo ], () => ([ arg ]) => arg);
     const arg = new Literal<T>(value, promoteFrom);
     const res = isLiteralTermExpression(tree
-      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.functionArgumentsCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
     expect(res!.dataType).toEqual(promoteTo);
     expect(res!.typedValue).toEqual(valueToEqual || value);
@@ -31,7 +31,7 @@ describe('OverloadTree', () => {
     tree.addOverload([ expectedType ], () => ([ arg ]) => arg);
     const arg = new Literal<T>(value, argumentType);
     const res = isLiteralTermExpression(tree
-      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.functionArgumentsCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
     expect(res!.dataType).toEqual(argumentType);
     expect(res!.typedValue).toEqual(value);
@@ -70,7 +70,7 @@ describe('OverloadTree', () => {
 
     const arg = new Literal<number>(0, TypeURL.XSD_SHORT);
     const res = isLiteralTermExpression(emptyTree
-      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.functionArgumentsCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
     expect(res!.dataType).toEqual(TypeURL.XSD_DOUBLE);
     expect(res!.typedValue).toEqual(0);
@@ -82,7 +82,7 @@ describe('OverloadTree', () => {
     const litValue = 'weird';
     const arg = new Literal<string>(litValue, dataType);
     const res = isLiteralTermExpression(emptyTree
-      .search([ arg ], sharedContext.superTypeProvider, sharedContext.overloadCache)!(sharedContext)([ arg ]));
+      .search([ arg ], sharedContext.superTypeProvider, sharedContext.functionArgumentsCache)!(sharedContext)([ arg ]));
     expect(res).toBeTruthy();
     expect(res!.dataType).toEqual(dataType);
     expect(res!.typedValue).toEqual(litValue);
@@ -91,23 +91,23 @@ describe('OverloadTree', () => {
   it('will cache addition function', () => {
     const one = new IntegerLiteral(1);
     const two = new IntegerLiteral(2);
-    expect(sharedContext.overloadCache['+']).toBeUndefined();
+    expect(sharedContext.functionArgumentsCache['+']).toBeUndefined();
     const res = regularFunctions['+'].apply([ one, two ], sharedContext);
     expect(res.str()).toEqual('3');
     // One time lookup + one time add
-    expect(sharedContext.overloadCache['+']).not.toBeUndefined();
+    expect(sharedContext.functionArgumentsCache['+']).not.toBeUndefined();
     regularFunctions['+'].apply([ two, one ], sharedContext);
 
     const innerSpy = jest.fn();
     const spy = jest.fn(() => innerSpy);
-    sharedContext.overloadCache['+']!.cache![TypeURL.XSD_INTEGER].cache![TypeURL.XSD_INTEGER]!.func = spy;
+    sharedContext.functionArgumentsCache['+']!.cache![TypeURL.XSD_INTEGER].cache![TypeURL.XSD_INTEGER]!.func = spy;
     regularFunctions['+'].apply([ one, two ], sharedContext);
     expect(spy).toHaveBeenCalled();
     expect(innerSpy).toHaveBeenCalled();
   });
 
   it('will cache an undefined function', () => {
-    const cache: OverLoadCache = {};
+    const cache: FunctionArgumentsCache = {};
     const args = [ new StringLiteral('some str') ];
     emptyTree.search(args, sharedContext.superTypeProvider, cache);
     expect(cache[emptyID]).not.toBeUndefined();

@@ -4,7 +4,7 @@ import type * as E from '../expressions';
 import type * as C from '../util/Consts';
 import * as Err from '../util/Errors';
 import type { ISuperTypeProvider } from '../util/TypeHandling';
-import type { ImplementationFunction, OverloadTree, OverLoadCache } from './OverloadTree';
+import type { ImplementationFunction, OverloadTree, FunctionArgumentsCache } from './OverloadTree';
 
 export interface IEvalSharedContext extends ICompleteSharedContext{
   args: E.Expression[];
@@ -48,7 +48,7 @@ export abstract class BaseFunction<Operator> {
   public apply = (args: E.TermExpression[], context: ICompleteSharedContext):
   E.TermExpression => {
     const concreteFunction =
-      this.monomorph(args, context.superTypeProvider, context.overloadCache) ||
+      this.monomorph(args, context.superTypeProvider, context.functionArgumentsCache) ||
       this.handleInvalidTypes(args);
     return concreteFunction(context)(args);
   };
@@ -67,8 +67,8 @@ export abstract class BaseFunction<Operator> {
    * terms.
    */
   private monomorph(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
-    overloadCache: OverLoadCache): ImplementationFunction | undefined {
-    return this.overloads.search(args, superTypeProvider, overloadCache);
+    functionArgumentsCache: FunctionArgumentsCache): ImplementationFunction | undefined {
+    return this.overloads.search(args, superTypeProvider, functionArgumentsCache);
   }
 }
 
