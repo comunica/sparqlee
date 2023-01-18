@@ -332,7 +332,7 @@ const SUBSTR = {
   arity: [ 2, 3 ],
   overloads: declare(C.RegularOperator.SUBSTR)
     .onBinaryTyped(
-      [ TypeURL.XSD_STRING, TypeURL.XSD_INTEGER ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_INTEGER ],
       () => (source: string, startingLoc: number) => string([ ...source ].slice(startingLoc - 1).join('')),
     )
     .onBinary(
@@ -342,7 +342,7 @@ const SUBSTR = {
         return langString(sub, source.language);
       },
     )
-    .onTernaryTyped([ TypeURL.XSD_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
+    .onTernaryTyped([ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
       () => (source: string, startingLoc: number, length: number) =>
         string([ ...source ].slice(startingLoc - 1, length + startingLoc - 1).join('')))
     .onTernary([ TypeURL.RDF_LANG_STRING, TypeURL.XSD_INTEGER, TypeURL.XSD_INTEGER ],
@@ -385,7 +385,7 @@ const STRSTARTS = {
   arity: 2,
   overloads: declare(C.RegularOperator.STRSTARTS)
     .onBinaryTyped(
-      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeAlias.SPARQL_STRINGLY ],
       () => (arg1: string, arg2: string) => bool(arg1.startsWith(arg2)),
     )
     .onBinary(
@@ -407,7 +407,7 @@ const STRENDS = {
   arity: 2,
   overloads: declare(C.RegularOperator.STRENDS)
     .onBinaryTyped(
-      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeAlias.SPARQL_STRINGLY ],
       () => (arg1: string, arg2: string) => bool(arg1.endsWith(arg2)),
     )
     .onBinary(
@@ -429,7 +429,7 @@ const CONTAINS = {
   arity: 2,
   overloads: declare(C.RegularOperator.CONTAINS)
     .onBinaryTyped(
-      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeAlias.SPARQL_STRINGLY ],
       () => (arg1: string, arg2: string) => bool(arg1.includes(arg2)),
     )
     .onBinary(
@@ -451,11 +451,11 @@ const STRBEFORE = {
   arity: 2,
   overloads: declare(C.RegularOperator.STRBEFORE)
     .onBinaryTyped(
-      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
       () => (arg1: string, arg2: string) => string(arg1.slice(0, Math.max(0, arg1.indexOf(arg2)))),
     )
     .onBinary(
-      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING ],
+      [ TypeURL.RDF_LANG_STRING, TypeAlias.SPARQL_STRINGLY ],
       () => (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
         const sub = arg1.typedValue.slice(0, Math.max(0, a1.indexOf(a2)));
@@ -483,11 +483,11 @@ const STRAFTER = {
   arity: 2,
   overloads: declare(C.RegularOperator.STRAFTER)
     .onBinaryTyped(
-      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING ],
       () => (arg1: string, arg2: string) => string(arg1.slice(arg1.indexOf(arg2)).slice(arg2.length)),
     )
     .onBinary(
-      [ TypeURL.RDF_LANG_STRING, TypeURL.XSD_STRING ],
+      [ TypeURL.RDF_LANG_STRING, TypeAlias.SPARQL_STRINGLY ],
       () => (arg1: E.LangStringLiteral, arg2: E.StringLiteral) => {
         const [ a1, a2 ] = [ arg1.typedValue, arg2.typedValue ];
         const sub = a1.slice(a1.indexOf(a2)).slice(a2.length);
@@ -554,7 +554,7 @@ const REPLACE = {
   arity: [ 3, 4 ],
   overloads: declare(C.RegularOperator.REPLACE)
     .onTernaryTyped(
-      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       () => (arg: string, pattern: string, replacement: string) =>
         string(X.replace(arg, pattern, replacement)),
     )
@@ -566,7 +566,7 @@ const REPLACE = {
       },
     )
     .onQuaternaryTyped(
-      [ TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
+      [ TypeAlias.SPARQL_STRINGLY, TypeURL.XSD_STRING, TypeURL.XSD_STRING, TypeURL.XSD_STRING ],
       () => (arg: string, pattern: string, replacement: string, flags: string) =>
         string(X.replace(arg, pattern, replacement, flags)),
     )

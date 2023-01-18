@@ -2,7 +2,7 @@ import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/Base
 import type * as E from '../expressions';
 import { isLiteralTermExpression } from '../expressions';
 import type { KnownLiteralTypes } from '../util/Consts';
-import { TypeURL } from '../util/Consts';
+import { TypeAlias, TypeURL } from '../util/Consts';
 import type { GeneralSuperTypeDict, ISuperTypeProvider, OverrideType } from '../util/TypeHandling';
 import {
   asGeneralType,
@@ -174,7 +174,7 @@ export class OverloadTree {
     // Defined by https://www.w3.org/TR/xpath-31/#promotion .
     // e.g. When a function takes a string, it can also accept a XSD_ANY_URI if it's cast first.
     // TODO: When promoting decimal type a cast needs to be preformed.
-    if (argumentType === TypeURL.XSD_STRING) {
+    if (argumentType === TypeURL.XSD_STRING || argumentType === TypeAlias.SPARQL_STRINGLY) {
       this.addPromotedOverload(TypeURL.XSD_ANY_URI, func, arg =>
         string(arg.str()), _argumentTypes, promotionCount);
     }
