@@ -78,7 +78,7 @@ export class OverloadTree {
   public search(args: E.TermExpression[], superTypeProvider: ISuperTypeProvider,
     functionArgumentsCache: FunctionArgumentsCache):
     ImplementationFunction | undefined {
-    let cacheIter = functionArgumentsCache[this.identifier];
+    let cacheIter: IFunctionArgumentsCacheObj | undefined = functionArgumentsCache[this.identifier];
     let searchIndex = 0;
     while (searchIndex < args.length && cacheIter?.cache) {
       const term = args[searchIndex];
@@ -86,7 +86,7 @@ export class OverloadTree {
       cacheIter = cacheIter.cache[literalExpression ? literalExpression.dataType : term.termType];
       searchIndex++;
     }
-    if (searchIndex === args.length && cacheIter) {
+    if (searchIndex === args.length && cacheIter?.func) {
       return cacheIter.func;
     }
 
