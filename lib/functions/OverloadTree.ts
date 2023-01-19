@@ -115,7 +115,6 @@ export class OverloadTree {
     }
     // Calling a function with one argument but finding no implementation should return no implementation.
     // Not even the one with no arguments.
-    this.addToCache(functionArgumentsCache, args);
     return undefined;
   }
 
@@ -131,7 +130,7 @@ export class OverloadTree {
     for (const term of args) {
       const literalExpression = isLiteralTermExpression(term);
       const key = literalExpression ? literalExpression.dataType : term.termType;
-      cache.cache = {};
+      cache.cache = cache.cache || {};
       cache = getDefault(cache.cache, key);
     }
     cache.func = func;
