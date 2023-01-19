@@ -15,16 +15,29 @@ export interface ITimeRepresentation extends Partial<ITimeZoneRepresentation>{
   seconds: number;
 }
 
-export interface IDurationRepresentation {
-  factor: -1 | 1;
-  year: number;
-  month: number;
+export interface ICompleteDayTimeDurationRepresentation {
+  hours: number;
+  minutes: number;
+  seconds: number;
   day: number;
-  hour: number;
-  minute: number;
-  second: number;
+}
+export type IDayTimeDurationRepresentation = Partial<ICompleteDayTimeDurationRepresentation>;
+export function getCompleteDayTimeDurationRepresentation(rep: IDayTimeDurationRepresentation):
+ICompleteDayTimeDurationRepresentation {
+  return {
+    day: rep.day || 0,
+    hours: rep.hours || 0,
+    minutes: rep.minutes || 0,
+    seconds: rep.seconds || 0,
+  };
 }
 
+export interface IYearMonthDuration {
+  year?: number;
+  month?: number;
+}
+
+export type IDurationRepresentation = IYearMonthDuration & IDayTimeDurationRepresentation;
 export type IDateTimeRepresentation = IDateRepresentation & ITimeRepresentation;
 
 // Interface used internally for dates. JS dates are UTC, all you can do is ask your system offset.
@@ -62,6 +75,8 @@ export function toUTCDate(date: IDateTimeRepresentation, defaultTimezone: ITimeZ
       (date.zoneMinutes || defaultTimezone.zoneMinutes)) * 60 * 1_000,
   );
 }
+
+// Parsers:
 
 export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error): IDateTimeRepresentation {
   const [ date, time ] = dateTimeStr.split('T');
@@ -149,13 +164,13 @@ export function durationParser(durationStr: string): IDurationRepresentation {
   ]
     // Map uses fact that Number("") === 0.
     .map(str => Number(str.slice(0, -1)));
+  const factor = <-1 | 1> duration[0];
   return {
-    factor: <-1 | 1> duration[0],
-    year: duration[1],
-    month: duration[2],
-    day: duration[3],
-    hour: duration[4],
-    minute: duration[5],
-    second: duration[6],
+    year: factor * duration[1],
+    month: factor * duration[2],
+    day: factor * duration[3],
+    hours: factor * duration[4],
+    minutes: factor * duration[5],
+    seconds: factor * duration[6],
   };
 }

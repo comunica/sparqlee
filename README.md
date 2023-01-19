@@ -353,6 +353,13 @@ which you can provide as `baseIRI: string` to the config.
 | dT             | ✓ | ✓ | ? |   |   |
 | bool           | ✓ | ✓ | ? |   |   |
 
+### Sparql 1.2
+
+Sparqlee looks forward and already implements some Sparql 1.2 specification functions.
+
+The [extended date](https://github.com/w3c/sparql-12/blob/main/SEP/SEP-0002/sep-0002.md) functionality being one of those features.
+Please note that the new build in ADJUST function has not been implemented due to dependencies.
+
 ## Development
 
 ## Setup locally

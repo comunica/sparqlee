@@ -4,7 +4,7 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import { Algebra } from 'sparqlalgebrajs';
 import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
-import { dateParser, dateTimeParser } from '../util/DateTimeHelpers';
+import { dateParser, dateTimeParser, durationParser } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
@@ -118,6 +118,9 @@ export class TermTransformer implements ITermTransformer {
         return new E.FloatLiteral(doubleVal, dataType, lit.value);
       }
       return new E.DoubleLiteral(doubleVal, dataType, lit.value);
+    }
+    if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
+      return new E.DayTimeDurationLiteral(durationParser(lit.value), lit.value);
     }
     if (TypeURL.XSD_DURATION in superTypeDict) {
       return new E.Literal<number>(0, dataType);

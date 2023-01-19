@@ -10,7 +10,7 @@ import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
-import { toDateTimeRepresentation, toUTCDate } from '../util/DateTimeHelpers';
+import { getCompleteDayTimeDurationRepresentation, toDateTimeRepresentation, toUTCDate } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import type { IOverloadedDefinition } from './Core';
@@ -770,11 +770,17 @@ const adjust = {
   arity: 2,
   overloads: declare(C.RegularOperator.ADJUST)
     .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
-      () => ([ dateLit, durationLit ]: [E.DateTimeLiteral, E.DateTimeLiteral]) => { // Second should be E.DayTimeDurationLiteral
-        const date = dateLit.typedValue;
-
-        return new E.DateTimeLiteral(toDateTimeRepresentation({ date: new Date(), timeZone: { zoneHours: 0, zoneMinutes: 0 }}), '');
+      () => ([ dateLit, durationLit ]: [E.DateTimeLiteral, E.DayTimeDurationLiteral]) => {
+        // The utc data
+        const date = toUTCDate(dateLit.typedValue, { zoneHours: 0, zoneMinutes: 0 });
+        const zoneCorrection = getCompleteDayTimeDurationRepresentation(durationLit.typedValue);
+        // Now correct the data to the correct time zone
+        const correctedDate = new Date(date.getTime() +
+          ((zoneCorrection.hours * 60 + zoneCorrection.minutes) * 60) * 1_000);
+        return new E.DateTimeLiteral(toDateTimeRepresentation({ date: correctedDate,
+          timeZone: { zoneHours: zoneCorrection.hours, zoneMinutes: zoneCorrection.minutes }}), '');
       })
+    .set([ TypeURL.XSD_DATE_TIME ], () => ([ dateLit ]: [E.DateTimeLiteral]) => new E.DateTimeLiteral(toDateTimeRepresentation({ date: new Date(), timeZone: { zoneHours: 0, zoneMinutes: 0 }}), ''))
     .collect(),
 };
 

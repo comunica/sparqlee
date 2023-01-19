@@ -21,14 +21,13 @@ describe('create duration', () => {
     runTestTable({
       operation: 'ADJUST',
       arity: 2,
-      notation: Notation.Infix,
+      notation: Notation.Function,
       testTable: `
         '${dateTimeNotation('2002-03-07T10:00:00')}' '${dayTimeDurationNotation('-PT10H')}' = '${dateTimeNotation('2002-03-07T10:00:00-10:00')}'
         '${dateTimeNotation('2002-03-07T10:00:00-07:00')}' '${dayTimeDurationNotation('-PT10H')}' = '${dateTimeNotation('2002-03-07T07:00:00-10:00')}'
         '${dateTimeNotation('2002-03-07T10:00:00-07:00')}' '${dayTimeDurationNotation('PT10H')}' = '${dateTimeNotation('2002-03-08T03:00:00+10:00')}'
         '${dateTimeNotation('2002-03-07T00:00:00+01:00')}' '${dayTimeDurationNotation('-PT8H')}' = '${dateTimeNotation('2002-03-06T15:00:00-08:00')}'
         '${dateTimeNotation('2002-03-07T10:00:00-07:00')}' '${dayTimeDurationNotation('')}' = '${dateTimeNotation('2002-03-07T10:00:00')}'
-        
       `,
     });
   });

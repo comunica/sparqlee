@@ -2,12 +2,7 @@ import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
-import type {
-  IDateRepresentation,
-  IDateTimeRepresentation,
-  IDurationRepresentation,
-  ITimeRepresentation,
-} from '../util/DateTimeHelpers';
+
 import * as Err from '../util/Errors';
 import type { ISuperTypeProvider } from '../util/TypeHandling';
 import { isSubTypeOf } from '../util/TypeHandling';
@@ -218,44 +213,6 @@ export class BooleanLiteral extends Literal<boolean> {
 
   public coerceEBV(): boolean {
     return this.typedValue;
-  }
-}
-
-export class DateTimeLiteral extends Literal<IDateTimeRepresentation> {
-  // StrValue is mandatory here because toISOString will always add
-  // milliseconds, even if they were not present.
-  public constructor(public typedValue: IDateTimeRepresentation, public strValue: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_DATE_TIME, strValue);
-  }
-
-  public toString(): string {
-    return this.strValue;
-  }
-}
-
-export class TimeLiteral extends Literal<ITimeRepresentation> {
-  public constructor(public typedValue: ITimeRepresentation, public strValue: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_TIME, strValue);
-  }
-
-  public toString(): string {
-    return this.strValue;
-  }
-}
-
-export class DateLiteral extends Literal<IDateRepresentation> {
-  public constructor(public typedValue: IDateRepresentation, public strValue: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_DATE, strValue);
-  }
-
-  public toString(): string {
-    return this.strValue;
-  }
-}
-
-export class DurationLiteral extends Literal<IDurationRepresentation> {
-  public constructor(public typedValue: IDurationRepresentation, public strValue: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_DURATION, strValue);
   }
 }
 
