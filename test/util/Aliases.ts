@@ -94,6 +94,14 @@ export function dateTimeNotation(value: string): string {
 }
 
 /**
+ * ''02:12:59'' => "'02:12:59'"^^xsd:time
+ * @param value string (representing a date)
+ */
+export function timeNotation(value: string): string {
+  return compactTermString(value, 'xsd:time');
+}
+
+/**
  * ''2010-06-21'' => "'2010-06-21'"^^xsd:date
  * @param value string (representing a date)
  */

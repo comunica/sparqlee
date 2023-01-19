@@ -672,6 +672,7 @@ const year = {
     .onDateTime1(
       () => date => integer(Number(parseDate(date).year)),
     )
+    .set([ TypeURL.XSD_DATE ], () => ([ date ]: [E.DateLiteral ]) => integer(date.typedValue.year))
     .collect(),
 };
 
@@ -684,6 +685,7 @@ const month = {
     .onDateTime1(
       () => date => integer(Number(parseDate(date).month)),
     )
+    .set([ TypeURL.XSD_DATE ], () => ([ date ]: [ E.DateLiteral]) => integer(date.typedValue.month))
     .collect(),
 };
 
@@ -696,6 +698,7 @@ const day = {
     .onDateTime1(
       () => date => integer(Number(parseDate(date).day)),
     )
+    .set([ TypeURL.XSD_DATE ], () => ([ date ]: [ E.DateLiteral]) => integer(date.typedValue.day))
     .collect(),
 };
 
@@ -708,6 +711,7 @@ const hours = {
     .onDateTime1(
       () => date => integer(Number(parseDate(date).hours)),
     )
+    .set([ TypeURL.XSD_TIME ], () => ([ time ]: [ E.TimeLiteral]) => integer(time.typedValue.hours))
     .collect(),
 };
 
@@ -718,6 +722,7 @@ const minutes = {
   arity: 1,
   overloads: declare(C.RegularOperator.MINUTES)
     .onDateTime1(() => date => integer(Number(parseDate(date).minutes)))
+    .set([ TypeURL.XSD_TIME ], () => ([ time ]: [ E.TimeLiteral]) => integer(time.typedValue.minutes))
     .collect(),
 };
 
@@ -728,6 +733,7 @@ const seconds = {
   arity: 1,
   overloads: declare(C.RegularOperator.SECONDS)
     .onDateTime1(() => date => decimal(Number(parseDate(date).seconds)))
+    .set([ TypeURL.XSD_TIME ], () => ([ time ]: [ E.TimeLiteral]) => integer(time.typedValue.seconds))
     .collect(),
 };
 

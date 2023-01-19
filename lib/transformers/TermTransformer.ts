@@ -4,7 +4,7 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import { Algebra } from 'sparqlalgebrajs';
 import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
-import { dateParser, dateTimeParser, durationParser } from '../util/DateTimeHelpers';
+import { dateParser, dateTimeParser, durationParser, timeParser } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
@@ -90,6 +90,9 @@ export class TermTransformer implements ITermTransformer {
     if (TypeURL.XSD_DATE in superTypeDict) {
       return new E.DateLiteral(dateParser(lit.value), lit.value, dataType);
     }
+    if (TypeURL.XSD_TIME in superTypeDict) {
+      return new E.TimeLiteral(timeParser(lit.value), lit.value, dataType);
+    }
     if (TypeURL.XSD_BOOLEAN in superTypeDict) {
       if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
         return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
@@ -120,7 +123,7 @@ export class TermTransformer implements ITermTransformer {
       return new E.DoubleLiteral(doubleVal, dataType, lit.value);
     }
     if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
-      return new E.DayTimeDurationLiteral(durationParser(lit.value), lit.value);
+      return new E.DayTimeDurationLiteral(durationParser(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_DURATION in superTypeDict) {
       return new E.Literal<number>(0, dataType);

@@ -14,7 +14,6 @@ describe('create date 2', () => {
    * }
    */
 
-  // TODO: how do we describe an empty result?
   describe.skip('respect the construct_date-02 spec', () => {
     runTestTable({
       operation: 'xsd:date',
