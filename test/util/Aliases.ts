@@ -117,6 +117,14 @@ export function dayTimeDurationNotation(value: string): string {
   return compactTermString(value, 'xsd:dayTimeDuration');
 }
 
+/**
+ * 'P1Y' => "P1Y"^^xsd:yearMonthDuration
+ * @param value string (representing a yearMonthDuration)
+ */
+export function yearMonthDurationNotation(value: string): string {
+  return compactTermString(value, 'xsd:yearMonthDuration');
+}
+
 export function compactTermString(value: string, dataType: string): string {
   return `"${value}"^^${dataType}`;
 }

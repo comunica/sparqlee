@@ -3,7 +3,7 @@ import type {
   IDateRepresentation,
   IDateTimeRepresentation, IDayTimeDurationRepresentation,
   IDurationRepresentation,
-  ITimeRepresentation,
+  ITimeRepresentation, IYearMonthDuration,
 } from '../util/DateTimeHelpers';
 import { Literal } from './Term';
 
@@ -30,6 +30,12 @@ export class DateLiteral extends Literal<IDateRepresentation> {
 export class DurationLiteral extends Literal<IDurationRepresentation> {
   public constructor(public typedValue: IDurationRepresentation, public strValue: string, dataType?: string) {
     super(typedValue, dataType || TypeURL.XSD_DURATION, strValue);
+  }
+}
+
+export class YearMonthDurationLiteral extends Literal<IYearMonthDuration> {
+  public constructor(public typedValue: IYearMonthDuration, public strValue: string, dataType?: string) {
+    super(typedValue, dataType || TypeURL.XSD_YEAR_MONTH_DURATION, strValue);
   }
 }
 
