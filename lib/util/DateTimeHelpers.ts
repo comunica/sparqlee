@@ -76,6 +76,18 @@ export function toUTCDate(date: IDateTimeRepresentation, defaultTimezone: ITimeZ
   );
 }
 
+export function durationToMillies(dur: IDurationRepresentation): number {
+  const year = dur.year || 0;
+  const date = new Date(year, dur.month || 0, dur.day || 1, dur.hours || 0, dur.minutes || 0, dur.seconds || 0);
+  if (0 <= year && year < 100) {
+    // Special rule of date has gone int action.
+    // We do not use the year variable since there might have been another year if the months were high.
+    const jumpDeltaOfDate = 1900;
+    date.setFullYear(date.getFullYear() - jumpDeltaOfDate);
+  }
+  return date.getTime();
+}
+
 // Parsers:
 
 export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error): IDateTimeRepresentation {
@@ -94,7 +106,7 @@ function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): Partia
     const zone = representation.split(':').map(x => Number(x));
 
     result.zoneHours = -1 * zone[0];
-    result.zoneMinutes = -1 * zone[1];
+    result.zoneMinutes = zone[1];
   } else if (indicator === '+') {
     const zone = representation.split(':').map(x => Number(x));
     result.zoneHours = zone[0];
@@ -165,12 +177,19 @@ export function durationParser(durationStr: string): IDurationRepresentation {
     // Map uses fact that Number("") === 0.
     .map(str => Number(str.slice(0, -1)));
   const factor = <-1 | 1> duration[0];
+  // The factor should be with the first non 0 element
+  for (let i = 1; i < duration.length; i++) {
+    duration[i] *= factor;
+    if (duration[i] !== 0) {
+      break;
+    }
+  }
   return {
-    year: factor * duration[1],
-    month: factor * duration[2],
-    day: factor * duration[3],
-    hours: factor * duration[4],
-    minutes: factor * duration[5],
-    seconds: factor * duration[6],
+    year: duration[1],
+    month: duration[2],
+    day: duration[3],
+    hours: duration[4],
+    minutes: duration[5],
+    seconds: duration[6],
   };
 }

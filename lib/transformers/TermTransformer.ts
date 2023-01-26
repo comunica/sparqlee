@@ -74,6 +74,9 @@ export class TermTransformer implements ITermTransformer {
     if (TypeURL.RDF_LANG_STRING in superTypeDict) {
       return new E.LangStringLiteral(lit.value, lit.language);
     }
+    if (TypeURL.XSD_YEAR_MONTH_DURATION in superTypeDict) {
+      return new E.YearMonthDurationLiteral(durationParser(lit.value), lit.value);
+    }
     if (TypeURL.XSD_DATE_TIME in superTypeDict) {
       // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
       // This is because sparql functions don't care about the timezone.

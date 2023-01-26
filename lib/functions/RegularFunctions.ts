@@ -11,7 +11,12 @@ import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import type { IDateRepresentation, IDayTimeDurationRepresentation, ITimeRepresentation } from '../util/DateTimeHelpers';
-import { getCompleteDayTimeDurationRepresentation, toDateTimeRepresentation, toUTCDate } from '../util/DateTimeHelpers';
+import {
+  durationToMillies,
+  getCompleteDayTimeDurationRepresentation,
+  toDateTimeRepresentation,
+  toUTCDate,
+} from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { parseXSDDateTime } from '../util/Parsing';
@@ -145,15 +150,8 @@ const lesserThan = {
         const dur1 = dur1L.typedValue;
         const dur2 = dur2L.typedValue;
 
-        // TODO: Not a good check! We prob want to se a factor again for easy checking!
-        //  We prob also need to only convert when needed!
-        if ((dur1.year || 0) * (dur2.year || 0) < 0) {
-          throw new Error('Oh no! Both should be possitive!');
-        }
-
         // Add 100 to get rid of the weird year behavior when year is less than 100
-        return bool(new Date((dur1.year || 0) + 100, (dur2.year || 0) + 100).getTime() <
-          new Date((dur2.year || 0) + 100, (dur2.year || 0) + 100).getTime());
+        return bool(durationToMillies(dur1) < durationToMillies(dur2));
       })
     .collect(),
 };
