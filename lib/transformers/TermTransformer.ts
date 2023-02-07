@@ -75,7 +75,13 @@ export class TermTransformer implements ITermTransformer {
       return new E.LangStringLiteral(lit.value, lit.language);
     }
     if (TypeURL.XSD_YEAR_MONTH_DURATION in superTypeDict) {
-      return new E.YearMonthDurationLiteral(durationParser(lit.value), lit.value);
+      return new E.YearMonthDurationLiteral(durationParser(lit.value), lit.value, dataType);
+    }
+    if (TypeURL.XSD_DURATION in superTypeDict) {
+      return new E.DurationLiteral(durationParser(lit.value), lit.value, dataType);
+    }
+    if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
+      return new E.DayTimeDurationLiteral(durationParser(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_DATE_TIME in superTypeDict) {
       // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
@@ -124,12 +130,6 @@ export class TermTransformer implements ITermTransformer {
         return new E.FloatLiteral(doubleVal, dataType, lit.value);
       }
       return new E.DoubleLiteral(doubleVal, dataType, lit.value);
-    }
-    if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
-      return new E.DayTimeDurationLiteral(durationParser(lit.value), lit.value, dataType);
-    }
-    if (TypeURL.XSD_DURATION in superTypeDict) {
-      return new E.Literal<number>(0, dataType);
     }
     return new E.Literal<string>(lit.value, dataType, lit.value);
   }

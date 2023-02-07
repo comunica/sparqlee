@@ -18,7 +18,7 @@ describe('compare yearMonthDuration 01', () => {
    * }
    */
 
-  describe('respect the compare_yearMonthDuration-01 spec', () => {
+  describe('respect the lesserThan compare_yearMonthDuration-01 spec', () => {
     runTestTable({
       operation: '<',
       arity: 2,
@@ -30,6 +30,22 @@ describe('compare yearMonthDuration 01', () => {
         '${yearMonthDurationNotation('P1Y1M')}' '${yearMonthDurationNotation('P12M')}' = false
         '${yearMonthDurationNotation('P1M')}' '${yearMonthDurationNotation('-P2M')}' = false
         '${yearMonthDurationNotation('-P1Y')}' '${yearMonthDurationNotation('P13M')}' = true
+      `,
+    });
+  });
+
+  describe('respect the largerThan compare_yearMonthDuration-01 spec', () => {
+    runTestTable({
+      operation: '>',
+      arity: 2,
+      notation: Notation.Infix,
+      aliases: bool,
+      testTable: `
+        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P1Y')}' = false
+        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P12M')}' = false
+        '${yearMonthDurationNotation('P1Y1M')}' '${yearMonthDurationNotation('P12M')}' = true
+        '${yearMonthDurationNotation('P1M')}' '${yearMonthDurationNotation('-P2M')}' = true
+        '${yearMonthDurationNotation('-P1Y')}' '${yearMonthDurationNotation('P13M')}' = false
       `,
     });
   });

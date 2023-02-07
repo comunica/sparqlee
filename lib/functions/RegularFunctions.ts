@@ -109,6 +109,22 @@ const equality = {
       [ 'term', 'term' ],
       () => ([ left, right ]) => bool(RDFTermEqual(left, right)),
     )
+    .set([ TypeURL.XSD_DURATION, TypeURL.XSD_DURATION ], () =>
+      ([ dur1, dur2 ]: [ E.DurationLiteral, E.DurationLiteral ]) =>
+        bool(durationToMillies({ year: dur1.typedValue.year, month: dur1.typedValue.month }) ===
+          durationToMillies({ year: dur2.typedValue.year, month: dur2.typedValue.month }) &&
+        durationToMillies({
+          day: dur1.typedValue.day,
+          hours: dur1.typedValue.hours,
+          minutes: dur1.typedValue.minutes,
+          seconds: dur1.typedValue.seconds,
+        }) === durationToMillies({
+          day: dur2.typedValue.day,
+          hours: dur2.typedValue.hours,
+          minutes: dur2.typedValue.minutes,
+          seconds: dur2.typedValue.seconds,
+        })))
+    .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
     .collect(),
 };
 
@@ -145,14 +161,11 @@ const lesserThan = {
     .booleanTest(() => (left, right) => left < right)
     .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
       toUTCDate(left, defaultTimeZone).getTime() < toUTCDate(right, defaultTimeZone).getTime())
-    .set([ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
-      () => ([ dur1L, dur2L ]: [E.YearMonthDurationLiteral, E.YearMonthDurationLiteral]) => {
-        const dur1 = dur1L.typedValue;
-        const dur2 = dur2L.typedValue;
-
-        // Add 100 to get rid of the weird year behavior when year is less than 100
-        return bool(durationToMillies(dur1) < durationToMillies(dur2));
-      })
+    .set([ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ], () =>
+      ([ dur1L, dur2L ]: [E.YearMonthDurationLiteral, E.YearMonthDurationLiteral]) =>
+        bool(durationToMillies(dur1L.typedValue) < durationToMillies(dur2L.typedValue)))
+    .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
+      to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
     .collect(),
 };
 
@@ -164,6 +177,11 @@ const greaterThan = {
     .booleanTest(() => (left, right) => left > right)
     .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
       toUTCDate(left, defaultTimeZone).getTime() > toUTCDate(right, defaultTimeZone).getTime())
+    .set([ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ], () =>
+      ([ dur1, dur2 ]: [E.YearMonthDurationLiteral, E.YearMonthDurationLiteral]) =>
+        bool(durationToMillies(dur1.typedValue) > durationToMillies(dur2.typedValue)))
+    .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
+      to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
     .collect(),
 };
 

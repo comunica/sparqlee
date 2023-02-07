@@ -1,3 +1,5 @@
+import * as lux from 'luxon';
+
 export interface ITimeZoneRepresentation {
   zoneHours: number;
   zoneMinutes: number;
@@ -32,12 +34,15 @@ ICompleteDayTimeDurationRepresentation {
   };
 }
 
-export interface IYearMonthDuration {
-  year?: number;
-  month?: number;
+export interface ICompleteYearMonthDuration {
+  year: number;
+  month: number;
 }
 
+export type IYearMonthDuration = Partial<ICompleteYearMonthDuration>;
+
 export type IDurationRepresentation = IYearMonthDuration & IDayTimeDurationRepresentation;
+export type ICompleteDurationRepresentation = ICompleteYearMonthDuration & ICompleteDayTimeDurationRepresentation;
 export type IDateTimeRepresentation = IDateRepresentation & ITimeRepresentation;
 
 // Interface used internally for dates. JS dates are UTC, all you can do is ask your system offset.
@@ -78,11 +83,11 @@ export function toUTCDate(date: IDateTimeRepresentation, defaultTimezone: ITimeZ
 
 export function durationToMillies(dur: IDurationRepresentation): number {
   const year = dur.year || 0;
-  const date = new Date(year, dur.month || 0, dur.day || 1, dur.hours || 0, dur.minutes || 0, dur.seconds || 0);
+  const date = new Date(year, dur.month || 0, (dur.day || 0) + 1, dur.hours || 0, dur.minutes || 0, Math.trunc(dur.seconds || 0), ((dur.seconds || 0) % 1) * 1_000);
   if (0 <= year && year < 100) {
     // Special rule of date has gone int action.
     // We do not use the year variable since there might have been another year if the months were high.
-    const jumpDeltaOfDate = 1900;
+    const jumpDeltaOfDate = 1_900;
     date.setFullYear(date.getFullYear() - jumpDeltaOfDate);
   }
   return date.getTime();
@@ -168,14 +173,14 @@ export function timeParser(timeStr: string, errorCreator?: () => Error): ITimeRe
   return result;
 }
 
-export function durationParser(durationStr: string): IDurationRepresentation {
+export function durationParser(durationStr: string): ICompleteDurationRepresentation {
   const [ dayNotation, timeNotation, _ ] = durationStr.split('T');
-  const duration = [
+  const durationStrings = [
     ...dayNotation.replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S:$2:$3:$4').split(':'),
     ...(timeNotation || '').replace(/^(\d+H)?(\d+M)?(\d+\.?\d*S)?$/gu, '$1:$2:$3').split(':'),
-  ]
-    // Map uses fact that Number("") === 0.
-    .map(str => Number(str.slice(0, -1)));
+  ];
+  // Map uses fact that Number("") === 0.
+  const duration = durationStrings.map(str => Number(str.slice(0, -1)));
   const factor = <-1 | 1> duration[0];
   // The factor should be with the first non 0 element
   for (let i = 1; i < duration.length; i++) {
@@ -183,6 +188,12 @@ export function durationParser(durationStr: string): IDurationRepresentation {
     if (duration[i] !== 0) {
       break;
     }
+  }
+
+  // If the date part is not provided, it is 1. But it needs to be after factor calculation.
+  if (durationStrings[3] === '') {
+    // TODO: might need to be 1
+    duration[3] = 0;
   }
   return {
     year: duration[1],

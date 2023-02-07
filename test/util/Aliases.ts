@@ -110,6 +110,14 @@ export function dateNotation(value: string): string {
 }
 
 /**
+ * 'P1Y' => "P1Y"^^xsd:duration
+ * @param value string (representing a duration)
+ */
+export function durationNotation(value: string): string {
+  return compactTermString(value, 'xsd:duration');
+}
+
+/**
  * '-PT10H' => "-PT10H"^^xsd:dateTime
  * @param value string (representing a dayTimeDuration)
  */
