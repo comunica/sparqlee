@@ -79,9 +79,10 @@ export function toDateTimeRepresentation({ date, timeZone }: IInternalJSDate): I
   };
 }
 
-export function toUTCDate(date: IDateTimeRepresentation, defaultTimezone: ITimeZoneRepresentation): Date {
+export function toUTCDate(date: IDateRepresentation & Partial<ITimeRepresentation>,
+                          defaultTimezone: ITimeZoneRepresentation): Date {
   // The given hours will be assumed to be local time.
-  const localTime = new Date(date.year, date.month, date.day, date.hours, date.minutes, date.seconds);
+  const localTime = new Date(date.year, date.month, date.day, date.hours || 0, date.minutes || 0, date.seconds || 0);
   // This date has been constructed in machine local time, now we alter it to become UTC and convert to correct timezone
   return new Date(
     localTime.getTime() + (localTime.getTimezoneOffset() - (date.zoneHours || defaultTimezone.zoneHours) * 60 -
@@ -155,7 +156,7 @@ export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRe
   const potentialNegativeZone: string | undefined = splittedDate[3 + negativeYear];
   if (potentialNegativeZone) {
     result = { ...result, ...timeZoneParser(`-${potentialNegativeZone}`, errorCreator) };
-  } else if (timeZone) {
+  } else if (timeZone !== undefined) {
     result = { ...result, ...timeZoneParser(dayAndPotentiallyTimeZone[dayStr.length] + timeZone, errorCreator) };
   }
   return result;

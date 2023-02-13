@@ -157,6 +157,17 @@ const equality = {
           seconds: dur2.typedValue.seconds,
         })))
     .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) => ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) => {
+      const baseDate: IDateRepresentation = {
+        year: 1_972,
+        month: 11,
+        day: 31,
+      };
+      // TODO: this should be a more broad round!
+      const first = toUTCDate({ ...baseDate, ...time1.typedValue, hours: time1.typedValue.hours % 24 }, defaultTimeZone);
+      const second = toUTCDate({ ...baseDate, ...time2.typedValue, hours: time2.typedValue.hours % 24 }, defaultTimeZone);
+      return bool(first.getTime() === second.getTime());
+    })
     .collect(),
 };
 
@@ -199,6 +210,17 @@ const lesserThan = {
     .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
       to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
     .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) => ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) => {
+      const baseDate: IDateRepresentation = {
+        year: 1_972,
+        month: 11,
+        day: 31,
+      };
+      // TODO: this should be a more broad round!
+      const first = toUTCDate({ ...baseDate, ...time1.typedValue, hours: time1.typedValue.hours % 24 }, defaultTimeZone);
+      const second = toUTCDate({ ...baseDate, ...time2.typedValue, hours: time2.typedValue.hours % 24 }, defaultTimeZone);
+      return bool(first.getTime() < second.getTime());
+    })
     .collect(),
 };
 
@@ -216,6 +238,17 @@ const greaterThan = {
     .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
       to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
     .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) => ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) => {
+      const baseDate: IDateRepresentation = {
+        year: 1_972,
+        month: 11,
+        day: 31,
+      };
+      // TODO: this should be a more broad round!
+      const first = toUTCDate({ ...baseDate, ...time1.typedValue, hours: time1.typedValue.hours % 24 }, defaultTimeZone);
+      const second = toUTCDate({ ...baseDate, ...time2.typedValue, hours: time2.typedValue.hours % 24 }, defaultTimeZone);
+      return bool(first.getTime() > second.getTime());
+    })
     .collect(),
 };
 

@@ -22,6 +22,7 @@ export interface ISharedContext {
    */
   enableExtendedXsdTypes?: boolean;
   functionArgumentsCache?: FunctionArgumentsCache;
+  defaultTimeZone?: ITimeZoneRepresentation;
 }
 
 export interface ICompleteSharedContext {
