@@ -14,12 +14,14 @@ import type { IDateRepresentation, IDayTimeDurationRepresentation, ITimeRepresen
 import {
   durationToMillies,
   getCompleteDayTimeDurationRepresentation,
+  getCompleteDurationRepresentation,
   toDateTimeRepresentation,
   toUTCDate,
 } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { parseXSDDateTime } from '../util/Parsing';
+import { addDurationToDateTime } from '../util/specAlgos';
 import type { IOverloadedDefinition } from './Core';
 import { bool, decimal, declare, double, integer, langString, string } from './Helpers';
 import * as X from './XPathFunctions';
@@ -86,6 +88,36 @@ const addition = {
   arity: 2,
   overloads: declare(C.RegularOperator.ADDITION)
     .arithmetic(() => (left, right) => new BigNumber(left).plus(right).toNumber())
+    .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) => {
+        // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-dateTime
+        const res = addDurationToDateTime(date.typedValue, getCompleteDurationRepresentation(dur.typedValue));
+        return new E.DateTimeLiteral(res, toUTCDate(res, { zoneMinutes: 0, zoneHours: 0 }).toISOString());
+      })
+    .copy({
+      from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
+      to: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_YEAR_MONTH_DURATION ],
+    })
+    .set([ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ date, dur ]: [E.DateTimeLiteral, E.DurationLiteral]) =>
+      // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-date
+        new E.DateLiteral(
+          addDurationToDateTime(date.typedValue, getCompleteDurationRepresentation(dur.typedValue)), '',
+        ))
+    .copy({
+      from: [ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ],
+      to: [ TypeURL.XSD_DATE, TypeURL.XSD_YEAR_MONTH_DURATION ],
+    })
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ date, dur ]: [E.DateTimeLiteral, E.DurationLiteral]) =>
+      // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-time
+        new E.TimeLiteral(
+          addDurationToDateTime(date.typedValue, getCompleteDurationRepresentation(dur.typedValue)), '',
+        ))
+    .copy({
+      from: [ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
+      to: [ TypeURL.XSD_TIME, TypeURL.XSD_YEAR_MONTH_DURATION ],
+    })
     .collect(),
 };
 
@@ -166,6 +198,7 @@ const lesserThan = {
         bool(durationToMillies(dur1L.typedValue) < durationToMillies(dur2L.typedValue)))
     .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
       to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
+    .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
     .collect(),
 };
 
@@ -182,6 +215,7 @@ const greaterThan = {
         bool(durationToMillies(dur1.typedValue) > durationToMillies(dur2.typedValue)))
     .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
       to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
+    .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
     .collect(),
 };
 

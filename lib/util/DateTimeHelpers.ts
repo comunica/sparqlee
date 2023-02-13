@@ -34,6 +34,14 @@ ICompleteDayTimeDurationRepresentation {
   };
 }
 
+export function getCompleteDurationRepresentation(rep: IDurationRepresentation): ICompleteDurationRepresentation {
+  return {
+    ...getCompleteDayTimeDurationRepresentation(rep),
+    month: rep.month || 0,
+    year: rep.year || 0,
+  };
+}
+
 export interface ICompleteYearMonthDuration {
   year: number;
   month: number;
