@@ -5,8 +5,11 @@ import type {
   ITimeZoneRepresentation,
 } from './InternalRepresentations';
 
-// Parsers:
+function numSer(num: number, min = 2): string {
+  return num.toLocaleString(undefined, { minimumIntegerDigits: min, useGrouping: false });
+}
 
+// Parsers:
 export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error): IDateTimeRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#dateTime
   const [ date, time ] = dateTimeStr.split('T');
@@ -15,7 +18,7 @@ export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error):
 
 export function dateTimeSerializer(date: IDateTimeRepresentation): string {
   // Need to extract the date because we don't want the timeZone part here
-  return dateSerializer({ year: date.year, month: date.month, day: date.day }) + timeSerializer(date);
+  return `${dateSerializer({ year: date.year, month: date.month, day: date.day })}T${timeSerializer(date)}`;
 }
 
 function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): Partial<ITimeZoneRepresentation> {
@@ -26,7 +29,7 @@ function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): Partia
   if (timeZoneStr === 'Z') {
     return { zoneHours: 0, zoneMinutes: 0 };
   }
-  const timeZoneStrings = timeZoneStr.replace(/^([+|-])(\d\d):(\d\d)$/gu, '$11:$2:$3').split(':');
+  const timeZoneStrings = timeZoneStr.replace(/^([+|-])(\d\d):(\d\d)$/gu, '$11!$2!$3').split('!');
   const timeZone = timeZoneStrings.map(str => Number(str));
   return {
     zoneHours: timeZone[0] * timeZone[1],
@@ -41,16 +44,14 @@ function timeZoneSerializer(tz: Partial<ITimeZoneRepresentation>): string {
   if (tz.zoneHours === 0 && tz.zoneMinutes === 0) {
     return 'Z';
   }
-  return `${(tz.zoneHours < 0 || tz.zoneMinutes < 0 ? '-' : '+') +
-    tz.zoneHours.toLocaleString(undefined, { minimumIntegerDigits: 2 })}:${
-    tz.zoneMinutes.toLocaleString(undefined, { minimumIntegerDigits: 2 })}`;
+  return `${numSer(tz.zoneHours)}:${numSer(Math.abs(tz.zoneMinutes))}`;
 }
 
 export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#date-lexical-representation
   const dateStrings = dateStr.replace(
-    /^(-)?([123456789]*\d{4})-(\d\d)-(\d\d)(Z|([+-]\d\d:\d\d))?$/gu, '$11:$2:$3:$4:$5',
-  ).split(':');
+    /^(-)?([123456789]*\d{4})-(\d\d)-(\d\d)(Z|([+-]\d\d:\d\d))?$/gu, '$11!$2!$3!$4!$5',
+  ).split('!');
   const date = dateStrings.slice(0, -1).map(str => Number(str));
 
   return {
@@ -66,28 +67,28 @@ export function rawTimeZoneExtractor(zoneContained: string): string {
 }
 
 export function dateSerializer(date: IDateRepresentation): string {
-  return `${date.year.toLocaleString(undefined, { minimumIntegerDigits: 4 })}-${
-    date.month.toLocaleString(undefined, { minimumIntegerDigits: 2 })}-${
-    date.day.toLocaleString(undefined, { minimumIntegerDigits: 2 })
-  }${timeZoneSerializer(date)}`;
+  return `${numSer(date.year, 4)}-${numSer(date.month)}-${numSer(date.day)}${timeZoneSerializer(date)}`;
 }
 
 export function timeParser(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
-  const timeStrings = timeStr.replace(/^(\d\d):(\d\d):(\d\d(\.\d+))(Z|([+-]\d\d:\d\d))?$/gu, '$1:$2:$3:$4').split(':');
+  const formatted = timeStr.replace(/^(\d\d):(\d\d):(\d\d(\.\d+)?)(Z|([+-]\d\d:\d\d))?$/gu, '$1!$2!$3!$5');
+  if (formatted === timeStr) {
+    throw new Error('Invalid time');
+  }
+  const timeStrings = formatted.split('!');
   const time = timeStrings.slice(0, -1).map(str => Number(str));
 
   return {
     hours: time[0],
     minutes: time[1],
     seconds: time[2],
-    ...timeZoneParser(timeStrings[5]),
+    ...timeZoneParser(timeStrings[3]),
   };
 }
 
 export function timeSerializer(time: ITimeRepresentation): string {
-  return `${time.hours.toLocaleString(undefined, { minimumIntegerDigits: 2 })}:${
-    time.minutes.toLocaleString(undefined, { minimumIntegerDigits: 2 })}:${time.seconds}${timeZoneSerializer(time)}`;
+  return `${numSer(time.hours)}:${numSer(time.minutes)}:${numSer(time.seconds)}${timeZoneSerializer(time)}`;
 }
 
 export function durationParser(durationStr: string): Partial<IDurationRepresentation> {
@@ -95,11 +96,11 @@ export function durationParser(durationStr: string): Partial<IDurationRepresenta
   const [ dayNotation, timeNotation ] = durationStr.split('T');
 
   // Handle date part
-  const durationStrings = dayNotation.replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S:$2:$3:$4').split(':');
+  const durationStrings = dayNotation.replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S!$2!$3!$4').split('!');
   if (timeNotation !== undefined) {
     // TODO: Check if string is correct and throw error if not
     durationStrings.push(...timeNotation
-      .replace(/^(\d+H)?(\d+M)?(\d+(\.\d+)?S)?$/gu, '$1:$2:$3').split(':'));
+      .replace(/^(\d+H)?(\d+M)?(\d+(\.\d+)?S)?$/gu, '$1!$2!$3').split('!'));
   }
   const duration = durationStrings.map(str => str.slice(0, -1));
   const sign = <-1 | 1> Number(duration[0]);
@@ -119,11 +120,13 @@ export function durationSerializer(dur: Partial<IDurationRepresentation>): strin
   }
   const negative: boolean = Object.values(dur).some(val => (val || 0) < 0);
   const hasTimeField: boolean = dur.hours !== undefined || dur.minutes !== undefined || dur.seconds !== undefined;
-  return `${negative ? '-' : ''}P${dur.year ? `${dur.year}Y` : ''}${dur.month ? `${dur.month}M` : ''}${dur.day ?
-    `${dur.day}D` :
+  return `${negative ? '-' : ''}P${dur.year ? `${Math.abs(dur.year)}Y` : ''}${dur.month ?
+    `${Math.abs(dur.month)}M` :
+    ''}${dur.day ?
+    `${Math.abs(dur.day)}D` :
     ''}${hasTimeField ?
-    `T${dur.hours ? `${dur.hours}H` : ''}${dur.minutes ?
-      `${dur.minutes}M` :
-      ''}${dur.seconds ? `${dur.seconds}S` : ''}` :
+    `T${dur.hours ? `${Math.abs(dur.hours)}H` : ''}${dur.minutes ?
+      `${Math.abs(dur.minutes)}M` :
+      ''}${dur.seconds ? `${Math.abs(dur.seconds)}S` : ''}` :
     ''}`;
 }

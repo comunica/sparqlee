@@ -133,7 +133,7 @@ export function toUTCDate(date: Partial<IDateTimeRepresentation>,
   // This date has been constructed in machine local time, now we alter it to become UTC and convert to correct timezone
   return new Date(
     localTime.getTime() + (
-      (date.zoneHours === undefined ? defaultTimezone.zoneHours : date.zoneHours) * 60 +
+      -1 * (date.zoneHours === undefined ? defaultTimezone.zoneHours : date.zoneHours) * 60 -
       (date.zoneMinutes === undefined ? defaultTimezone.zoneMinutes : date.zoneMinutes) -
       localTime.getTimezoneOffset()
     ) * 60 * 1_000,

@@ -49,7 +49,7 @@ export class DurationLiteral extends Literal<Partial<IDurationRepresentation>> {
 
 export class YearMonthDurationLiteral extends Literal<Partial<IDurationRepresentation>> {
   public constructor(public typedValue: Partial<IDurationRepresentation>, public strValue?: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_DURATION, strValue);
+    super(typedValue, dataType || TypeURL.XSD_YEAR_MONTH_DURATION, strValue);
   }
 
   public str(): string {
@@ -59,7 +59,7 @@ export class YearMonthDurationLiteral extends Literal<Partial<IDurationRepresent
 
 export class DayTimeDurationLiteral extends Literal<Partial<IDurationRepresentation>> {
   public constructor(public typedValue: Partial<IDurationRepresentation>, public strValue?: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_DURATION, strValue);
+    super(typedValue, dataType || TypeURL.XSD_DAY_TIME_DURATION, strValue);
   }
 
   public str(): string {
