@@ -10,20 +10,19 @@ import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
+import * as Err from '../util/Errors';
 import type {
-  ICompleteDurationRepresentation,
+  IDurationRepresentation,
   IDateRepresentation,
-  IDayTimeDurationRepresentation,
-  ITimeRepresentation,
-} from '../util/DateTimeHelpers';
+  ITimeRepresentation, IDayTimeDurationRepresentation,
+} from '../util/InternalRepresentations';
 import {
-  durationToMillies, getCompleteDateTimeRepresentation,
-  getCompleteDayTimeDurationRepresentation,
-  getCompleteDurationRepresentation,
+  defaultedDateTimeRepresentation, defaultedDayTimeDurationRepresentation,
+  defaultedDurationRepresentation,
+  durationToMillies,
   toDateTimeRepresentation,
   toUTCDate,
-} from '../util/DateTimeHelpers';
-import * as Err from '../util/Errors';
+} from '../util/InternalRepresentations';
 import * as P from '../util/Parsing';
 import { parseXSDDateTime } from '../util/Parsing';
 import { addDurationToDateTime } from '../util/specAlgos';
@@ -96,7 +95,7 @@ const addition = {
     .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
       ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) => {
         // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-dateTime
-        const res = addDurationToDateTime(date.typedValue, getCompleteDurationRepresentation(dur.typedValue));
+        const res = addDurationToDateTime(date.typedValue, defaultedDurationRepresentation(dur.typedValue));
         return new E.DateTimeLiteral(res, toUTCDate(res, { zoneMinutes: 0, zoneHours: 0 }).toISOString());
       })
     .copy({
@@ -107,7 +106,7 @@ const addition = {
       ([ date, dur ]: [E.DateLiteral, E.DurationLiteral]) =>
       // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-date
         new E.DateLiteral(
-          addDurationToDateTime(getCompleteDateTimeRepresentation(date.typedValue), getCompleteDurationRepresentation(dur.typedValue)), '',
+          addDurationToDateTime(defaultedDateTimeRepresentation(date.typedValue), defaultedDurationRepresentation(dur.typedValue)), '',
         ))
     .copy({
       from: [ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ],
@@ -117,7 +116,7 @@ const addition = {
       ([ time, dur ]: [E.TimeLiteral, E.DurationLiteral]) =>
       // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-time
         new E.TimeLiteral(
-          addDurationToDateTime(getCompleteDateTimeRepresentation(time.typedValue), getCompleteDurationRepresentation(dur.typedValue)), '',
+          addDurationToDateTime(defaultedDateTimeRepresentation(time.typedValue), defaultedDurationRepresentation(dur.typedValue)), '',
         ))
     .copy({
       from: [ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
@@ -136,7 +135,7 @@ const subtraction = {
         const first = {
           // Order of unpacking is vital!
           ...defaultTimeZone,
-          ...getCompleteDateTimeRepresentation(date1.typedValue),
+          ...defaultedDateTimeRepresentation(date1.typedValue),
         };
         first.hours -= first.zoneHours;
         first.minutes -= first.zoneMinutes;
@@ -145,7 +144,7 @@ const subtraction = {
 
         const second = {
           ...defaultTimeZone,
-          ...getCompleteDateTimeRepresentation(date2.typedValue),
+          ...defaultedDateTimeRepresentation(date2.typedValue),
         };
         second.hours += second.zoneHours;
         second.minutes += second.zoneMinutes;
@@ -165,7 +164,7 @@ const subtraction = {
     .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
       ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) => {
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-dateTime
-        const neg: ICompleteDurationRepresentation = getCompleteDurationRepresentation(dur.typedValue);
+        const neg: IDurationRepresentation = defaultedDurationRepresentation(dur.typedValue);
         neg.seconds *= -1;
         neg.minutes *= -1;
         neg.hours *= -1;
@@ -185,14 +184,14 @@ const subtraction = {
     .set([ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ], () =>
       ([ date, dur ]: [ E.DateLiteral, E.DayTimeDurationLiteral ]) => {
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-date
-        const neg: ICompleteDurationRepresentation = getCompleteDurationRepresentation(dur.typedValue);
+        const neg: IDurationRepresentation = defaultedDurationRepresentation(dur.typedValue);
         neg.seconds *= -1;
         neg.minutes *= -1;
         neg.hours *= -1;
         neg.day *= -1;
         neg.month *= -1;
         neg.year *= -1;
-        const res = addDurationToDateTime(getCompleteDateTimeRepresentation(date.typedValue), neg);
+        const res = addDurationToDateTime(defaultedDateTimeRepresentation(date.typedValue), neg);
         return new E.DateLiteral(res, toUTCDate(res, {
           zoneMinutes: 0,
           zoneHours: 0,
@@ -205,14 +204,14 @@ const subtraction = {
     .set([ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
       ([ date, dur ]: [ E.TimeLiteral, E.DayTimeDurationLiteral ]) => {
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-date
-        const neg: ICompleteDurationRepresentation = getCompleteDurationRepresentation(dur.typedValue);
+        const neg: IDurationRepresentation = defaultedDurationRepresentation(dur.typedValue);
         neg.seconds *= -1;
         neg.minutes *= -1;
         neg.hours *= -1;
         neg.day *= -1;
         neg.month *= -1;
         neg.year *= -1;
-        const res = addDurationToDateTime(getCompleteDateTimeRepresentation(date.typedValue), neg);
+        const res = addDurationToDateTime(defaultedDateTimeRepresentation(date.typedValue), neg);
         return new E.TimeLiteral(res, toUTCDate(res, {
           zoneMinutes: 0,
           zoneHours: 0,
@@ -937,7 +936,7 @@ const seconds = {
 /**
  * https://www.w3.org/TR/sparql11-query/#func-timezone
  */
-function timezoneFromDateOrTime(zoneBound: ITimeRepresentation | IDateRepresentation): IDayTimeDurationRepresentation {
+function timezoneFromDateOrTime(zoneBound: ITimeRepresentation | IDateRepresentation): Partial<IDayTimeDurationRepresentation> {
   return { hours: zoneBound.zoneHours, minutes: zoneBound.zoneMinutes };
 }
 const timezone = {
@@ -985,7 +984,7 @@ const adjust = {
       () => ([ dateLit, durationLit ]: [E.DateTimeLiteral, E.DayTimeDurationLiteral]) => {
         // The utc data
         const date = toUTCDate(dateLit.typedValue, { zoneHours: 0, zoneMinutes: 0 });
-        const zoneCorrection = getCompleteDayTimeDurationRepresentation(durationLit.typedValue);
+        const zoneCorrection = defaultedDayTimeDurationRepresentation(durationLit.typedValue);
         // Now correct the data to the correct time zone
         const correctedDate = new Date(date.getTime() +
           ((zoneCorrection.hours * 60 + zoneCorrection.minutes) * 60) * 1_000);

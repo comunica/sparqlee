@@ -1,5 +1,5 @@
-import type { ICompleteDurationRepresentation,
-  IDateTimeRepresentation } from './DateTimeHelpers';
+import type { IDurationRepresentation,
+  IDateTimeRepresentation } from './InternalRepresentations';
 
 function fQuotient(a: number, b: number): number {
   return Math.floor(a / b);
@@ -34,7 +34,7 @@ function maximumDayInMonthFor(yearValue: number, monthValue: number): number {
 }
 
 // https://www.w3.org/TR/xmlschema-2/#adding-durations-to-dateTimes
-export function addDurationToDateTime(date: IDateTimeRepresentation, duration: ICompleteDurationRepresentation):
+export function addDurationToDateTime(date: IDateTimeRepresentation, duration: IDurationRepresentation):
 IDateTimeRepresentation {
   // Used to cary over optional fields like timezone
   const newDate: IDateTimeRepresentation = { ...date };

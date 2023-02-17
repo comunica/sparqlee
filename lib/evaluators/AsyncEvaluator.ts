@@ -35,7 +35,8 @@ export class AsyncEvaluator {
       exists: context.exists,
       aggregate: context.aggregate,
       bnode: context.bnode,
-      defaultTimeZone: context.defaultTimeZone || { zoneHours: 0, zoneMinutes: 0 },
+      defaultTimeZone: { zoneHours: context.defaultTimeZone?.hours || 0,
+        zoneMinutes: context.defaultTimeZone?.minutes || 0 },
     };
   }
 

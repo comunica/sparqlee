@@ -4,8 +4,8 @@ import type * as E from '../../expressions';
 import { expressionToVar } from '../../functions/Helpers';
 import type { FunctionArgumentsCache } from '../../functions/OverloadTree';
 import type { ITermTransformer } from '../../transformers/TermTransformer';
-import type { ITimeZoneRepresentation } from '../../util/DateTimeHelpers';
 import * as Err from '../../util/Errors';
+import type { ITimeZoneRepresentation } from '../../util/InternalRepresentations';
 import type { ISuperTypeProvider, SuperTypeCallback, TypeCache } from '../../util/TypeHandling';
 
 export interface ISharedContext {
@@ -22,7 +22,8 @@ export interface ISharedContext {
    */
   enableExtendedXsdTypes?: boolean;
   functionArgumentsCache?: FunctionArgumentsCache;
-  defaultTimeZone?: ITimeZoneRepresentation;
+  // https://www.w3.org/TR/xpath-functions/#func-implicit-timezone (Redefined to reduce coupling to internal types)
+  defaultTimeZone?: { hours: number; minutes: number };
 }
 
 export interface ICompleteSharedContext {
