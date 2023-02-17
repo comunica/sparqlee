@@ -10,9 +10,14 @@ import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
-import type { IDateRepresentation, IDayTimeDurationRepresentation, ITimeRepresentation } from '../util/DateTimeHelpers';
+import type {
+  ICompleteDurationRepresentation,
+  IDateRepresentation,
+  IDayTimeDurationRepresentation,
+  ITimeRepresentation,
+} from '../util/DateTimeHelpers';
 import {
-  durationToMillies,
+  durationToMillies, getCompleteDateTimeRepresentation,
   getCompleteDayTimeDurationRepresentation,
   getCompleteDurationRepresentation,
   toDateTimeRepresentation,
@@ -99,20 +104,20 @@ const addition = {
       to: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_YEAR_MONTH_DURATION ],
     })
     .set([ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ], () =>
-      ([ date, dur ]: [E.DateTimeLiteral, E.DurationLiteral]) =>
+      ([ date, dur ]: [E.DateLiteral, E.DurationLiteral]) =>
       // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-date
         new E.DateLiteral(
-          addDurationToDateTime(date.typedValue, getCompleteDurationRepresentation(dur.typedValue)), '',
+          addDurationToDateTime(getCompleteDateTimeRepresentation(date.typedValue), getCompleteDurationRepresentation(dur.typedValue)), '',
         ))
     .copy({
       from: [ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ],
       to: [ TypeURL.XSD_DATE, TypeURL.XSD_YEAR_MONTH_DURATION ],
     })
     .set([ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
-      ([ date, dur ]: [E.DateTimeLiteral, E.DurationLiteral]) =>
+      ([ time, dur ]: [E.TimeLiteral, E.DurationLiteral]) =>
       // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-time
         new E.TimeLiteral(
-          addDurationToDateTime(date.typedValue, getCompleteDurationRepresentation(dur.typedValue)), '',
+          addDurationToDateTime(getCompleteDateTimeRepresentation(time.typedValue), getCompleteDurationRepresentation(dur.typedValue)), '',
         ))
     .copy({
       from: [ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
@@ -125,6 +130,98 @@ const subtraction = {
   arity: 2,
   overloads: declare(C.RegularOperator.SUBTRACTION)
     .arithmetic(() => (left, right) => new BigNumber(left).minus(right).toNumber())
+    .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], ({ defaultTimeZone }) =>
+      ([ date1, date2 ]: [ E.DateTimeLiteral, E.DateTimeLiteral ]) => {
+        // https://www.w3.org/TR/xpath-functions/#func-subtract-dateTimes
+        const first = {
+          // Order of unpacking is vital!
+          ...defaultTimeZone,
+          ...getCompleteDateTimeRepresentation(date1.typedValue),
+        };
+        first.hours -= first.zoneHours;
+        first.minutes -= first.zoneMinutes;
+        first.zoneHours = 0;
+        first.zoneMinutes = 0;
+
+        const second = {
+          ...defaultTimeZone,
+          ...getCompleteDateTimeRepresentation(date2.typedValue),
+        };
+        second.hours += second.zoneHours;
+        second.minutes += second.zoneMinutes;
+        second.zoneHours = 0;
+        second.zoneMinutes = 0;
+        second.year *= -1;
+        second.month *= -1;
+        second.day *= -1;
+        second.hours *= -1;
+        second.minutes *= -1;
+        second.seconds *= -1;
+        const res = addDurationToDateTime(first, second);
+        return new E.DayTimeDurationLiteral(res, toUTCDate(res, { zoneMinutes: 0, zoneHours: 0 }).toISOString());
+      })
+    .copy({from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
+    .copy({from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_TIME, TypeURL.XSD_TIME ]})
+    .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) => {
+        // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-dateTime
+        const neg: ICompleteDurationRepresentation = getCompleteDurationRepresentation(dur.typedValue);
+        neg.seconds *= -1;
+        neg.minutes *= -1;
+        neg.hours *= -1;
+        neg.day *= -1;
+        neg.month *= -1;
+        neg.year *= -1;
+        const res = addDurationToDateTime(date.typedValue, neg);
+        return new E.DateTimeLiteral(res, toUTCDate(res, {
+          zoneMinutes: 0,
+          zoneHours: 0,
+        }).toISOString());
+      })
+    .copy({
+      from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
+      to: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_YEAR_MONTH_DURATION ],
+    })
+    .set([ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ date, dur ]: [ E.DateLiteral, E.DayTimeDurationLiteral ]) => {
+        // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-date
+        const neg: ICompleteDurationRepresentation = getCompleteDurationRepresentation(dur.typedValue);
+        neg.seconds *= -1;
+        neg.minutes *= -1;
+        neg.hours *= -1;
+        neg.day *= -1;
+        neg.month *= -1;
+        neg.year *= -1;
+        const res = addDurationToDateTime(getCompleteDateTimeRepresentation(date.typedValue), neg);
+        return new E.DateLiteral(res, toUTCDate(res, {
+          zoneMinutes: 0,
+          zoneHours: 0,
+        }).toISOString());
+      })
+    .copy({
+      from: [ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ],
+      to: [ TypeURL.XSD_DATE, TypeURL.XSD_YEAR_MONTH_DURATION ],
+    })
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ date, dur ]: [ E.TimeLiteral, E.DayTimeDurationLiteral ]) => {
+        // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-date
+        const neg: ICompleteDurationRepresentation = getCompleteDurationRepresentation(dur.typedValue);
+        neg.seconds *= -1;
+        neg.minutes *= -1;
+        neg.hours *= -1;
+        neg.day *= -1;
+        neg.month *= -1;
+        neg.year *= -1;
+        const res = addDurationToDateTime(getCompleteDateTimeRepresentation(date.typedValue), neg);
+        return new E.TimeLiteral(res, toUTCDate(res, {
+          zoneMinutes: 0,
+          zoneHours: 0,
+        }).toISOString());
+      })
+    .copy({
+      from: [ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
+      to: [ TypeURL.XSD_TIME, TypeURL.XSD_YEAR_MONTH_DURATION ],
+    })
     .collect(),
 };
 

@@ -36,6 +36,7 @@ function maximumDayInMonthFor(yearValue: number, monthValue: number): number {
 // https://www.w3.org/TR/xmlschema-2/#adding-durations-to-dateTimes
 export function addDurationToDateTime(date: IDateTimeRepresentation, duration: ICompleteDurationRepresentation):
 IDateTimeRepresentation {
+  // Used to cary over optional fields like timezone
   const newDate: IDateTimeRepresentation = { ...date };
 
   // Month

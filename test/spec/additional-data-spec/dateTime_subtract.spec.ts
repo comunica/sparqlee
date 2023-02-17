@@ -20,7 +20,7 @@ describe('dateTime subtract', () => {
       operation: '-',
       arity: 2,
       notation: Notation.Infix,
-      errorTable: `
+      testTable: `
         '${dateTimeNotation('2000-10-30T06:12:00-05:00')}' '${dateTimeNotation('1999-11-28T09:00:00Z')}' = '${dayTimeDurationNotation('P337DT2H12M')}'
         '${dateNotation('2000-10-30')}' '${dateNotation('1999-11-28')}' = '${dayTimeDurationNotation('P337D')}'
         '${timeNotation('11:12:00Z')}' '${timeNotation('04:00:00-05:00')}' = '${dayTimeDurationNotation('PT2H12M')}'

@@ -1,5 +1,3 @@
-import * as lux from 'luxon';
-
 export interface ITimeZoneRepresentation {
   zoneHours: number;
   zoneMinutes: number;
@@ -42,6 +40,18 @@ export function getCompleteDurationRepresentation(rep: IDurationRepresentation):
   };
 }
 
+export function getCompleteDateTimeRepresentation(rep: Partial<IDateTimeRepresentation>): IDateTimeRepresentation {
+  return {
+    ...rep,
+    day: rep.day || 1,
+    hours: rep.hours || 0,
+    month: rep.month || 0,
+    year: rep.year || 0,
+    seconds: rep.seconds || 0,
+    minutes: rep.minutes || 0,
+  };
+}
+
 export interface ICompleteYearMonthDuration {
   year: number;
   month: number;
@@ -79,14 +89,21 @@ export function toDateTimeRepresentation({ date, timeZone }: IInternalJSDate): I
   };
 }
 
-export function toUTCDate(date: IDateRepresentation & Partial<ITimeRepresentation>,
-                          defaultTimezone: ITimeZoneRepresentation): Date {
+export function toJSDate(date: IDateRepresentation & Partial<ITimeRepresentation>): Date {
   // The given hours will be assumed to be local time.
-  const localTime = new Date(date.year, date.month, date.day, date.hours || 0, date.minutes || 0, date.seconds || 0);
+  return new Date(date.year, date.month - 1, date.day, date.hours || 0, date.minutes || 0, date.seconds || 0);
+}
+
+export function toUTCDate(date: IDateRepresentation & Partial<ITimeRepresentation>,
+  defaultTimezone: ITimeZoneRepresentation): Date {
+  const localTime = toJSDate(date);
   // This date has been constructed in machine local time, now we alter it to become UTC and convert to correct timezone
   return new Date(
-    localTime.getTime() + (localTime.getTimezoneOffset() - (date.zoneHours || defaultTimezone.zoneHours) * 60 -
-      (date.zoneMinutes || defaultTimezone.zoneMinutes)) * 60 * 1_000,
+    localTime.getTime() + (
+      (date.zoneHours === undefined ? defaultTimezone.zoneHours : date.zoneHours) * 60 +
+        (date.zoneMinutes === undefined ? defaultTimezone.zoneMinutes : date.zoneMinutes) -
+      localTime.getTimezoneOffset()
+    ) * 60 * 1_000,
   );
 }
 

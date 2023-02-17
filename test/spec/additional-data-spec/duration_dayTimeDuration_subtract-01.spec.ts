@@ -2,10 +2,10 @@ import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 import {dateNotation, dateTimeNotation, dayTimeDurationNotation, timeNotation} from "../../util/Aliases";
 
-describe('Add duration and dayTimeDuration 01', () => {
+describe('subtract duration and dayTimeDuration 01', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-   * SELECT (?d + ?duration AS ?datetime)
+   * SELECT (?d - ?duration AS ?datetime)
    * WHERE {
    * 	VALUES (?duration ?d) {
    * 		("P3DT1H15M"^^xsd:dayTimeDuration "2000-10-30T11:12:00"^^xsd:dateTime)
@@ -15,15 +15,15 @@ describe('Add duration and dayTimeDuration 01', () => {
    * }
    */
 
-  describe('respect the duration_dayTimeDuration_add-01 spec', () => {
+  describe('respect the duration_dayTimeDuration_subtract-01 spec', () => {
     runTestTable({
-      operation: '+',
+      operation: '-',
       arity: 2,
       notation: Notation.Infix,
       testTable: `
-        '${dateTimeNotation('2000-10-30T11:12:00')}' '${dayTimeDurationNotation('P3DT1H15M')}' = '${dateTimeNotation('2000-11-02T12:27:00')}'
-        '${dateNotation('2000-10-30')}' '${dayTimeDurationNotation('P3DT1H15M')}' = '${dateNotation('2000-11-02')}'
-        '${timeNotation('11:12:00')}' '${dayTimeDurationNotation('P3DT1H15M')}' = '${timeNotation('12:27:00')}'
+        '${dateTimeNotation('2000-10-30T11:12:00')}' '${dayTimeDurationNotation('P3DT1H15M')}' = '${dateTimeNotation('2000-10-27T09:57:00')}'
+        '${dateNotation('2000-10-30')}' '${dayTimeDurationNotation('P3DT1H15M')}' = '${dateNotation('2000-10-26')}'
+        '${timeNotation('11:12:00')}' '${dayTimeDurationNotation('P3DT1H15M')}' = '${timeNotation('09:57:00')}'
       `,
     });
   });
@@ -36,13 +36,13 @@ describe('Add duration and dayTimeDuration 01', () => {
    * </head>
    * <results>
    *    <result>
-   *      <binding name="datetime"><literal datatype="http://www.w3.org/2001/XMLSchema#dateTime">2000-11-02T12:27:00</literal></binding>
+   *      <binding name="datetime"><literal datatype="http://www.w3.org/2001/XMLSchema#dateTime">2000-10-27T09:57:00</literal></binding>
    *    </result>
    *    <result>
-   *      <binding name="datetime"><literal datatype="http://www.w3.org/2001/XMLSchema#date">2000-11-02</literal></binding>
+   *      <binding name="datetime"><literal datatype="http://www.w3.org/2001/XMLSchema#date">2000-10-26</literal></binding>
    *    </result>
    *    <result>
-   *      <binding name="datetime"><literal datatype="http://www.w3.org/2001/XMLSchema#time">12:27:00</literal></binding>
+   *      <binding name="datetime"><literal datatype="http://www.w3.org/2001/XMLSchema#time">09:57:00</literal></binding>
    *    </result>
    * </results>
    * </sparql>
