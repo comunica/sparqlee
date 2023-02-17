@@ -10,21 +10,20 @@ import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
+import { rawTimeZoneExtractor } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import type {
-  IDurationRepresentation,
   IDateRepresentation,
-  ITimeRepresentation, IDayTimeDurationRepresentation,
+  IDayTimeDurationRepresentation,
+  IDurationRepresentation,
 } from '../util/InternalRepresentations';
 import {
-  defaultedDateTimeRepresentation, defaultedDayTimeDurationRepresentation,
+  defaultedDateTimeRepresentation,
   defaultedDurationRepresentation,
   durationToMillies,
   toDateTimeRepresentation,
   toUTCDate,
 } from '../util/InternalRepresentations';
-import * as P from '../util/Parsing';
-import { parseXSDDateTime } from '../util/Parsing';
 import { addDurationToDateTime } from '../util/specAlgos';
 import type { IOverloadedDefinition } from './Core';
 import { bool, decimal, declare, double, integer, langString, string } from './Helpers';
@@ -844,10 +843,6 @@ const rand = {
 // https://www.w3.org/TR/sparql11-query/#func-date-time
 // ----------------------------------------------------------------------------
 
-function parseDate(dateLit: E.DateTimeLiteral): P.ISplittedDate {
-  return P.parseXSDDateTime(dateLit.str());
-}
-
 /**
  * https://www.w3.org/TR/sparql11-query/#func-now
  */
@@ -866,7 +861,7 @@ const year = {
   arity: 1,
   overloads: declare(C.RegularOperator.YEAR)
     .onDateTime1(
-      () => date => integer(Number(parseDate(date).year)),
+      () => date => integer(date.typedValue.year),
     )
     .set([ TypeURL.XSD_DATE ], () => ([ date ]: [E.DateLiteral ]) => integer(date.typedValue.year))
     .collect(),
@@ -879,7 +874,7 @@ const month = {
   arity: 1,
   overloads: declare(C.RegularOperator.MONTH)
     .onDateTime1(
-      () => date => integer(Number(parseDate(date).month)),
+      () => date => integer(date.typedValue.month),
     )
     .set([ TypeURL.XSD_DATE ], () => ([ date ]: [ E.DateLiteral]) => integer(date.typedValue.month))
     .collect(),
@@ -892,7 +887,7 @@ const day = {
   arity: 1,
   overloads: declare(C.RegularOperator.DAY)
     .onDateTime1(
-      () => date => integer(Number(parseDate(date).day)),
+      () => date => integer(date.typedValue.day),
     )
     .set([ TypeURL.XSD_DATE ], () => ([ date ]: [ E.DateLiteral]) => integer(date.typedValue.day))
     .collect(),
@@ -905,7 +900,7 @@ const hours = {
   arity: 1,
   overloads: declare(C.RegularOperator.HOURS)
     .onDateTime1(
-      () => date => integer(Number(parseDate(date).hours)),
+      () => date => integer(date.typedValue.hours),
     )
     .set([ TypeURL.XSD_TIME ], () => ([ time ]: [ E.TimeLiteral]) => integer(time.typedValue.hours))
     .collect(),
@@ -917,7 +912,7 @@ const hours = {
 const minutes = {
   arity: 1,
   overloads: declare(C.RegularOperator.MINUTES)
-    .onDateTime1(() => date => integer(Number(parseDate(date).minutes)))
+    .onDateTime1(() => date => integer(date.typedValue.minutes))
     .set([ TypeURL.XSD_TIME ], () => ([ time ]: [ E.TimeLiteral]) => integer(time.typedValue.minutes))
     .collect(),
 };
@@ -928,7 +923,7 @@ const minutes = {
 const seconds = {
   arity: 1,
   overloads: declare(C.RegularOperator.SECONDS)
-    .onDateTime1(() => date => decimal(Number(parseDate(date).seconds)))
+    .onDateTime1(() => date => decimal(date.typedValue.seconds))
     .set([ TypeURL.XSD_TIME ], () => ([ time ]: [ E.TimeLiteral]) => integer(time.typedValue.seconds))
     .collect(),
 };
@@ -936,25 +931,23 @@ const seconds = {
 /**
  * https://www.w3.org/TR/sparql11-query/#func-timezone
  */
-function timezoneFromDateOrTime(zoneBound: ITimeRepresentation | IDateRepresentation): Partial<IDayTimeDurationRepresentation> {
-  return { hours: zoneBound.zoneHours, minutes: zoneBound.zoneMinutes };
-}
 const timezone = {
   arity: 1,
   overloads: declare(C.RegularOperator.TIMEZONE)
     .onDateTime1(
       () => date => {
-        const duration = X.formatDayTimeDuration(parseDate(date).timezone);
-        if (!duration) {
+        const duration: Partial<IDayTimeDurationRepresentation> = {
+          hours: date.typedValue.zoneHours,
+          minutes: date.typedValue.zoneMinutes,
+        };
+        if (duration.hours === undefined && duration.minutes === undefined) {
           throw new Err.InvalidTimezoneCall(date.str());
         }
-        return new E.Literal(duration, TypeURL.XSD_DAY_TIME_DURATION, duration);
+        return new E.DayTimeDurationLiteral(duration);
       },
     )
-    .set([ TypeURL.XSD_DATE ], () => ([ date ]: [E.DateLiteral]) =>
-      new E.DayTimeDurationLiteral(timezoneFromDateOrTime(date.typedValue), ''))
-    .set([ TypeURL.XSD_TIME ], () => ([ time ]: [E.TimeLiteral]) =>
-      new E.DayTimeDurationLiteral(timezoneFromDateOrTime(time.typedValue), ''))
+    .copy({ from: [ TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE ]})
+    .copy({ from: [ TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_TIME ]})
     .collect(),
 };
 
@@ -965,33 +958,10 @@ const tz = {
   arity: 1,
   overloads: declare(C.RegularOperator.TZ)
     .onDateTime1(
-      () => date => string(parseDate(date).timezone),
+      () => date => string(rawTimeZoneExtractor(date.str())),
     )
-    .set([ TypeURL.XSD_DATE ], () => ([ date ]: [E.DateLiteral]) => string(parseXSDDateTime(date.str()).timezone))
-    .set([ TypeURL.XSD_TIME ], () => ([ time ]: [E.TimeLiteral]) => string(parseXSDDateTime(time.str()).timezone))
-    .collect(),
-};
-
-// ----------------------------------------------------------------------------
-// Additional functions on Dates and Times: sparql 1.2
-// https://github.com/w3c/sparql-12/blob/main/SEP/SEP-0002/sep-0002.md
-// ----------------------------------------------------------------------------
-
-const adjust = {
-  arity: 2,
-  overloads: declare(C.RegularOperator.ADJUST)
-    .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
-      () => ([ dateLit, durationLit ]: [E.DateTimeLiteral, E.DayTimeDurationLiteral]) => {
-        // The utc data
-        const date = toUTCDate(dateLit.typedValue, { zoneHours: 0, zoneMinutes: 0 });
-        const zoneCorrection = defaultedDayTimeDurationRepresentation(durationLit.typedValue);
-        // Now correct the data to the correct time zone
-        const correctedDate = new Date(date.getTime() +
-          ((zoneCorrection.hours * 60 + zoneCorrection.minutes) * 60) * 1_000);
-        return new E.DateTimeLiteral(toDateTimeRepresentation({ date: correctedDate,
-          timeZone: { zoneHours: zoneCorrection.hours, zoneMinutes: zoneCorrection.minutes }}), '');
-      })
-    .set([ TypeURL.XSD_DATE_TIME ], () => ([ dateLit ]: [E.DateTimeLiteral]) => new E.DateTimeLiteral(toDateTimeRepresentation({ date: new Date(), timeZone: { zoneHours: 0, zoneMinutes: 0 }}), ''))
+    .copy({ from: [ TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE ]})
+    .copy({ from: [ TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_TIME ]})
     .collect(),
 };
 
@@ -1139,11 +1109,6 @@ export const definitions: Record<C.RegularOperator, IOverloadedDefinition> = {
   seconds,
   timezone,
   tz,
-  // --------------------------------------------------------------------------
-  // Aditional functions on Dates and Times: sparqlee 1.2
-  // https://www.w3.org/TR/sparql11-query/#func-date-time
-  // --------------------------------------------------------------------------
-  adjust,
 
   // --------------------------------------------------------------------------
   // Hash functions

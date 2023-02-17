@@ -1,4 +1,4 @@
-import type { DateTimeLiteral, DateLiteral, TimeLiteral } from '../expressions';
+import type { DateLiteral, DateTimeLiteral, TimeLiteral } from '../expressions';
 import * as E from '../expressions';
 import { DurationLiteral } from '../expressions';
 import type * as C from '../util/Consts';
@@ -120,6 +120,8 @@ const xsdToDatetime = {
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: E.DateTimeLiteral) => val)
     .onUnary(TypeURL.XSD_STRING, () => (val: Term) =>
       dateTime(dateTimeParser(val.str(), () => new Err.CastError(val, TypeURL.XSD_DATE_TIME)), val.str()))
+    .onUnary(TypeURL.XSD_DATE, () => (val: E.DateLiteral) =>
+      new E.DateTimeLiteral({ ...val.typedValue, hours: 0, minutes: 0, seconds: 0 }))
     .copy({ from: [ TypeURL.XSD_STRING ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
     .collect(),
 };
@@ -152,71 +154,60 @@ const xsdToBoolean = {
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-function getTimeFromDate(date: Date): number {
-  const milliSecondsInSecond = 1_000;
-  const minuteInSeconds = 60;
-  return date.getUTCMilliseconds() +
-    milliSecondsInSecond * (date.getUTCMinutes() + date.getUTCHours() * minuteInSeconds);
-}
-
-class WrongDateRepresentation extends Error {
-  public constructor(str: string) {
-    super(`Could not convert ${str} to a date`);
-  }
-}
-
-function safelyGetDate(val: string): Date {
-  const giveDate = new Date(val);
-  if (Number.isNaN(giveDate.valueOf())) {
-    throw new WrongDateRepresentation(val);
-  }
-  return giveDate;
-}
-
-function safelyGetDateFromTime(val: string): Date {
-  const values = val.split(':').map(x => Number(x));
-  const giveDate = new Date(val);
-  if (Number.isNaN(giveDate.valueOf()) || values.length !== 3 || values[2] >= 60) {
-    throw new WrongDateRepresentation(val);
-  }
-  return giveDate;
-}
-
 // Additional definitions to implement https://github.com/w3c/sparql-12/blob/main/SEP/SEP-0002/sep-0002.md
+// The additional casts are listed in https://www.w3.org/TR/xpath-functions/#casting-from-primitive-to-primitive
 const xsdToTime = {
   arity: 1,
   overloads: declare(TypeURL.XSD_TIME)
-    .onUnary(TypeURL.XSD_TIME, () => (val: TimeLiteral) => val)
+    .onUnary(TypeURL.XSD_TIME, () => (val: TimeLiteral) => new E.TimeLiteral(val.typedValue, val.strValue))
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: DateTimeLiteral) =>
-      new E.TimeLiteral(val.typedValue, val.str(), TypeURL.XSD_TIME))
-    .onStringly1(() => (val: Term) => new E.TimeLiteral(timeParser(val.str()), val.str(), TypeURL.XSD_TIME))
+      new E.TimeLiteral(val.typedValue))
+    .onStringly1(() => (val: Term) => new E.TimeLiteral(timeParser(val.str()), val.str()))
     .collect(),
 };
 
 const xsdToDate = {
   arity: 1,
   overloads: declare(TypeURL.XSD_DATE)
-    .onUnary(TypeURL.XSD_DATE, () => (val: DateLiteral) => val)
+    .onUnary(TypeURL.XSD_DATE, () => (val: DateLiteral) => new E.DateLiteral(val.typedValue, val.strValue))
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: DateTimeLiteral) =>
-      new E.DateLiteral(val.typedValue, val.str(), TypeURL.XSD_DATE))
-    .onStringly1(() => (val: E.Term) => new E.DateLiteral(dateParser(val.str()), val.str(), TypeURL.XSD_DATE))
+      new E.DateLiteral(val.typedValue))
+    .onStringly1(() => (val: E.Term) => new E.DateLiteral(dateParser(val.str()), val.str()))
     .collect(),
 };
 
 const xsdToDuration = {
   arity: 1,
   overloads: declare(TypeURL.XSD_DURATION)
-    .onUnary(TypeURL.XSD_DURATION, () => (val: E.DecimalLiteral) => val)
+    // A copy is needed because we need to make sure the dataType is changed,
+    // even when the provided type was a subtype
+    .onUnary(TypeURL.XSD_DURATION, () => (val: E.DurationLiteral) =>
+      new E.DurationLiteral(val.typedValue, val.strValue))
     .onStringly1(() => (val: Term) =>
       new DurationLiteral(durationParser(val.str()), val.str())).collect(),
 };
 
-const xsdToDateTimeDuration = {
-  // TODO: implement!
+const xsdToDayTimeDuration = {
+  arity: 1,
+  overloads: declare(TypeURL.XSD_DAY_TIME_DURATION)
+    // A copy is needed because we need to make sure the dataType is changed,
+    // even when the provided type was a subtype
+    .onUnary(TypeURL.XSD_DURATION, () => (val: E.DurationLiteral) =>
+      new E.DurationLiteral(val.typedValue, val.strValue, TypeURL.XSD_DAY_TIME_DURATION))
+    .onStringly1(() => (val: Term) =>
+      new DurationLiteral(durationParser(val.str()), val.str(), TypeURL.XSD_DAY_TIME_DURATION)).collect(),
 };
 
 const xsdToYearMonthDuration = {
-  // TODO: implement!
+  arity: 1,
+  overloads: declare(TypeURL.XSD_YEAR_MONTH_DURATION)
+    // TODO: make a test for the case of dayTime to YearMonth...
+    // A copy is needed because we need to make sure the dataType is changed,
+    // even when the provided type was a subtype
+    .onUnary(TypeURL.XSD_DURATION, () => (val: E.DurationLiteral) =>
+      new E.DurationLiteral(val.typedValue, val.strValue, TypeURL.XSD_YEAR_MONTH_DURATION))
+    .onStringly1(() => (val: Term) =>
+      new DurationLiteral(durationParser(val.str()), val.str(), TypeURL.XSD_YEAR_MONTH_DURATION)).collect(),
 };
 
 export const namedDefinitions: Record<C.NamedOperator, IOverloadedDefinition> = {

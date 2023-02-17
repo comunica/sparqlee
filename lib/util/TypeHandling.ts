@@ -101,11 +101,6 @@ export const typePromotion: Partial<Record<ArgumentType,
     // TODO: in case of decimal a round needs to happen.
     { typeToPromote: TypeURL.XSD_DECIMAL, conversionFunction: arg => float((<E.NumericLiteral>arg).typedValue) },
   ],
-  // [TypeURL.XSD_DATE_TIME]: [
-  //   { typeToPromote: TypeURL.XSD_DATE, conversionFunction: arg => dateTime(new Date(arg.str()), arg.str()) },
-  //   { typeToPromote: TypeURL.XSD_G_YEAR, conversionFunction: arg => dateTime(new Date(arg.str()), arg.str()) },
-  //   { typeToPromote: TypeURL.XSD_G_YEAR_MONTH, conversionFunction: arg => dateTime(new Date(arg.str()), arg.str()) },
-  // ],
 };
 
 /**

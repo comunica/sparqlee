@@ -61,6 +61,10 @@ export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRe
   };
 }
 
+export function rawTimeZoneExtractor(zoneContained: string): string {
+  return (/(Z|([+-]\d\d:\d\d))?$/u.exec(zoneContained) || [ '' ])[0];
+}
+
 export function dateSerializer(date: IDateRepresentation): string {
   return `${date.year.toLocaleString(undefined, { minimumIntegerDigits: 4 })}-${
     date.month.toLocaleString(undefined, { minimumIntegerDigits: 2 })}-${
@@ -110,6 +114,9 @@ export function durationParser(durationStr: string): Partial<IDurationRepresenta
 }
 
 export function durationSerializer(dur: Partial<IDurationRepresentation>): string {
+  if (!Object.values(dur).some(val => (val || 0) !== 0)) {
+    return 'PT0S';
+  }
   const negative: boolean = Object.values(dur).some(val => (val || 0) < 0);
   const hasTimeField: boolean = dur.hours !== undefined || dur.minutes !== undefined || dur.seconds !== undefined;
   return `${negative ? '-' : ''}P${dur.year ? `${dur.year}Y` : ''}${dur.month ? `${dur.month}M` : ''}${dur.day ?

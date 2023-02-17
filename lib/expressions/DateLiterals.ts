@@ -2,8 +2,8 @@ import { TypeURL } from '../util/Consts';
 import { dateSerializer, dateTimeSerializer, durationSerializer, timeSerializer } from '../util/DateTimeHelpers';
 import type {
   IDateRepresentation,
-  IDateTimeRepresentation, IDayTimeDurationRepresentation, IDurationRepresentation,
-  ITimeRepresentation, IYearMonthDuration,
+  IDateTimeRepresentation, IDurationRepresentation,
+  ITimeRepresentation,
 } from '../util/InternalRepresentations';
 import { Literal } from './Term';
 
@@ -47,9 +47,9 @@ export class DurationLiteral extends Literal<Partial<IDurationRepresentation>> {
   }
 }
 
-export class YearMonthDurationLiteral extends Literal<Partial<IYearMonthDuration>> {
-  public constructor(public typedValue: Partial<IYearMonthDuration>, public strValue?: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_YEAR_MONTH_DURATION, strValue);
+export class YearMonthDurationLiteral extends Literal<Partial<IDurationRepresentation>> {
+  public constructor(public typedValue: Partial<IDurationRepresentation>, public strValue?: string, dataType?: string) {
+    super(typedValue, dataType || TypeURL.XSD_DURATION, strValue);
   }
 
   public str(): string {
@@ -57,10 +57,9 @@ export class YearMonthDurationLiteral extends Literal<Partial<IYearMonthDuration
   }
 }
 
-export class DayTimeDurationLiteral extends Literal<Partial<IDayTimeDurationRepresentation>> {
-  public constructor(public typedValue: Partial<IDayTimeDurationRepresentation>, public strValue?: string,
-    dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_DAY_TIME_DURATION, strValue);
+export class DayTimeDurationLiteral extends Literal<Partial<IDurationRepresentation>> {
+  public constructor(public typedValue: Partial<IDurationRepresentation>, public strValue?: string, dataType?: string) {
+    super(typedValue, dataType || TypeURL.XSD_DURATION, strValue);
   }
 
   public str(): string {
