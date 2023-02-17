@@ -946,7 +946,7 @@ const timezone = {
       () => date => {
         const duration = X.formatDayTimeDuration(parseDate(date).timezone);
         if (!duration) {
-          throw new Err.InvalidTimezoneCall(date.strValue);
+          throw new Err.InvalidTimezoneCall(date.str());
         }
         return new E.Literal(duration, TypeURL.XSD_DAY_TIME_DURATION, duration);
       },
@@ -967,8 +967,8 @@ const tz = {
     .onDateTime1(
       () => date => string(parseDate(date).timezone),
     )
-    .set([ TypeURL.XSD_DATE ], () => ([ date ]: [E.DateLiteral]) => string(parseXSDDateTime(date.strValue).timezone))
-    .set([ TypeURL.XSD_TIME ], () => ([ time ]: [E.TimeLiteral]) => string(parseXSDDateTime(time.strValue).timezone))
+    .set([ TypeURL.XSD_DATE ], () => ([ date ]: [E.DateLiteral]) => string(parseXSDDateTime(date.str()).timezone))
+    .set([ TypeURL.XSD_TIME ], () => ([ time ]: [E.TimeLiteral]) => string(parseXSDDateTime(time.str()).timezone))
     .collect(),
 };
 
