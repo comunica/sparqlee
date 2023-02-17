@@ -27,7 +27,7 @@ describe('compare date', () => {
       aliases: bool,
       config: {
         config: {
-          defaultTimeZone: { zoneHours: -5, zoneMinutes: 0 },
+          defaultTimeZone: { hours: -5, minutes: 0 },
         },
         type: 'sync',
       },
