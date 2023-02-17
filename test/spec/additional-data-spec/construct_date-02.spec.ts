@@ -1,7 +1,7 @@
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
-describe('create date 2', () => {
+describe('Construct date', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (xsd:date(?literal) AS ?date) WHERE {
@@ -14,7 +14,7 @@ describe('create date 2', () => {
    * }
    */
 
-  describe.skip('respect the construct_date-02 spec', () => {
+  describe('respect the construct_date-02 spec', () => {
     runTestTable({
       operation: 'xsd:date',
       arity: 1,

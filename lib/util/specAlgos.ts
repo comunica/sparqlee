@@ -17,7 +17,7 @@ function modulo3(a: number, low: number, high: number): number {
   return modulo(a - low, high - low) + low;
 }
 
-function maximumDayInMonthFor(yearValue: number, monthValue: number): number {
+export function maximumDayInMonthFor(yearValue: number, monthValue: number): number {
   const month = modulo3(monthValue, 1, 13);
   const year = yearValue + fQuotient3(monthValue, 1, 13);
 

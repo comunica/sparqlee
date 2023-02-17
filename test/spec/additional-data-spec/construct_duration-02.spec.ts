@@ -1,7 +1,7 @@
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
-describe('create duration', () => {
+describe('Construct duration', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (xsd:duration(?literal) AS ?duration) WHERE {
@@ -19,7 +19,7 @@ describe('create duration', () => {
 
   describe('respect the construct_duration-02 spec', () => {
     runTestTable({
-      operation: 'xsd:date',
+      operation: 'xsd:duration',
       arity: 1,
       notation: Notation.Function,
       errorTable: `

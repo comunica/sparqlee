@@ -1,7 +1,7 @@
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
-describe('create time', () => {
+describe('Construct time', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (xsd:time(?literal) AS ?time) WHERE {

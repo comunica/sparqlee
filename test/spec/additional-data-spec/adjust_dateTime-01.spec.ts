@@ -2,7 +2,7 @@ import { dateTimeNotation, dayTimeDurationNotation } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
-describe('create duration', () => {
+describe('adjust dateTime duration', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT ?id ?adjusted WHERE {
@@ -17,7 +17,7 @@ describe('create duration', () => {
    * }
    */
 
-  describe.skip('respect the construct_duration-02 spec', () => {
+  describe.skip('respect the adjust_dateTime-01 spec', () => {
     runTestTable({
       operation: 'ADJUST',
       arity: 2,

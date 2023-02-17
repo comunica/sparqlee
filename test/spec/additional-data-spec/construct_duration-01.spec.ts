@@ -3,7 +3,7 @@ import { compactTermString } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
-describe('create duration', () => {
+describe('construct duration', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (xsd:duration(?literal) AS ?duration) WHERE {

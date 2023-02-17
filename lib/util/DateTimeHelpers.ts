@@ -4,6 +4,7 @@ import type {
   ITimeRepresentation,
   ITimeZoneRepresentation,
 } from './InternalRepresentations';
+import { maximumDayInMonthFor } from './specAlgos';
 
 function numSer(num: number, min = 2): string {
   return num.toLocaleString(undefined, { minimumIntegerDigits: min, useGrouping: false });
@@ -49,17 +50,25 @@ function timeZoneSerializer(tz: Partial<ITimeZoneRepresentation>): string {
 
 export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#date-lexical-representation
-  const dateStrings = dateStr.replace(
+  const formatted = dateStr.replace(
     /^(-)?([123456789]*\d{4})-(\d\d)-(\d\d)(Z|([+-]\d\d:\d\d))?$/gu, '$11!$2!$3!$4!$5',
-  ).split('!');
+  );
+  if (formatted === dateStr) {
+    throw new Error('nono');
+  }
+  const dateStrings = formatted.split('!');
   const date = dateStrings.slice(0, -1).map(str => Number(str));
 
-  return {
+  const res = {
     year: date[0] * date[1],
     month: date[2],
     day: date[3],
     ...timeZoneParser(dateStrings[4]),
   };
+  if (!(1 <= res.month && res.month <= 12) || !(1 <= res.day && res.day <= maximumDayInMonthFor(res.year, res.month))) {
+    throw new Error('nono');
+  }
+  return res;
 }
 
 export function rawTimeZoneExtractor(zoneContained: string): string {
@@ -79,12 +88,18 @@ export function timeParser(timeStr: string, errorCreator?: () => Error): ITimeRe
   const timeStrings = formatted.split('!');
   const time = timeStrings.slice(0, -1).map(str => Number(str));
 
-  return {
+  const res = {
     hours: time[0],
     minutes: time[1],
     seconds: time[2],
     ...timeZoneParser(timeStrings[3]),
   };
+
+  if (res.seconds >= 60 || res.minutes >= 60 || res.hours > 24 ||
+    (res.hours === 24 && (res.minutes !== 0 || res.seconds !== 0))) {
+    throw new Error('nono');
+  }
+  return res;
 }
 
 export function timeSerializer(time: ITimeRepresentation): string {
@@ -96,13 +111,25 @@ export function durationParser(durationStr: string): Partial<IDurationRepresenta
   const [ dayNotation, timeNotation ] = durationStr.split('T');
 
   // Handle date part
-  const durationStrings = dayNotation.replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S!$2!$3!$4').split('!');
+  const formattedDayDur = dayNotation.replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S!$2!$3!$4');
+  if (formattedDayDur === dayNotation) {
+    throw new Error('nono');
+  }
+
+  const durationStrings = formattedDayDur.split('!');
   if (timeNotation !== undefined) {
-    // TODO: Check if string is correct and throw error if not
-    durationStrings.push(...timeNotation
-      .replace(/^(\d+H)?(\d+M)?(\d+(\.\d+)?S)?$/gu, '$1!$2!$3').split('!'));
+    const formattedTimeDur = timeNotation.replace(/^(\d+H)?(\d+M)?(\d+(\.\d+)?S)?$/gu, '$1!$2!$3');
+
+    if (timeNotation === '' || timeNotation === formattedTimeDur) {
+      throw new Error('nono');
+    }
+    durationStrings.push(...formattedTimeDur.split('!'));
   }
   const duration = durationStrings.map(str => str.slice(0, -1));
+  if (!duration.slice(1).some(item => item)) {
+    throw new Error('nono');
+  }
+
   const sign = <-1 | 1> Number(duration[0]);
   return {
     year: duration[1] ? sign * Number(duration[1]) : undefined,
