@@ -72,14 +72,8 @@ export function defaultedDateTimeRepresentation(rep: Partial<IDateTimeRepresenta
   };
 }
 
-// Interface used internally for dates. JS dates are UTC, all you can do is ask your system offset.
-export interface IInternalJSDate {
-  // TODO: do we actually need/ use this?
-  date: Date;
-  timeZone: ITimeZoneRepresentation;
-}
-
-export function toDateTimeRepresentation({ date, timeZone }: IInternalJSDate): IDateTimeRepresentation {
+export function toDateTimeRepresentation({ date, timeZone }:
+{ date: Date; timeZone: ITimeZoneRepresentation }): IDateTimeRepresentation {
   return {
     year: date.getFullYear(),
     month: date.getMonth() + 1,
@@ -142,4 +136,17 @@ export function toUTCDate(date: Partial<IDateTimeRepresentation>,
 
 export function durationToMillies(dur: Partial<IDurationRepresentation>): number {
   return toJSDate(convertDurationToDateTime(defaultedDurationRepresentation(dur))).getTime();
+}
+
+export function extractYearMonthDur(dur: Partial<IDurationRepresentation>): Partial<IYearMonthDuration> {
+  return { year: dur.year, month: dur.month };
+}
+
+export function extractDayTimeDur(dur: Partial<IDurationRepresentation>): Partial<IDayTimeDurationRepresentation> {
+  return {
+    day: dur.day,
+    hours: dur.hours,
+    minutes: dur.minutes,
+    seconds: dur.seconds,
+  };
 }
