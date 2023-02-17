@@ -1,4 +1,4 @@
-import { bool, dateNotation, timeNotation } from '../../util/Aliases';
+import { bool, timeNotation } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 

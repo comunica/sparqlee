@@ -1,12 +1,10 @@
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
 import {
   dateNotation,
   dateTimeNotation,
-  dayTimeDurationNotation,
-  timeNotation,
-  yearMonthDurationNotation
-} from "../../util/Aliases";
+  yearMonthDurationNotation,
+} from '../../util/Aliases';
+import { Notation } from '../../util/TestTable';
+import { runTestTable } from '../../util/utils';
 
 describe('Add duration and yearMonthDuration 01', () => {
   /**

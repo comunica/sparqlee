@@ -160,8 +160,8 @@ const subtraction = {
         const res = addDurationToDateTime(first, second);
         return new E.DayTimeDurationLiteral(res, toUTCDate(res, { zoneMinutes: 0, zoneHours: 0 }).toISOString());
       })
-    .copy({from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
-    .copy({from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_TIME, TypeURL.XSD_TIME ]})
+    .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
+    .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_TIME, TypeURL.XSD_TIME ]})
     .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
       ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) => {
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-dateTime

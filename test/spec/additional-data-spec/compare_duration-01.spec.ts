@@ -1,4 +1,4 @@
-import {bool, dayTimeDurationNotation, durationNotation, yearMonthDurationNotation} from '../../util/Aliases';
+import { bool, durationNotation } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 

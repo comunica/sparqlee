@@ -2,7 +2,6 @@ import type { ICompleteSharedContext } from '../evaluators/evaluatorHelpers/Base
 import type * as E from '../expressions';
 import { isLiteralTermExpression } from '../expressions';
 import type { KnownLiteralTypes } from '../util/Consts';
-import { TypeURL } from '../util/Consts';
 import type { GeneralSuperTypeDict, ISuperTypeProvider, OverrideType } from '../util/TypeHandling';
 import {
   asGeneralType,
@@ -11,7 +10,6 @@ import {
   getSuperTypes,
   superTypeDictTable, typePromotion,
 } from '../util/TypeHandling';
-import { double, float, string } from './Helpers';
 import type { ArgumentType } from './Core';
 
 export type SearchStack = OverloadTree[];
