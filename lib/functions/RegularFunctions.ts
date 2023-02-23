@@ -107,7 +107,7 @@ function RDFTermEqual(_left: Term, _right: Term): boolean {
   const left = _left.toRDF();
   const right = _right.toRDF();
   const val = left.equals(right);
-  if ((left.termType === 'Literal') && (right.termType === 'Literal')) {
+  if (!val && (left.termType === 'Literal') && (right.termType === 'Literal')) {
     throw new Err.RDFEqualTypeError([ _left, _right ]);
   }
   return val;
