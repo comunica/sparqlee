@@ -219,7 +219,9 @@ export type NamedOperator =
   | TypeURL.XSD_DATE
   | TypeURL.XSD_BOOLEAN
   | TypeURL.XSD_TIME
-  | TypeURL.XSD_DURATION;
+  | TypeURL.XSD_DURATION
+  | TypeURL.XSD_DAY_TIME_DURATION
+  | TypeURL.XSD_YEAR_MONTH_DURATION;
 
 export const NamedOperators = new Set([
   TypeURL.XSD_STRING,
@@ -232,4 +234,6 @@ export const NamedOperators = new Set([
   TypeURL.XSD_BOOLEAN,
   TypeURL.XSD_TIME,
   TypeURL.XSD_DURATION,
+  TypeURL.XSD_DAY_TIME_DURATION,
+  TypeURL.XSD_YEAR_MONTH_DURATION,
 ]);

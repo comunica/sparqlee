@@ -148,9 +148,9 @@ export function durationParser(durationStr: string): Partial<IDurationRepresenta
   };
 }
 
-export function durationSerializer(dur: Partial<IDurationRepresentation>): string {
+export function durationSerializer(dur: Partial<IDurationRepresentation>, zeroString: 'PT0S' | 'P0M' = 'PT0S'): string {
   if (!Object.values(dur).some(val => (val || 0) !== 0)) {
-    return 'PT0S';
+    return zeroString;
   }
   const negative: boolean = Object.values(dur).some(val => (val || 0) < 0);
   const hasTimeField = !!(dur.hours || dur.minutes || dur.seconds);

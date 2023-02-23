@@ -1,3 +1,4 @@
+import { dayTimeDurationNotation, durationNotation, yearMonthDurationNotation } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
@@ -284,6 +285,39 @@ describe('evaluation of XPath constructors', () => {
         "1E0"^^xsd:string = ''
         "2002-10-10T17:00:00Z"^^xsd:string = ''
         "foo"^^xsd:boolean = ''
+      `,
+    });
+  });
+
+  describe('to duration', () => {
+    runTestTable({
+      arity: 1,
+      notation: Notation.Function,
+      operation: 'xsd:duration',
+      testTable: `
+        ${durationNotation('-PT10H')} = ${durationNotation('-PT10H')}
+      `,
+    });
+  });
+
+  describe('to yearMonthDuration', () => {
+    runTestTable({
+      arity: 1,
+      notation: Notation.Function,
+      operation: 'xsd:yearMonthDuration',
+      testTable: `
+        ${durationNotation('-PT10H')} = ${yearMonthDurationNotation('P0M')}
+      `,
+    });
+  });
+
+  describe('to dayTimeDuration', () => {
+    runTestTable({
+      arity: 1,
+      notation: Notation.Function,
+      operation: 'xsd:dayTimeDuration',
+      testTable: `
+        ${durationNotation('-PT10H')} = ${dayTimeDurationNotation('-PT10H')}
       `,
     });
   });

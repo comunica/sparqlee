@@ -3,7 +3,7 @@ import { dateSerializer, dateTimeSerializer, durationSerializer, timeSerializer 
 import type {
   IDateRepresentation,
   IDateTimeRepresentation, IDurationRepresentation,
-  ITimeRepresentation,
+  ITimeRepresentation, IYearMonthDurationRepresentation,
 } from '../util/InternalRepresentations';
 import { Literal } from './Term';
 
@@ -47,22 +47,19 @@ export class DurationLiteral extends Literal<Partial<IDurationRepresentation>> {
   }
 }
 
-export class YearMonthDurationLiteral extends Literal<Partial<IDurationRepresentation>> {
+export class DayTimeDurationLiteral extends DurationLiteral {
   public constructor(public typedValue: Partial<IDurationRepresentation>, public strValue?: string, dataType?: string) {
+    super(typedValue, strValue, dataType || TypeURL.XSD_DAY_TIME_DURATION);
+  }
+}
+
+export class YearMonthDurationLiteral extends Literal<Partial<IYearMonthDurationRepresentation>> {
+  public constructor(public typedValue: Partial<IYearMonthDurationRepresentation>, public strValue?: string,
+    dataType?: string) {
     super(typedValue, dataType || TypeURL.XSD_YEAR_MONTH_DURATION, strValue);
   }
 
   public str(): string {
-    return durationSerializer(this.typedValue);
-  }
-}
-
-export class DayTimeDurationLiteral extends Literal<Partial<IDurationRepresentation>> {
-  public constructor(public typedValue: Partial<IDurationRepresentation>, public strValue?: string, dataType?: string) {
-    super(typedValue, dataType || TypeURL.XSD_DAY_TIME_DURATION, strValue);
-  }
-
-  public str(): string {
-    return durationSerializer(this.typedValue);
+    return durationSerializer(this.typedValue, 'P0M');
   }
 }

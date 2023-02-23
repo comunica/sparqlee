@@ -27,12 +27,12 @@ export interface IDayTimeDurationRepresentation {
   seconds: number;
   day: number;
 }
-export interface IYearMonthDuration {
+export interface IYearMonthDurationRepresentation {
   year: number;
   month: number;
 }
 
-export type IDurationRepresentation = IYearMonthDuration & IDayTimeDurationRepresentation;
+export type IDurationRepresentation = IYearMonthDurationRepresentation & IDayTimeDurationRepresentation;
 export type IDateTimeRepresentation = IDateRepresentation & ITimeRepresentation;
 
 // Important is to notice JS and XSD datatypes have different defaulted values
@@ -145,11 +145,27 @@ export function toUTCDate(date: Partial<IDateTimeRepresentation>,
   );
 }
 
+export function ensureYearMonthDuration(dur: Partial<IDurationRepresentation>): Partial<IYearMonthDurationRepresentation> {
+  return {
+    year: dur.year,
+    month: dur.month,
+  };
+}
+
+export function ensureDayTimeDuration(dur: Partial<IDurationRepresentation>): Partial<IDayTimeDurationRepresentation> {
+  return {
+    day: dur.day,
+    hours: dur.hours,
+    minutes: dur.minutes,
+    seconds: dur.seconds,
+  };
+}
+
 export function durationToMillies(dur: Partial<IDurationRepresentation>): number {
   return toJSDate(convertDurationToDateTime(defaultedDurationRepresentation(dur))).getTime();
 }
 
-export function extractYearMonthDur(dur: Partial<IDurationRepresentation>): Partial<IYearMonthDuration> {
+export function extractYearMonthDur(dur: Partial<IDurationRepresentation>): Partial<IYearMonthDurationRepresentation> {
   return { year: dur.year, month: dur.month };
 }
 
