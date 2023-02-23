@@ -235,12 +235,17 @@ describe('evaluation of XPath constructors', () => {
         "1999-03-17T06:00:00Z" = "1999-03-17T06:00:00Z"^^xsd:dateTime
         "1999-03-17T06:00:00+02:30" = "1999-03-17T06:00:00+02:30"^^xsd:dateTime
         "1999-03-17T06:00:00" = "1999-03-17T06:00:00"^^xsd:dateTime
+        
+        "1999-03-17Z"^^xsd:date = "1999-03-17T00:00:00Z"^^xsd:dateTime
+        "1999-03-17"^^xsd:date = "1999-03-17T00:00:00"^^xsd:dateTime 
+        "1999-03-17+07:25"^^xsd:date = "1999-03-17T00:00:00+07:25"^^xsd:dateTime
+        "1999-03-17-07:25"^^xsd:date = "1999-03-17T00:00:00-07:25"^^xsd:dateTime
       `,
-      // TODO: Is not a valid dateTime? "1999-03-17" = "1999-03-17"^^xsd:dateTime
       errorTable: `
         "foo" = ''
         "1234567789"^^xsd:integer = ''
         "foo"^^xsd:dateTime = ''
+        "1999-03-17" = ''
       `,
     });
   });
@@ -289,6 +294,46 @@ describe('evaluation of XPath constructors', () => {
     });
   });
 
+  describe('to date', () => {
+    runTestTable({
+      arity: 1,
+      notation: Notation.Function,
+      operation: 'xsd:date',
+      testTable: `
+        "1999-03-17T06:00:00Z"^^xsd:dateTime = "1999-03-17Z"^^xsd:date
+        "1999-03-17T06:00:00"^^xsd:dateTime = "1999-03-17"^^xsd:date
+        "1999-03-17T06:00:00+07:25"^^xsd:dateTime = "1999-03-17+07:25"^^xsd:date
+        "1999-03-17T06:00:00-07:25"^^xsd:dateTime = "1999-03-17-07:25"^^xsd:date
+        
+        "1999-03-17"^^xsd:date = "1999-03-17"^^xsd:date
+        "1999-03-17Z"^^xsd:date = "1999-03-17Z"^^xsd:date
+      `,
+      errorTable: `
+        "1999-03-17ZZ"^^xsd:date = ''
+      `,
+    });
+  });
+
+  describe('to time', () => {
+    runTestTable({
+      arity: 1,
+      notation: Notation.Function,
+      operation: 'xsd:time',
+      testTable: `
+        "1999-03-17T06:00:00Z"^^xsd:dateTime = "06:00:00Z"^^xsd:time
+        "1999-03-17T06:00:00"^^xsd:dateTime = "06:00:00"^^xsd:time
+        "1999-03-17T06:00:00+07:25"^^xsd:dateTime = "06:00:00+07:25"^^xsd:time
+        "1999-03-17T06:00:00-07:25"^^xsd:dateTime = "06:00:00-07:25"^^xsd:time
+        
+        "06:00:00+07:25"^^xsd:time = "06:00:00+07:25"^^xsd:time
+        "06:00:00"^^xsd:time = "06:00:00"^^xsd:time
+      `,
+      errorTable: `
+        "06:00:00Z+00:00"^^xsd:time = ''
+      `,
+    });
+  });
+
   describe('to duration', () => {
     runTestTable({
       arity: 1,
@@ -307,6 +352,11 @@ describe('evaluation of XPath constructors', () => {
       operation: 'xsd:yearMonthDuration',
       testTable: `
         ${durationNotation('-PT10H')} = ${yearMonthDurationNotation('P0M')}
+        ${durationNotation('-P5Y6M')} = ${yearMonthDurationNotation('-P5Y6M')}
+        '"P5Y30M"' = ${yearMonthDurationNotation('P5Y30M')}
+      `,
+      errorTable: `
+        '"-PT10H"' = ''
       `,
     });
   });
@@ -318,6 +368,11 @@ describe('evaluation of XPath constructors', () => {
       operation: 'xsd:dayTimeDuration',
       testTable: `
         ${durationNotation('-PT10H')} = ${dayTimeDurationNotation('-PT10H')}
+        ${durationNotation('PT5S')} = ${dayTimeDurationNotation('PT5S')}
+        '"-PT10H"' = '${dayTimeDurationNotation('-PT10H')}'
+      `,
+      errorTable: `
+        '"P5Y30M"' = ''
       `,
     });
   });

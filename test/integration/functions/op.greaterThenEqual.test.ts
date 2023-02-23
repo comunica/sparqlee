@@ -1,4 +1,4 @@
-import { bool, dateTime, merge, numeric, str } from '../../util/Aliases';
+import { bool, dateTime, merge, numeric, str, yearMonthDurationNotation } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import type { ITestTableConfigBase } from '../../util/utils';
 import { runTestTable } from '../../util/utils';
@@ -95,6 +95,19 @@ describe('evaluation of \'>=\'', () => {
         lateZ earlyZ  = true
     
         edge1 edge2   = true
+      `,
+    });
+  });
+
+  describe('with yearMonthDuration operands like', () => {
+    runTestTable({
+      ...config,
+      testTable: `
+        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P1Y')}' = true
+        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P12M')}' = true
+        '${yearMonthDurationNotation('P1Y1M')}' '${yearMonthDurationNotation('P12M')}' = true
+        '${yearMonthDurationNotation('P1M')}' '${yearMonthDurationNotation('-P2M')}' = true
+        '${yearMonthDurationNotation('-P1Y')}' '${yearMonthDurationNotation('P13M')}' = false
       `,
     });
   });

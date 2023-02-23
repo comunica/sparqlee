@@ -1,9 +1,11 @@
+import { UnexpectedError } from './Errors';
 import type {
-  IDateRepresentation, IDateTimeRepresentation,
+  IDateRepresentation, IDateTimeRepresentation, IDayTimeDurationRepresentation,
   IDurationRepresentation,
   ITimeRepresentation,
-  ITimeZoneRepresentation,
+  ITimeZoneRepresentation, IYearMonthDurationRepresentation,
 } from './InternalRepresentations';
+import { extractDayTimeDur } from './InternalRepresentations';
 import { maximumDayInMonthFor } from './specAlgos';
 
 function numSer(num: number, min = 2): string {
@@ -45,7 +47,7 @@ function timeZoneSerializer(tz: Partial<ITimeZoneRepresentation>): string {
   if (tz.zoneHours === 0 && tz.zoneMinutes === 0) {
     return 'Z';
   }
-  return `${numSer(tz.zoneHours)}:${numSer(Math.abs(tz.zoneMinutes))}`;
+  return `${tz.zoneHours >= 0 ? `+${numSer(tz.zoneHours)}` : numSer(tz.zoneHours)}:${numSer(Math.abs(tz.zoneMinutes))}`;
 }
 
 export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRepresentation {
@@ -72,7 +74,12 @@ export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRe
 }
 
 export function rawTimeZoneExtractor(zoneContained: string): string {
-  return (/(Z|([+-]\d\d:\d\d))?$/u.exec(zoneContained) || [ '' ])[0];
+  // TODO: Write a unit test for this one
+  const extraction = /^(Z|([+-]\d\d:\d\d))?$/u.exec(zoneContained);
+  if (!extraction || extraction.length === 0) {
+    throw new UnexpectedError('raw timeZone requested on an invalid timezone');
+  }
+  return extraction[0];
 }
 
 export function dateSerializer(date: IDateRepresentation): string {
@@ -146,6 +153,28 @@ export function durationParser(durationStr: string): Partial<IDurationRepresenta
     minutes: duration[5] ? sign * Number(duration[5]) : undefined,
     seconds: duration[6] ? sign * Number(duration[6]) : undefined,
   };
+}
+
+export function yearMonthDurationParser(durationStr: string): Partial<IYearMonthDurationRepresentation> {
+  const res = durationParser(durationStr);
+  if (Object.entries(res).some(([ key, value ]) => value !== undefined && ![ 'year', 'month' ].includes(key))) {
+    throw new Error('nono');
+  }
+  return res;
+}
+
+export function dayTimeDurationParser(durationStr: string): Partial<IDayTimeDurationRepresentation> {
+  const res = durationParser(durationStr);
+  const filtered = extractDayTimeDur(res);
+  if (Object.entries(res).some(([ key, value ]) => value !== undefined && ![
+    'hours',
+    'minutes',
+    'seconds',
+    'day',
+  ].includes(key))) {
+    throw new Error('nono');
+  }
+  return res;
 }
 
 export function durationSerializer(dur: Partial<IDurationRepresentation>, zeroString: 'PT0S' | 'P0M' = 'PT0S'): string {

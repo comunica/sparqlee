@@ -27,6 +27,7 @@ export interface IDayTimeDurationRepresentation {
   seconds: number;
   day: number;
 }
+
 export interface IYearMonthDurationRepresentation {
   year: number;
   month: number;
@@ -145,7 +146,8 @@ export function toUTCDate(date: Partial<IDateTimeRepresentation>,
   );
 }
 
-export function ensureYearMonthDuration(dur: Partial<IDurationRepresentation>): Partial<IYearMonthDurationRepresentation> {
+export function ensureYearMonthDuration(dur: Partial<IDurationRepresentation>):
+Partial<IYearMonthDurationRepresentation> {
   return {
     year: dur.year,
     month: dur.month,

@@ -3,7 +3,14 @@ import * as E from '../expressions';
 import { DurationLiteral } from '../expressions';
 import type * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
-import { dateParser, dateTimeParser, durationParser, timeParser } from '../util/DateTimeHelpers';
+import {
+  dateParser,
+  dateTimeParser,
+  dayTimeDurationParser,
+  durationParser,
+  timeParser,
+  yearMonthDurationParser,
+} from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 
 import { ensureDayTimeDuration, ensureYearMonthDuration } from '../util/InternalRepresentations';
@@ -120,7 +127,7 @@ const xsdToDatetime = {
   overloads: declare(TypeURL.XSD_DATE_TIME)
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: E.DateTimeLiteral) => val)
     .onUnary(TypeURL.XSD_STRING, () => (val: Term) =>
-      dateTime(dateTimeParser(val.str(), () => new Err.CastError(val, TypeURL.XSD_DATE_TIME)), val.str()))
+      dateTime(dateTimeParser(val.str()), val.str()))
     .onUnary(TypeURL.XSD_DATE, () => (val: E.DateLiteral) =>
       new E.DateTimeLiteral({ ...val.typedValue, hours: 0, minutes: 0, seconds: 0 }))
     .copy({ from: [ TypeURL.XSD_STRING ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
@@ -197,7 +204,7 @@ const xsdToDayTimeDuration = {
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
       new E.DayTimeDurationLiteral(ensureDayTimeDuration(val.typedValue)))
     .onStringly1(() => (val: Term) =>
-      new E.DayTimeDurationLiteral(durationParser(val.str()), val.str()))
+      new E.DayTimeDurationLiteral(dayTimeDurationParser(val.str()), val.str()))
     .collect(),
 };
 
@@ -210,7 +217,7 @@ const xsdToYearMonthDuration = {
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
       new E.YearMonthDurationLiteral(ensureYearMonthDuration(val.typedValue)))
     .onStringly1(() => (val: Term) =>
-      new E.YearMonthDurationLiteral(durationParser(val.str()), val.str()))
+      new E.YearMonthDurationLiteral(yearMonthDurationParser(val.str()), val.str()))
     .collect(),
 };
 

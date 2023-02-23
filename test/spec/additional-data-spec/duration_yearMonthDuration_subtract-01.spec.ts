@@ -1,6 +1,6 @@
 import {
   dateNotation,
-  dateTimeNotation,
+  dateTimeNotation, dayTimeDurationNotation,
   yearMonthDurationNotation,
 } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
@@ -26,6 +26,7 @@ describe('subtract duration and dayTimeDuration 01', () => {
       testTable: `
         '${dateTimeNotation('2019-05-28T12:14:45Z')}' '${yearMonthDurationNotation('P1Y')}' = '${dateTimeNotation('2018-05-28T12:14:45Z')}'
         '${dateNotation('2019-05-28')}' '${yearMonthDurationNotation('P1Y')}' = '${dateNotation('2018-05-28')}'
+        '${dateTimeNotation('2000-10-30T11:12:00')}' '${dayTimeDurationNotation('P3DT1H15M5S')}' = '${dateTimeNotation('2000-10-27T09:56:55')}'
       `,
     });
   });

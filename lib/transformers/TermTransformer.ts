@@ -4,7 +4,14 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import { Algebra } from 'sparqlalgebrajs';
 import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
-import { dateParser, dateTimeParser, durationParser, timeParser } from '../util/DateTimeHelpers';
+import {
+  dateParser,
+  dateTimeParser,
+  dayTimeDurationParser,
+  durationParser,
+  timeParser,
+  yearMonthDurationParser,
+} from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
@@ -68,6 +75,7 @@ export class TermTransformer implements ITermTransformer {
     const dataType = lit.datatype.value;
     const superTypeDict: GeneralSuperTypeDict = getSuperTypeDict(dataType, this.superTypeProvider);
 
+    // The order of checking matters! Check most specific types first!
     if (TypeURL.XSD_STRING in superTypeDict) {
       return new E.StringLiteral(lit.value, dataType);
     }
@@ -75,15 +83,15 @@ export class TermTransformer implements ITermTransformer {
       return new E.LangStringLiteral(lit.value, lit.language);
     }
     if (TypeURL.XSD_YEAR_MONTH_DURATION in superTypeDict) {
-      return new E.YearMonthDurationLiteral(durationParser(lit.value), lit.value, dataType);
+      return new E.YearMonthDurationLiteral(yearMonthDurationParser(lit.value), lit.value, dataType);
+    }
+    if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
+      return new E.DayTimeDurationLiteral(dayTimeDurationParser(lit.value), lit.value, dataType);
     }
     // TODO: maybe the special notations need to be checked so we don't Years in a DayTimeDuration? ...
     if (TypeURL.XSD_DURATION in superTypeDict) {
       // TODO: All of these new parsers can fail, a failure should result in a NonLexicalLiteral!
       return new E.DurationLiteral(durationParser(lit.value), lit.value, dataType);
-    }
-    if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
-      return new E.DayTimeDurationLiteral(durationParser(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_DATE_TIME in superTypeDict) {
       // TODO: this is no longer true. I don't know what the talk about timestamp is though

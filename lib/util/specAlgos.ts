@@ -62,15 +62,19 @@ IDateTimeRepresentation {
   carry = fQuotient(temp, 24);
 
   // Days
-  let tempDays;
   temp = maximumDayInMonthFor(newDate.year, newDate.month);
-  if (date.day > temp) {
-    tempDays = temp;
-  } else if (date.day < 1) {
-    tempDays = 1;
-  } else {
-    tempDays = date.day;
-  }
+  // Defined spec code can not happen since it would be an invalid literal?
+  //
+  // if (date.day > temp) {
+  // tempDays = temp;
+  // } else if (date.day < 1) {
+  // tempDays = 1;
+  // } else {
+  // tempDays = date.day;
+  // }
+  //
+  const tempDays = date.day;
+
   newDate.day = tempDays + duration.day + carry;
   while (true) {
     if (newDate.day < 1) {
