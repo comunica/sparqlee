@@ -14,7 +14,7 @@ function numSer(num: number, min = 2): string {
 export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error): IDateTimeRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#dateTime
   const [ date, time ] = dateTimeStr.split('T');
-  return { ...dateParser(date, errorCreator), ...timeParser(time, errorCreator) };
+  return { ...dateParser(date, errorCreator), ...internalTimeParser(time, errorCreator) };
 }
 
 export function dateTimeSerializer(date: IDateTimeRepresentation): string {
@@ -79,7 +79,7 @@ export function dateSerializer(date: IDateRepresentation): string {
   return `${numSer(date.year, 4)}-${numSer(date.month)}-${numSer(date.day)}${timeZoneSerializer(date)}`;
 }
 
-export function timeParser(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
+function internalTimeParser(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
   const formatted = timeStr.replace(/^(\d\d):(\d\d):(\d\d(\.\d+)?)(Z|([+-]\d\d:\d\d))?$/gu, '$1!$2!$3!$5');
   if (formatted === timeStr) {
@@ -99,6 +99,13 @@ export function timeParser(timeStr: string, errorCreator?: () => Error): ITimeRe
     (res.hours === 24 && (res.minutes !== 0 || res.seconds !== 0))) {
     throw new Error('nono');
   }
+  return res;
+}
+
+export function timeParser(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
+  // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
+  const res = internalTimeParser(timeStr, errorCreator);
+  res.hours %= 24;
   return res;
 }
 
@@ -146,7 +153,7 @@ export function durationSerializer(dur: Partial<IDurationRepresentation>): strin
     return 'PT0S';
   }
   const negative: boolean = Object.values(dur).some(val => (val || 0) < 0);
-  const hasTimeField: boolean = dur.hours !== undefined || dur.minutes !== undefined || dur.seconds !== undefined;
+  const hasTimeField = !!(dur.hours || dur.minutes || dur.seconds);
   return `${negative ? '-' : ''}P${dur.year ? `${Math.abs(dur.year)}Y` : ''}${dur.month ?
     `${Math.abs(dur.month)}M` :
     ''}${dur.day ?

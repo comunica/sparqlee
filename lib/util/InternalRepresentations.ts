@@ -99,6 +99,17 @@ export function convertDurationToDateTime(dur: IDurationRepresentation): IDateTi
   };
 }
 
+export function negateDuration(dur: Partial<IDurationRepresentation>): Partial<IDurationRepresentation> {
+  return {
+    year: dur.year !== undefined ? -1 * dur.year : undefined,
+    month: dur.month !== undefined ? -1 * dur.month : undefined,
+    day: dur.day !== undefined ? -1 * dur.day : undefined,
+    hours: dur.hours !== undefined ? -1 * dur.hours : undefined,
+    minutes: dur.minutes !== undefined ? -1 * dur.minutes : undefined,
+    seconds: dur.seconds !== undefined ? -1 * dur.seconds : undefined,
+  };
+}
+
 export function toJSDate(date: IDateTimeRepresentation): Date {
   // The given hours will be assumed to be local time.
   const res = new Date(

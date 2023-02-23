@@ -13,18 +13,16 @@ import { TypeAlias, TypeURL } from '../util/Consts';
 import { rawTimeZoneExtractor } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import type {
-  IDateRepresentation,
   IDayTimeDurationRepresentation,
-  IDurationRepresentation,
 } from '../util/InternalRepresentations';
 import {
   defaultedDateTimeRepresentation,
   defaultedDurationRepresentation,
-  durationToMillies, extractDayTimeDur, extractYearMonthDur,
+  durationToMillies, extractDayTimeDur, extractYearMonthDur, negateDuration,
   toDateTimeRepresentation,
   toUTCDate,
 } from '../util/InternalRepresentations';
-import { addDurationToDateTime } from '../util/specAlgos';
+import { addDurationToDateTime, elapsedDuration } from '../util/specAlgos';
 import type { IOverloadedDefinition } from './Core';
 import { bool, decimal, declare, double, integer, langString, string } from './Helpers';
 import * as X from './XPathFunctions';
@@ -135,97 +133,34 @@ const subtraction = {
   overloads: declare(C.RegularOperator.SUBTRACTION)
     .arithmetic(() => (left, right) => new BigNumber(left).minus(right).toNumber())
     .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], ({ defaultTimeZone }) =>
-      ([ date1, date2 ]: [ E.DateTimeLiteral, E.DateTimeLiteral ]) => {
-        // https://www.w3.org/TR/xpath-functions/#func-subtract-dateTimes
-        const first = {
-          // Order of unpacking is vital!
-          ...defaultTimeZone,
-          ...defaultedDateTimeRepresentation(date1.typedValue),
-        };
-        first.hours -= first.zoneHours;
-        first.minutes -= first.zoneMinutes;
-        first.zoneHours = 0;
-        first.zoneMinutes = 0;
-
-        const second = {
-          ...defaultTimeZone,
-          ...defaultedDateTimeRepresentation(date2.typedValue),
-        };
-        second.hours += second.zoneHours;
-        second.minutes += second.zoneMinutes;
-        second.zoneHours = 0;
-        second.zoneMinutes = 0;
-        second.year *= -1;
-        second.month *= -1;
-        second.day *= -1;
-        second.hours *= -1;
-        second.minutes *= -1;
-        second.seconds *= -1;
-        const res = addDurationToDateTime(first, second);
-        return new E.DayTimeDurationLiteral(res, toUTCDate(res, { zoneMinutes: 0, zoneHours: 0 }).toISOString());
-      })
+      ([ date1, date2 ]: [ E.DateTimeLiteral, E.DateTimeLiteral ]) =>
+        // https://www.w3.org/TR/xpath-functions/#func-subtract-dateTimes;
+        new E.DayTimeDurationLiteral(elapsedDuration(date1.typedValue, date2.typedValue, defaultTimeZone)))
     .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
     .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_TIME, TypeURL.XSD_TIME ]})
     .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
-      ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) => {
+      ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) =>
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-dateTime
-        const neg: IDurationRepresentation = defaultedDurationRepresentation(dur.typedValue);
-        neg.seconds *= -1;
-        neg.minutes *= -1;
-        neg.hours *= -1;
-        neg.day *= -1;
-        neg.month *= -1;
-        neg.year *= -1;
-        const res = addDurationToDateTime(date.typedValue, neg);
-        return new E.DateTimeLiteral(res, toUTCDate(res, {
-          zoneMinutes: 0,
-          zoneHours: 0,
-        }).toISOString());
-      })
+        new E.DateTimeLiteral(addDurationToDateTime(date.typedValue,
+          defaultedDurationRepresentation(negateDuration(dur.typedValue)))))
     .copy({
       from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
       to: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_YEAR_MONTH_DURATION ],
     })
     .set([ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ], () =>
-      ([ date, dur ]: [ E.DateLiteral, E.DayTimeDurationLiteral ]) => {
+      ([ date, dur ]: [ E.DateLiteral, E.DayTimeDurationLiteral ]) =>
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-date
-        const neg: IDurationRepresentation = defaultedDurationRepresentation(dur.typedValue);
-        neg.seconds *= -1;
-        neg.minutes *= -1;
-        neg.hours *= -1;
-        neg.day *= -1;
-        neg.month *= -1;
-        neg.year *= -1;
-        const res = addDurationToDateTime(defaultedDateTimeRepresentation(date.typedValue), neg);
-        return new E.DateLiteral(res, toUTCDate(res, {
-          zoneMinutes: 0,
-          zoneHours: 0,
-        }).toISOString());
-      })
+        new E.DateLiteral(addDurationToDateTime(defaultedDateTimeRepresentation(date.typedValue),
+          defaultedDurationRepresentation(negateDuration(dur.typedValue)))))
     .copy({
       from: [ TypeURL.XSD_DATE, TypeURL.XSD_DAY_TIME_DURATION ],
       to: [ TypeURL.XSD_DATE, TypeURL.XSD_YEAR_MONTH_DURATION ],
     })
     .set([ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
-      ([ date, dur ]: [ E.TimeLiteral, E.DayTimeDurationLiteral ]) => {
+      ([ time, dur ]: [ E.TimeLiteral, E.DayTimeDurationLiteral ]) =>
         // https://www.w3.org/TR/xpath-functions/#func-subtract-dayTimeDuration-from-date
-        const neg: IDurationRepresentation = defaultedDurationRepresentation(dur.typedValue);
-        neg.seconds *= -1;
-        neg.minutes *= -1;
-        neg.hours *= -1;
-        neg.day *= -1;
-        neg.month *= -1;
-        neg.year *= -1;
-        const res = addDurationToDateTime(defaultedDateTimeRepresentation(date.typedValue), neg);
-        return new E.TimeLiteral(res, toUTCDate(res, {
-          zoneMinutes: 0,
-          zoneHours: 0,
-        }).toISOString());
-      })
-    .copy({
-      from: [ TypeURL.XSD_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
-      to: [ TypeURL.XSD_TIME, TypeURL.XSD_YEAR_MONTH_DURATION ],
-    })
+        new E.TimeLiteral(addDurationToDateTime(defaultedDateTimeRepresentation(time.typedValue),
+          defaultedDurationRepresentation(negateDuration(dur.typedValue)))))
     .collect(),
 };
 
@@ -238,7 +173,11 @@ const equality = {
     .booleanTest(() => (left, right) => left === right)
     .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
       toUTCDate(left, defaultTimeZone).getTime() === toUTCDate(right, defaultTimeZone).getTime())
-    .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
+    .copy({
+      // https://www.w3.org/TR/xpath-functions/#func-date-equal
+      from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ],
+      to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ],
+    })
     .set(
       [ 'term', 'term' ],
       () => ([ left, right ]) => bool(RDFTermEqual(left, right)),
@@ -249,17 +188,11 @@ const equality = {
           durationToMillies(extractYearMonthDur(dur2.typedValue)) &&
         durationToMillies(extractDayTimeDur(dur1.typedValue)) ===
           durationToMillies(extractDayTimeDur(dur2.typedValue))))
-    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) => ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) => {
-      const baseDate: IDateRepresentation = {
-        year: 1_972,
-        month: 11,
-        day: 31,
-      };
-      // TODO: this should be a more broad round!
-      const first = toUTCDate({ ...baseDate, ...time1.typedValue, hours: time1.typedValue.hours % 24 }, defaultTimeZone);
-      const second = toUTCDate({ ...baseDate, ...time2.typedValue, hours: time2.typedValue.hours % 24 }, defaultTimeZone);
-      return bool(first.getTime() === second.getTime());
-    })
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) =>
+      ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) =>
+        // https://www.w3.org/TR/xpath-functions/#func-time-equal
+        bool(toUTCDate(defaultedDateTimeRepresentation(time1.typedValue), defaultTimeZone).getTime() ===
+        toUTCDate(defaultedDateTimeRepresentation(time2.typedValue), defaultTimeZone).getTime()))
     .collect(),
 };
 
@@ -296,6 +229,11 @@ const lesserThan = {
     .booleanTest(() => (left, right) => left < right)
     .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
       toUTCDate(left, defaultTimeZone).getTime() < toUTCDate(right, defaultTimeZone).getTime())
+    .copy({
+      // https://www.w3.org/TR/xpath-functions/#func-date-less-than
+      from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ],
+      to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ],
+    })
     .set([ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ], () =>
       ([ dur1L, dur2L ]: [E.YearMonthDurationLiteral, E.YearMonthDurationLiteral]) =>
         // https://www.w3.org/TR/xpath-functions/#func-yearMonthDuration-less-than
@@ -303,18 +241,11 @@ const lesserThan = {
     .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
       // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-less-than
       to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
-    .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
-    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) => ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) => {
-      const baseDate: IDateRepresentation = {
-        year: 1_972,
-        month: 11,
-        day: 31,
-      };
-      // TODO: this should be a more broad round!
-      const first = toUTCDate({ ...baseDate, ...time1.typedValue, hours: time1.typedValue.hours % 24 }, defaultTimeZone);
-      const second = toUTCDate({ ...baseDate, ...time2.typedValue, hours: time2.typedValue.hours % 24 }, defaultTimeZone);
-      return bool(first.getTime() < second.getTime());
-    })
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) =>
+      ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) =>
+        // https://www.w3.org/TR/xpath-functions/#func-time-less-than
+        bool(toUTCDate(defaultedDateTimeRepresentation(time1.typedValue), defaultTimeZone).getTime() <
+          toUTCDate(defaultedDateTimeRepresentation(time2.typedValue), defaultTimeZone).getTime()))
     .collect(),
 };
 
@@ -326,6 +257,11 @@ const greaterThan = {
     .booleanTest(() => (left, right) => left > right)
     .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
       toUTCDate(left, defaultTimeZone).getTime() > toUTCDate(right, defaultTimeZone).getTime())
+    .copy({
+      // https://www.w3.org/TR/xpath-functions/#func-date-greater-than
+      from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ],
+      to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ],
+    })
     .set([ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ], () =>
       ([ dur1, dur2 ]: [E.YearMonthDurationLiteral, E.YearMonthDurationLiteral]) =>
         // https://www.w3.org/TR/xpath-functions/#func-yearMonthDuration-greater-than
@@ -333,18 +269,11 @@ const greaterThan = {
     .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
       // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-greater-than
       to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
-    .copy({ from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ]})
-    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) => ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) => {
-      const baseDate: IDateRepresentation = {
-        year: 1_972,
-        month: 11,
-        day: 31,
-      };
-      // TODO: this should be a more broad round!
-      const first = toUTCDate({ ...baseDate, ...time1.typedValue, hours: time1.typedValue.hours % 24 }, defaultTimeZone);
-      const second = toUTCDate({ ...baseDate, ...time2.typedValue, hours: time2.typedValue.hours % 24 }, defaultTimeZone);
-      return bool(first.getTime() > second.getTime());
-    })
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) =>
+      ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) =>
+        // https://www.w3.org/TR/xpath-functions/#func-time-greater-than
+        bool(toUTCDate(defaultedDateTimeRepresentation(time1.typedValue), defaultTimeZone).getTime() >
+          toUTCDate(defaultedDateTimeRepresentation(time2.typedValue), defaultTimeZone).getTime()))
     .collect(),
 };
 

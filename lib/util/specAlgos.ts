@@ -1,20 +1,23 @@
-import type { IDurationRepresentation,
-  IDateTimeRepresentation } from './InternalRepresentations';
+import type {
+  IDurationRepresentation,
+  IDateTimeRepresentation, ITimeZoneRepresentation,
+} from './InternalRepresentations';
+import { toUTCDate } from './InternalRepresentations';
 
-function fQuotient(a: number, b: number): number {
-  return Math.floor(a / b);
+function fQuotient(first: number, second: number): number {
+  return Math.floor(first / second);
 }
 
-function modulo(a: number, b: number): number {
-  return a - fQuotient(a, b) * b;
+function modulo(first: number, second: number): number {
+  return first - fQuotient(first, second) * second;
 }
 
-function fQuotient3(a: number, low: number, high: number): number {
-  return fQuotient(a - low, high - low);
+function fQuotient3(arg: number, low: number, high: number): number {
+  return fQuotient(arg - low, high - low);
 }
 
-function modulo3(a: number, low: number, high: number): number {
-  return modulo(a - low, high - low) + low;
+function modulo3(arg: number, low: number, high: number): number {
+  return modulo(arg - low, high - low) + low;
 }
 
 export function maximumDayInMonthFor(yearValue: number, monthValue: number): number {
@@ -84,4 +87,17 @@ IDateTimeRepresentation {
     newDate.year += fQuotient3(temp, 1, 13);
   }
   return newDate;
+}
+
+export function elapsedDuration(first: IDateTimeRepresentation,
+  second: IDateTimeRepresentation, defaultTimeZone: ITimeZoneRepresentation): Partial<IDurationRepresentation> {
+  const d1 = toUTCDate(first, defaultTimeZone);
+  const d2 = toUTCDate(second, defaultTimeZone);
+  const diff = d1.getTime() - d2.getTime();
+  return {
+    day: Math.floor(diff / (1_000 * 60 * 60 * 24)),
+    hours: Math.floor((diff % (1_000 * 60 * 60 * 24)) / (1_000 * 60 * 60)),
+    minutes: Math.floor(diff % (1_000 * 60 * 60) / (1_000 * 60)),
+    seconds: diff % (1_000 * 60),
+  };
 }
