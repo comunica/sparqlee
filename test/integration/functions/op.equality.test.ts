@@ -58,11 +58,15 @@ describe('evaluation of \'=\'', () => {
     runTestTable({
       ...config,
       testTable: `
+        "test1"@en "test1"@en = true
         empty empty = true
         empty aaa   = false
         aaa   aaa   = true
         aaa   bbb   = false
       `,
+      errorTable: `
+        "test1"@en "test2"@en = 'Equality test for literals with unsupported datatypes'
+      `
     });
   });
 
@@ -106,7 +110,6 @@ describe('evaluation of \'=\'', () => {
         1 <http://example.com> = false
       `,
       errorTable: `
-        "test1"@en = "test2"@en
         1 true = 'Equality test for literals with unsupported datatypes'
         1 aaa = 'Equality test for literals with unsupported datatypes'
         1 earlyN = 'Equality test for literals with unsupported datatypes'
