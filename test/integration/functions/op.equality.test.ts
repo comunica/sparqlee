@@ -106,6 +106,7 @@ describe('evaluation of \'=\'', () => {
         1 <http://example.com> = false
       `,
       errorTable: `
+        "test1"@en = "test2"@en
         1 true = 'Equality test for literals with unsupported datatypes'
         1 aaa = 'Equality test for literals with unsupported datatypes'
         1 earlyN = 'Equality test for literals with unsupported datatypes'
