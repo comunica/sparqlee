@@ -1,3 +1,4 @@
+/* eslint max-len: 0 */
 import { dateNotation, dayTimeDurationNotation } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
@@ -6,13 +7,13 @@ describe('adjust date duration', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT ?id ?adjusted WHERE {
-   * 	VALUES (?id ?tz ?d) {
-   * 		(1 "-PT10H"^^xsd:dayTimeDuration "2002-03-07"^^xsd:date)
-   * 		(2 "-PT10H"^^xsd:dayTimeDuration "2002-03-07-07:00"^^xsd:date)
-   * 		(3 "" "2002-03-07"^^xsd:date)
-   * 		(4 "" "2002-03-07-07:00"^^xsd:date)
-   * 	}
-   * 	BIND(ADJUST(?d, ?tz) AS ?adjusted)
+   *  VALUES (?id ?tz ?d) {
+   *   (1 "-PT10H"^^xsd:dayTimeDuration "2002-03-07"^^xsd:date)
+   *   (2 "-PT10H"^^xsd:dayTimeDuration "2002-03-07-07:00"^^xsd:date)
+   *   (3 "" "2002-03-07"^^xsd:date)
+   *   (4 "" "2002-03-07-07:00"^^xsd:date)
+   *  }
+   *  BIND(ADJUST(?d, ?tz) AS ?adjusted)
    * }
    * }
    */

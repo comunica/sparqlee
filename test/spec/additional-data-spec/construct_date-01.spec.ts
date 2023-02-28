@@ -7,9 +7,9 @@ describe('Construct date', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (xsd:date(?literal) AS ?date) WHERE {
-   * 	VALUES ?literal {
-   * 		"2000-11-02"
-   * 	}
+   *  VALUES ?literal {
+   *   "2000-11-02"
+   *  }
    * }
    */
 

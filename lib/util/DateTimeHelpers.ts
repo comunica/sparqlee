@@ -1,4 +1,3 @@
-import { UnexpectedError } from './Errors';
 import type {
   IDateRepresentation, IDateTimeRepresentation, IDayTimeDurationRepresentation,
   IDurationRepresentation,
@@ -74,12 +73,9 @@ export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRe
 }
 
 export function rawTimeZoneExtractor(zoneContained: string): string {
-  // TODO: Write a unit test for this one
-  const extraction = /^(Z|([+-]\d\d:\d\d))?$/u.exec(zoneContained);
-  if (!extraction || extraction.length === 0) {
-    throw new UnexpectedError('raw timeZone requested on an invalid timezone');
-  }
-  return extraction[0];
+  const extraction = /(Z|([+-]\d\d:\d\d))?$/u.exec(zoneContained);
+  // It is safe to cast here because the empty string can always match.
+  return extraction![0];
 }
 
 export function dateSerializer(date: IDateRepresentation): string {

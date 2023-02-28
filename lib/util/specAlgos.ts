@@ -76,6 +76,7 @@ IDateTimeRepresentation {
   const tempDays = date.day;
 
   newDate.day = tempDays + duration.day + carry;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (newDate.day < 1) {
       newDate.day += maximumDayInMonthFor(newDate.year, newDate.month - 1);

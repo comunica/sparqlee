@@ -1,3 +1,4 @@
+/* eslint max-len: 0 */
 import { TypeURL } from '../../../lib/util/Consts';
 import { compactTermString } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
@@ -7,19 +8,19 @@ describe('construct duration', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (xsd:duration(?literal) AS ?duration) WHERE {
-   * 	VALUES ?literal {
-   * 		"PT0S"
-   * 		"-P0M"
-   * 		"P1Y"
-   * 		"-P1Y"
-   * 		"P1M"
-   * 		"P1D"
-   * 		"PT1H"
-   * 		"PT1M"
-   * 		"PT1S"
-   * 		"P3Y1DT2H7S"
-   * 		"P36MT120M"
-   * 	}
+   *  VALUES ?literal {
+   *    "PT0S"
+   *    "-P0M"
+   *    "P1Y"
+   *    "-P1Y"
+   *    "P1M"
+   *    "P1D"
+   *    "PT1H"
+   *    "PT1M"
+   *    "PT1S"
+   *    "P3Y1DT2H7S"
+   *    "P36MT120M"
+   *  }
    * }
    */
 

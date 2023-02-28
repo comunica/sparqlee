@@ -1,3 +1,4 @@
+/* eslint max-len: 0 */
 import { dayTimeDurationNotation, timeNotation } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
@@ -6,14 +7,14 @@ describe('adjust time duration', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT ?id ?adjusted WHERE {
-   * 	VALUES (?id ?tz ?d) {
-   * 		(1 "-PT10H"^^xsd:dayTimeDuration "10:00:00"^^xsd:time)
-   * 		(2 "-PT10H"^^xsd:dayTimeDuration "10:00:00-07:00"^^xsd:time)
-   * 		(3 "PT10H"^^xsd:dayTimeDuration"10:00:00-07:00"^^xsd:time)
-   * 		(4 "" "10:00:00"^^xsd:time)
-   * 		(5 "" "10:00:00-07:00"^^xsd:time)
-   * 	}
-   * 	BIND(ADJUST(?d, ?tz) AS ?adjusted)
+   *  VALUES (?id ?tz ?d) {
+   *   (1 "-PT10H"^^xsd:dayTimeDuration "10:00:00"^^xsd:time)
+   *   (2 "-PT10H"^^xsd:dayTimeDuration "10:00:00-07:00"^^xsd:time)
+   *   (3 "PT10H"^^xsd:dayTimeDuration"10:00:00-07:00"^^xsd:time)
+   *   (4 "" "10:00:00"^^xsd:time)
+   *   (5 "" "10:00:00-07:00"^^xsd:time)
+   *  }
+   *  BIND(ADJUST(?d, ?tz) AS ?adjusted)
    * }
    */
 

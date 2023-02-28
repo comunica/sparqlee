@@ -6,9 +6,9 @@ describe('Extract date', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (YEAR(?date) AS ?y) (MONTH(?date) AS ?m) (DAY(?date) AS ?d) WHERE {
-   * 	VALUES ?date {
-   * 		"2000-11-02"^^xsd:date
-   * 	}
+   *   VALUES ?date {
+   *     "2000-11-02"^^xsd:date
+   *   }
    * }
    */
 

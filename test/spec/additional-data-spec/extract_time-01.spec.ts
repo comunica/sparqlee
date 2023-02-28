@@ -6,9 +6,9 @@ describe('Extract time', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (HOURS(?time) AS ?h) (MINUTES(?time) AS ?m) (SECONDS(?time) AS ?s) WHERE {
-   * 	VALUES ?time {
-   * 		"02:12:59"^^xsd:time
-   * 	}
+   *  VALUES ?time {
+   *    "02:12:59"^^xsd:time
+   *  }
    * }
    */
 

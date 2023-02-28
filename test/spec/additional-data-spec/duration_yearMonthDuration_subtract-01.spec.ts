@@ -1,3 +1,4 @@
+/* eslint max-len: 0 */
 import {
   dateNotation,
   dateTimeNotation, dayTimeDurationNotation,
@@ -11,10 +12,10 @@ describe('subtract duration and dayTimeDuration 01', () => {
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (?d - ?duration AS ?year_ago)
    * WHERE {
-   * 	VALUES (?duration ?d) {
-   * 		("P1Y"^^xsd:yearMonthDuration "2019-05-28T12:14:45Z"^^xsd:dateTime)
-   * 		("P1Y"^^xsd:yearMonthDuration "2019-05-28"^^xsd:date)
-   * 	}
+   *  VALUES (?duration ?d) {
+   *   ("P1Y"^^xsd:yearMonthDuration "2019-05-28T12:14:45Z"^^xsd:dateTime)
+   *   ("P1Y"^^xsd:yearMonthDuration "2019-05-28"^^xsd:date)
+   *  }
    * }
    */
 

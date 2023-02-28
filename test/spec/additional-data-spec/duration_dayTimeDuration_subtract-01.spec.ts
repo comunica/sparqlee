@@ -1,3 +1,4 @@
+/* eslint max-len: 0 */
 import { dateNotation, dateTimeNotation, dayTimeDurationNotation, timeNotation } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
@@ -7,11 +8,11 @@ describe('subtract duration and dayTimeDuration 01', () => {
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
    * SELECT (?d - ?duration AS ?datetime)
    * WHERE {
-   * 	VALUES (?duration ?d) {
-   * 		("P3DT1H15M"^^xsd:dayTimeDuration "2000-10-30T11:12:00"^^xsd:dateTime)
-   * 		("P3DT1H15M"^^xsd:dayTimeDuration "2000-10-30"^^xsd:date)
-   * 		("P3DT1H15M"^^xsd:dayTimeDuration "11:12:00"^^xsd:time)
-   * 	}
+   *  VALUES (?duration ?d) {
+   *    ("P3DT1H15M"^^xsd:dayTimeDuration "2000-10-30T11:12:00"^^xsd:dateTime)
+   *    ("P3DT1H15M"^^xsd:dayTimeDuration "2000-10-30"^^xsd:date)
+   *    ("P3DT1H15M"^^xsd:dayTimeDuration "11:12:00"^^xsd:time)
+   *  }
    * }
    */
 
