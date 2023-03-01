@@ -1,29 +1,29 @@
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
-describe('Construct time', () => {
+describe('Construct date', () => {
   /**
    * PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-   * SELECT (xsd:time(?literal) AS ?time) WHERE {
+   * SELECT (xsd:date(?literal) AS ?date) WHERE {
    *  VALUES ?literal {
-   *    "24:00:01"
-   *    "05:60:00"
-   *    "00:00:61"
-   *    ""
+   *    "2000-00-01"
+   *    "2000-13-01"
+   *    "2000-06-00"
+   *    "2000-06-32"
    *  }
    * }
    */
 
-  describe('respect the construct_time-02 spec', () => {
+  describe('respect the construct_date-02 spec', () => {
     runTestTable({
-      operation: 'xsd:time',
+      operation: 'xsd:date',
       arity: 1,
       notation: Notation.Function,
       errorTable: `
-        '"24:00:01"' = ''
-        '"05:60:00"' = ''
-        '"00:00:61"' = ''
-        '""' = ''
+        '"2000-00-01"' = ''
+        '"2000-13-01"' = ''
+        '"2000-06-00"' = ''
+        '"2000-06-32"' = ''
       `,
     });
   });
@@ -32,7 +32,7 @@ describe('Construct time', () => {
    * <?xml version="1.0" encoding="utf-8"?>
    * <sparql xmlns="http://www.w3.org/2005/sparql-results#">
    * <head>
-   *  <variable name="time"/>
+   *  <variable name="date"/>
    * </head>
    * <results>
    *    <result></result>

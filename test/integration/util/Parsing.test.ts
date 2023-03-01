@@ -1,9 +1,9 @@
-import { dateParser, dateTimeParser } from '../../../lib/util/DateTimeHelpers';
+import { parseDate, parseDateTime } from '../../../lib/util/DateTimeHelpers';
 
 describe('util/parsing', () => {
   describe('parseXSDDateTime', () => {
     test('should parse dates correctly', () => {
-      expect(dateTimeParser('2010-06-21T11:28:01Z')).toEqual({
+      expect(parseDateTime('2010-06-21T11:28:01Z')).toEqual({
         year: 2_010,
         month: 6,
         day: 21,
@@ -14,7 +14,7 @@ describe('util/parsing', () => {
         zoneMinutes: 0,
       });
 
-      expect(dateTimeParser('2010-12-21T15:38:02-08:00')).toEqual({
+      expect(parseDateTime('2010-12-21T15:38:02-08:00')).toEqual({
         year: 2_010,
         month: 12,
         day: 21,
@@ -25,7 +25,7 @@ describe('util/parsing', () => {
         zoneMinutes: -0,
       });
 
-      expect(dateTimeParser('2008-06-20T23:59:00Z')).toEqual({
+      expect(parseDateTime('2008-06-20T23:59:00Z')).toEqual({
         year: 2_008,
         month: 6,
         day: 20,
@@ -36,7 +36,7 @@ describe('util/parsing', () => {
         zoneMinutes: 0,
       });
 
-      expect(dateTimeParser('2011-02-01T01:02:03')).toEqual({
+      expect(parseDateTime('2011-02-01T01:02:03')).toEqual({
         year: 2_011,
         month: 2,
         day: 1,
@@ -47,7 +47,7 @@ describe('util/parsing', () => {
         zoneMinutes: undefined,
       });
 
-      expect(dateParser('2011-02-01')).toEqual({
+      expect(parseDate('2011-02-01')).toEqual({
         year: 2_011,
         month: 2,
         day: 1,

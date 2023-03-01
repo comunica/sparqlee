@@ -353,12 +353,12 @@ which you can provide as `baseIRI: string` to the config.
 | dT             | ✓ | ✓ | ? |   |   |
 | bool           | ✓ | ✓ | ? |   |   |
 
-### Sparql 1.2
+### SPARQL 1.2
 
-Sparqlee looks forward and already implements some Sparql 1.2 specification functions.
+Sparqlee looks forward and already implements some SPARQL 1.2 specification functions.
 
 Currently, this is restricted to the [extended date](https://github.com/w3c/sparql-12/blob/main/SEP/SEP-0002/sep-0002.md) functionality.
-Please note that the new build in `ADJUST` function has not been implemented due to package dependencies.
+Please note that the new build-in `ADJUST` function has not been implemented due to package dependencies.
 
 For the extended date functionality, an additional context item has been added, `implicitTimezone`.
 The choice was made to default to UTC time so the `implicitTimezone` does not change over time

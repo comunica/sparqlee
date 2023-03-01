@@ -1,6 +1,6 @@
-import { bool, durationNotation } from '../../util/Aliases';
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+import { bool, durationNotation } from '../../../util/Aliases';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
 describe('compare duration 01', () => {
   /**

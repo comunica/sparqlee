@@ -10,7 +10,7 @@ import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
-import { rawTimeZoneExtractor } from '../util/DateTimeHelpers';
+import { extractRawTimeZone } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import type {
   IDayTimeDurationRepresentation,
@@ -910,7 +910,7 @@ const tz = {
   arity: 1,
   overloads: declare(C.RegularOperator.TZ)
     .onDateTime1(
-      () => date => string(rawTimeZoneExtractor(date.str())),
+      () => date => string(extractRawTimeZone(date.str())),
     )
     .copy({ from: [ TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_DATE ]})
     .copy({ from: [ TypeURL.XSD_DATE_TIME ], to: [ TypeURL.XSD_TIME ]})

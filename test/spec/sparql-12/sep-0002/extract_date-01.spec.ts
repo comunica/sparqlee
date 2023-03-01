@@ -1,6 +1,6 @@
-import { dateNotation, int } from '../../util/Aliases';
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+import { dateNotation, int } from '../../../util/Aliases';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
 describe('Extract date', () => {
   /**

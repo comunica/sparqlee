@@ -1,7 +1,7 @@
 /* eslint max-len: 0 */
-import { dateNotation, dateTimeNotation, dayTimeDurationNotation, timeNotation } from '../../util/Aliases';
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+import { dateNotation, dateTimeNotation, dayTimeDurationNotation, timeNotation } from '../../../util/Aliases';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
 describe('subtract duration and dayTimeDuration 01', () => {
   /**

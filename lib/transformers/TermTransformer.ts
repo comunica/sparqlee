@@ -5,12 +5,12 @@ import { Algebra } from 'sparqlalgebrajs';
 import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
 import {
-  dateParser,
-  dateTimeParser,
-  dayTimeDurationParser,
-  durationParser,
-  timeParser,
-  yearMonthDurationParser,
+  parseDate,
+  parseDateTime,
+  parseDayTimeDuration,
+  parseDuration,
+  parseTime,
+  parseYearMonthDuration,
 } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import * as P from '../util/Parsing';
@@ -83,27 +83,27 @@ export class TermTransformer implements ITermTransformer {
       return new E.LangStringLiteral(lit.value, lit.language);
     }
     if (TypeURL.XSD_YEAR_MONTH_DURATION in superTypeDict) {
-      return new E.YearMonthDurationLiteral(yearMonthDurationParser(lit.value), lit.value, dataType);
+      return new E.YearMonthDurationLiteral(parseYearMonthDuration(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
-      return new E.DayTimeDurationLiteral(dayTimeDurationParser(lit.value), lit.value, dataType);
+      return new E.DayTimeDurationLiteral(parseDayTimeDuration(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_DURATION in superTypeDict) {
       // TODO: All of these new parsers can fail, a failure should result in a NonLexicalLiteral!
-      return new E.DurationLiteral(durationParser(lit.value), lit.value, dataType);
+      return new E.DurationLiteral(parseDuration(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_DATE_TIME in superTypeDict) {
       const dateVal: Date = new Date(lit.value);
       if (Number.isNaN(dateVal.getTime())) {
         return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
       }
-      return new E.DateTimeLiteral(dateTimeParser(lit.value), lit.value, dataType);
+      return new E.DateTimeLiteral(parseDateTime(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_DATE in superTypeDict) {
-      return new E.DateLiteral(dateParser(lit.value), lit.value, dataType);
+      return new E.DateLiteral(parseDate(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_TIME in superTypeDict) {
-      return new E.TimeLiteral(timeParser(lit.value), lit.value, dataType);
+      return new E.TimeLiteral(parseTime(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_BOOLEAN in superTypeDict) {
       if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {

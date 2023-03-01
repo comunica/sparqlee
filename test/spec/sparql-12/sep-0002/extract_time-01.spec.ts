@@ -1,6 +1,6 @@
-import { int, timeNotation } from '../../util/Aliases';
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+import { int, timeNotation } from '../../../util/Aliases';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
 describe('Extract time', () => {
   /**

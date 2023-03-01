@@ -1,6 +1,6 @@
-import { bool, timeNotation } from '../../util/Aliases';
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+import { bool, timeNotation } from '../../../util/Aliases';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
 describe('compare date', () => {
   describe('respect the op:time-equal xpath-functions spec', () => {

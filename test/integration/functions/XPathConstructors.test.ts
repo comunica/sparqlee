@@ -354,6 +354,7 @@ describe('evaluation of XPath constructors', () => {
         ${durationNotation('-PT10H')} = ${yearMonthDurationNotation('P0M')}
         ${durationNotation('-P5Y6M')} = ${yearMonthDurationNotation('-P5Y6M')}
         '"P5Y30M"' = ${yearMonthDurationNotation('P5Y30M')}
+        ${dayTimeDurationNotation('P1DT1H1M1.1S')} = ${yearMonthDurationNotation('P0M')}
       `,
       errorTable: `
         '"-PT10H"' = ''
@@ -370,6 +371,7 @@ describe('evaluation of XPath constructors', () => {
         ${durationNotation('-PT10H')} = ${dayTimeDurationNotation('-PT10H')}
         ${durationNotation('PT5S')} = ${dayTimeDurationNotation('PT5S')}
         '"-PT10H"' = '${dayTimeDurationNotation('-PT10H')}'
+        '${yearMonthDurationNotation('-P5Y2M')}' = '${dayTimeDurationNotation('PT0S')}'
       `,
       errorTable: `
         '"P5Y30M"' = ''

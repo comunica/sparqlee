@@ -1,7 +1,7 @@
 /* eslint max-len: 0 */
-import { dateNotation, dayTimeDurationNotation } from '../../util/Aliases';
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+import { dateNotation, dayTimeDurationNotation } from '../../../util/Aliases';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
 describe('adjust date duration', () => {
   /**

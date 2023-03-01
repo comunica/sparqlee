@@ -3,9 +3,9 @@ import {
   dateNotation,
   dateTimeNotation, dayTimeDurationNotation,
   yearMonthDurationNotation,
-} from '../../util/Aliases';
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+} from '../../../util/Aliases';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
 describe('subtract duration and dayTimeDuration 01', () => {
   /**

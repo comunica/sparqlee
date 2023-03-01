@@ -4,12 +4,12 @@ import { DurationLiteral } from '../expressions';
 import type * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
 import {
-  dateParser,
-  dateTimeParser,
-  dayTimeDurationParser,
-  durationParser,
-  timeParser,
-  yearMonthDurationParser,
+  parseDate,
+  parseDateTime,
+  parseDayTimeDuration,
+  parseDuration,
+  parseTime,
+  parseYearMonthDuration,
 } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 
@@ -127,7 +127,7 @@ const xsdToDatetime = {
   overloads: declare(TypeURL.XSD_DATE_TIME)
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: E.DateTimeLiteral) => val)
     .onUnary(TypeURL.XSD_STRING, () => (val: Term) =>
-      dateTime(dateTimeParser(val.str()), val.str()))
+      dateTime(parseDateTime(val.str()), val.str()))
     .onUnary(TypeURL.XSD_DATE, () => (val: E.DateLiteral) =>
       new E.DateTimeLiteral({ ...val.typedValue, hours: 0, minutes: 0, seconds: 0 }))
     .copy({ from: [ TypeURL.XSD_STRING ], to: [ TypeAlias.SPARQL_NON_LEXICAL ]})
@@ -170,7 +170,7 @@ const xsdToTime = {
     .onUnary(TypeURL.XSD_TIME, () => (val: TimeLiteral) => new E.TimeLiteral(val.typedValue, val.strValue))
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: DateTimeLiteral) =>
       new E.TimeLiteral(val.typedValue))
-    .onStringly1(() => (val: Term) => new E.TimeLiteral(timeParser(val.str()), val.str()))
+    .onStringly1(() => (val: Term) => new E.TimeLiteral(parseTime(val.str()), val.str()))
     .collect(),
 };
 
@@ -180,7 +180,7 @@ const xsdToDate = {
     .onUnary(TypeURL.XSD_DATE, () => (val: DateLiteral) => new E.DateLiteral(val.typedValue, val.strValue))
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: DateTimeLiteral) =>
       new E.DateLiteral(val.typedValue))
-    .onStringly1(() => (val: E.Term) => new E.DateLiteral(dateParser(val.str()), val.str()))
+    .onStringly1(() => (val: E.Term) => new E.DateLiteral(parseDate(val.str()), val.str()))
     .collect(),
 };
 
@@ -192,7 +192,7 @@ const xsdToDuration = {
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
       new E.DurationLiteral(val.typedValue, val.strValue))
     .onStringly1(() => (val: Term) =>
-      new DurationLiteral(durationParser(val.str()), val.str()))
+      new DurationLiteral(parseDuration(val.str()), val.str()))
     .collect(),
 };
 
@@ -204,7 +204,7 @@ const xsdToDayTimeDuration = {
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
       new E.DayTimeDurationLiteral(trimToDayTimeDuration(val.typedValue)))
     .onStringly1(() => (val: Term) =>
-      new E.DayTimeDurationLiteral(dayTimeDurationParser(val.str()), val.str()))
+      new E.DayTimeDurationLiteral(parseDayTimeDuration(val.str()), val.str()))
     .collect(),
 };
 
@@ -212,12 +212,11 @@ const xsdToYearMonthDuration = {
   arity: 1,
   overloads: declare(TypeURL.XSD_YEAR_MONTH_DURATION)
     // https://www.w3.org/TR/xpath-functions/#casting-to-durations
-    // TODO: make a test for the case of dayTime to YearMonth...
     .onUnary(TypeURL.XSD_DURATION, () => (val: E.DurationLiteral) =>
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
       new E.YearMonthDurationLiteral(trimToYearMonthDuration(val.typedValue)))
     .onStringly1(() => (val: Term) =>
-      new E.YearMonthDurationLiteral(yearMonthDurationParser(val.str()), val.str()))
+      new E.YearMonthDurationLiteral(parseYearMonthDuration(val.str()), val.str()))
     .collect(),
 };
 

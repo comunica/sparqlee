@@ -1,7 +1,7 @@
-import { TypeURL } from '../../../lib/util/Consts';
-import { compactTermString } from '../../util/Aliases';
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+import { TypeURL } from '../../../../lib/util/Consts';
+import { compactTermString } from '../../../util/Aliases';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
 describe('Construct date', () => {
   /**

@@ -7,23 +7,22 @@ import type {
 import { extractDayTimeDur } from './InternalRepresentations';
 import { maximumDayInMonthFor } from './specAlgos';
 
-function numSer(num: number, min = 2): string {
+function numSerializer(num: number, min = 2): string {
   return num.toLocaleString(undefined, { minimumIntegerDigits: min, useGrouping: false });
 }
 
-// Parsers:
-export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error): IDateTimeRepresentation {
+export function parseDateTime(dateTimeStr: string, errorCreator?: () => Error): IDateTimeRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#dateTime
   const [ date, time ] = dateTimeStr.split('T');
-  return { ...dateParser(date, errorCreator), ...internalTimeParser(time, errorCreator) };
+  return { ...parseDate(date, errorCreator), ...internalParseTime(time, errorCreator) };
 }
 
-export function dateTimeSerializer(date: IDateTimeRepresentation): string {
+export function serializeDateTime(date: IDateTimeRepresentation): string {
   // Extraction is needed because the date serializer can not add timezone y
-  return `${dateSerializer({ year: date.year, month: date.month, day: date.day })}T${timeSerializer(date)}`;
+  return `${sierializeDate({ year: date.year, month: date.month, day: date.day })}T${serializeTime(date)}`;
 }
 
-function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): Partial<ITimeZoneRepresentation> {
+function parseTimeZone(timeZoneStr: string, errorCreator?: () => Error): Partial<ITimeZoneRepresentation> {
   // https://www.w3.org/TR/xmlschema-2/#dateTime-timezones
   if (timeZoneStr === '') {
     return { zoneHours: undefined, zoneMinutes: undefined };
@@ -39,17 +38,17 @@ function timeZoneParser(timeZoneStr: string, errorCreator?: () => Error): Partia
   };
 }
 
-function timeZoneSerializer(tz: Partial<ITimeZoneRepresentation>): string {
+function serializeTimeZone(tz: Partial<ITimeZoneRepresentation>): string {
   if (tz.zoneHours === undefined || tz.zoneMinutes === undefined) {
     return '';
   }
   if (tz.zoneHours === 0 && tz.zoneMinutes === 0) {
     return 'Z';
   }
-  return `${tz.zoneHours >= 0 ? `+${numSer(tz.zoneHours)}` : numSer(tz.zoneHours)}:${numSer(Math.abs(tz.zoneMinutes))}`;
+  return `${tz.zoneHours >= 0 ? `+${numSerializer(tz.zoneHours)}` : numSerializer(tz.zoneHours)}:${numSerializer(Math.abs(tz.zoneMinutes))}`;
 }
 
-export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRepresentation {
+export function parseDate(dateStr: string, errorCreator?: () => Error): IDateRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#date-lexical-representation
   const formatted = dateStr.replace(
     /^(-)?([123456789]*\d{4})-(\d\d)-(\d\d)(Z|([+-]\d\d:\d\d))?$/gu, '$11!$2!$3!$4!$5',
@@ -64,7 +63,7 @@ export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRe
     year: date[0] * date[1],
     month: date[2],
     day: date[3],
-    ...timeZoneParser(dateStrings[4]),
+    ...parseTimeZone(dateStrings[4]),
   };
   if (!(1 <= res.month && res.month <= 12) || !(1 <= res.day && res.day <= maximumDayInMonthFor(res.year, res.month))) {
     throw new Error('nono');
@@ -72,17 +71,17 @@ export function dateParser(dateStr: string, errorCreator?: () => Error): IDateRe
   return res;
 }
 
-export function rawTimeZoneExtractor(zoneContained: string): string {
+export function extractRawTimeZone(zoneContained: string): string {
   const extraction = /(Z|([+-]\d\d:\d\d))?$/u.exec(zoneContained);
   // It is safe to cast here because the empty string can always match.
   return extraction![0];
 }
 
-export function dateSerializer(date: IDateRepresentation): string {
-  return `${numSer(date.year, 4)}-${numSer(date.month)}-${numSer(date.day)}${timeZoneSerializer(date)}`;
+export function sierializeDate(date: IDateRepresentation): string {
+  return `${numSerializer(date.year, 4)}-${numSerializer(date.month)}-${numSerializer(date.day)}${serializeTimeZone(date)}`;
 }
 
-function internalTimeParser(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
+function internalParseTime(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
   const formatted = timeStr.replace(/^(\d\d):(\d\d):(\d\d(\.\d+)?)(Z|([+-]\d\d:\d\d))?$/gu, '$1!$2!$3!$5');
   if (formatted === timeStr) {
@@ -95,7 +94,7 @@ function internalTimeParser(timeStr: string, errorCreator?: () => Error): ITimeR
     hours: time[0],
     minutes: time[1],
     seconds: time[2],
-    ...timeZoneParser(timeStrings[3]),
+    ...parseTimeZone(timeStrings[3]),
   };
 
   if (res.seconds >= 60 || res.minutes >= 60 || res.hours > 24 ||
@@ -107,18 +106,18 @@ function internalTimeParser(timeStr: string, errorCreator?: () => Error): ITimeR
 
 // We make a separation in internal and external since dateTime will have hour-date rollover,
 // but time just does modulo the time.
-export function timeParser(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
+export function parseTime(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
-  const res = internalTimeParser(timeStr, errorCreator);
+  const res = internalParseTime(timeStr, errorCreator);
   res.hours %= 24;
   return res;
 }
 
-export function timeSerializer(time: ITimeRepresentation): string {
-  return `${numSer(time.hours)}:${numSer(time.minutes)}:${numSer(time.seconds)}${timeZoneSerializer(time)}`;
+export function serializeTime(time: ITimeRepresentation): string {
+  return `${numSerializer(time.hours)}:${numSerializer(time.minutes)}:${numSerializer(time.seconds)}${serializeTimeZone(time)}`;
 }
 
-export function durationParser(durationStr: string): Partial<IDurationRepresentation> {
+export function parseDuration(durationStr: string): Partial<IDurationRepresentation> {
   // https://www.w3.org/TR/xmlschema-2/#duration-lexical-repr
   const [ dayNotation, timeNotation ] = durationStr.split('T');
 
@@ -153,16 +152,16 @@ export function durationParser(durationStr: string): Partial<IDurationRepresenta
   };
 }
 
-export function yearMonthDurationParser(durationStr: string): Partial<IYearMonthDurationRepresentation> {
-  const res = durationParser(durationStr);
+export function parseYearMonthDuration(durationStr: string): Partial<IYearMonthDurationRepresentation> {
+  const res = parseDuration(durationStr);
   if (Object.entries(res).some(([ key, value ]) => value !== undefined && ![ 'year', 'month' ].includes(key))) {
     throw new Error('nono');
   }
   return res;
 }
 
-export function dayTimeDurationParser(durationStr: string): Partial<IDayTimeDurationRepresentation> {
-  const res = durationParser(durationStr);
+export function parseDayTimeDuration(durationStr: string): Partial<IDayTimeDurationRepresentation> {
+  const res = parseDuration(durationStr);
   const filtered = extractDayTimeDur(res);
   if (Object.entries(res).some(([ key, value ]) => value !== undefined && ![
     'hours',
@@ -175,7 +174,7 @@ export function dayTimeDurationParser(durationStr: string): Partial<IDayTimeDura
   return res;
 }
 
-export function durationSerializer(dur: Partial<IDurationRepresentation>, zeroString: 'PT0S' | 'P0M' = 'PT0S'): string {
+export function serializeDuration(dur: Partial<IDurationRepresentation>, zeroString: 'PT0S' | 'P0M' = 'PT0S'): string {
   if (!Object.values(dur).some(val => (val || 0) !== 0)) {
     return zeroString;
   }

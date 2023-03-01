@@ -1,6 +1,6 @@
-import { bool, yearMonthDurationNotation } from '../../util/Aliases';
-import { Notation } from '../../util/TestTable';
-import { runTestTable } from '../../util/utils';
+import { bool, yearMonthDurationNotation } from '../../../util/Aliases';
+import { Notation } from '../../../util/TestTable';
+import { runTestTable } from '../../../util/utils';
 
 describe('compare yearMonthDuration 01', () => {
   /**

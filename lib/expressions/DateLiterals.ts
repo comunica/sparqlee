@@ -1,5 +1,5 @@
 import { TypeURL } from '../util/Consts';
-import { dateSerializer, dateTimeSerializer, durationSerializer, timeSerializer } from '../util/DateTimeHelpers';
+import { sierializeDate, serializeDateTime, serializeDuration, serializeTime } from '../util/DateTimeHelpers';
 import type {
   IDateRepresentation,
   IDateTimeRepresentation, IDurationRepresentation,
@@ -13,7 +13,7 @@ export class DateTimeLiteral extends Literal<IDateTimeRepresentation> {
   }
 
   public str(): string {
-    return dateTimeSerializer(this.typedValue);
+    return serializeDateTime(this.typedValue);
   }
 }
 
@@ -23,7 +23,7 @@ export class TimeLiteral extends Literal<ITimeRepresentation> {
   }
 
   public str(): string {
-    return timeSerializer(this.typedValue);
+    return serializeTime(this.typedValue);
   }
 }
 
@@ -33,7 +33,7 @@ export class DateLiteral extends Literal<IDateRepresentation> {
   }
 
   public str(): string {
-    return dateSerializer(this.typedValue);
+    return sierializeDate(this.typedValue);
   }
 }
 
@@ -43,7 +43,7 @@ export class DurationLiteral extends Literal<Partial<IDurationRepresentation>> {
   }
 
   public str(): string {
-    return durationSerializer(this.typedValue);
+    return serializeDuration(this.typedValue);
   }
 }
 
@@ -60,6 +60,6 @@ export class YearMonthDurationLiteral extends Literal<Partial<IYearMonthDuration
   }
 
   public str(): string {
-    return durationSerializer(this.typedValue, 'P0M');
+    return serializeDuration(this.typedValue, 'P0M');
   }
 }
