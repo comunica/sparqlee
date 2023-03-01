@@ -96,10 +96,7 @@ const equality = {
     .stringTest(() => (left, right) => left.localeCompare(right) === 0)
     .set(
       [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
-      () => ([ left, right ]) => {
-        console.log(left)
-        return bool(RDFTermEqual(left, right))
-      },
+      () => ([ left, right ]) => bool(RDFTermEqual(left, right)),
     )
     .booleanTest(() => (left, right) => left === right)
     .dateTimeTest(() => (left, right) => left.getTime() === right.getTime())
