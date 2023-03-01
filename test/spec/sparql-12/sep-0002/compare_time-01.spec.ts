@@ -1,4 +1,4 @@
-import { bool, timeNotation } from '../../../util/Aliases';
+import { bool, timeTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -26,11 +26,11 @@ describe('compare date', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${timeNotation('00:00:00')}' '${timeNotation('00:00:00')}' = true
-        '${timeNotation('00:00:00')}' '${timeNotation('00:00:01')}' = false
-        '${timeNotation('00:00:02')}' '${timeNotation('00:00:01')}' = false
-        '${timeNotation('10:00:00')}' '${timeNotation('00:59:01')}' = false
-        '${timeNotation('00:00:00')}' '${timeNotation('24:00:00')}' = true
+        '${timeTyped('00:00:00')}' '${timeTyped('00:00:00')}' = true
+        '${timeTyped('00:00:00')}' '${timeTyped('00:00:01')}' = false
+        '${timeTyped('00:00:02')}' '${timeTyped('00:00:01')}' = false
+        '${timeTyped('10:00:00')}' '${timeTyped('00:59:01')}' = false
+        '${timeTyped('00:00:00')}' '${timeTyped('24:00:00')}' = true
       `,
     });
   });
@@ -42,11 +42,11 @@ describe('compare date', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${timeNotation('00:00:00')}' '${timeNotation('00:00:00')}' = false
-        '${timeNotation('00:00:00')}' '${timeNotation('00:00:01')}' = true
-        '${timeNotation('00:00:02')}' '${timeNotation('00:00:01')}' = false
-        '${timeNotation('10:00:00')}' '${timeNotation('00:59:01')}' = false
-        '${timeNotation('00:00:00')}' '${timeNotation('24:00:00')}' = false
+        '${timeTyped('00:00:00')}' '${timeTyped('00:00:00')}' = false
+        '${timeTyped('00:00:00')}' '${timeTyped('00:00:01')}' = true
+        '${timeTyped('00:00:02')}' '${timeTyped('00:00:01')}' = false
+        '${timeTyped('10:00:00')}' '${timeTyped('00:59:01')}' = false
+        '${timeTyped('00:00:00')}' '${timeTyped('24:00:00')}' = false
       `,
     });
   });
@@ -58,11 +58,11 @@ describe('compare date', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${timeNotation('00:00:00')}' '${timeNotation('00:00:00')}' = false
-        '${timeNotation('00:00:00')}' '${timeNotation('00:00:01')}' = false
-        '${timeNotation('00:00:02')}' '${timeNotation('00:00:01')}' = true
-        '${timeNotation('10:00:00')}' '${timeNotation('00:59:01')}' = true
-        '${timeNotation('00:00:00')}' '${timeNotation('24:00:00')}' = false
+        '${timeTyped('00:00:00')}' '${timeTyped('00:00:00')}' = false
+        '${timeTyped('00:00:00')}' '${timeTyped('00:00:01')}' = false
+        '${timeTyped('00:00:02')}' '${timeTyped('00:00:01')}' = true
+        '${timeTyped('10:00:00')}' '${timeTyped('00:59:01')}' = true
+        '${timeTyped('00:00:00')}' '${timeTyped('24:00:00')}' = false
       `,
     });
   });

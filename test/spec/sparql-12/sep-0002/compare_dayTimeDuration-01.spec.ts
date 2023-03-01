@@ -1,4 +1,4 @@
-import { bool, dayTimeDurationNotation } from '../../../util/Aliases';
+import { bool, dayTimeDurationTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -24,10 +24,10 @@ describe('compare dayTimeDuration 01', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${dayTimeDurationNotation('PT1H')}' '${dayTimeDurationNotation('PT63M')}' = true
-        '${dayTimeDurationNotation('PT3S')}' '${dayTimeDurationNotation('PT2M')}' = true
-        '${dayTimeDurationNotation('-PT1H1M')}' '${dayTimeDurationNotation('-PT62M')}' = false
-        '${dayTimeDurationNotation('PT0S')}' '${dayTimeDurationNotation('-PT0.1S')}' = false
+        '${dayTimeDurationTyped('PT1H')}' '${dayTimeDurationTyped('PT63M')}' = true
+        '${dayTimeDurationTyped('PT3S')}' '${dayTimeDurationTyped('PT2M')}' = true
+        '${dayTimeDurationTyped('-PT1H1M')}' '${dayTimeDurationTyped('-PT62M')}' = false
+        '${dayTimeDurationTyped('PT0S')}' '${dayTimeDurationTyped('-PT0.1S')}' = false
       `,
     });
   });
@@ -39,10 +39,10 @@ describe('compare dayTimeDuration 01', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${dayTimeDurationNotation('PT1H')}' '${dayTimeDurationNotation('PT63M')}' = false
-        '${dayTimeDurationNotation('PT3S')}' '${dayTimeDurationNotation('PT2M')}' = false
-        '${dayTimeDurationNotation('-PT1H1M')}' '${dayTimeDurationNotation('-PT62M')}' = true
-        '${dayTimeDurationNotation('PT0S')}' '${dayTimeDurationNotation('-PT0.1S')}' = true
+        '${dayTimeDurationTyped('PT1H')}' '${dayTimeDurationTyped('PT63M')}' = false
+        '${dayTimeDurationTyped('PT3S')}' '${dayTimeDurationTyped('PT2M')}' = false
+        '${dayTimeDurationTyped('-PT1H1M')}' '${dayTimeDurationTyped('-PT62M')}' = true
+        '${dayTimeDurationTyped('PT0S')}' '${dayTimeDurationTyped('-PT0.1S')}' = true
       `,
     });
   });

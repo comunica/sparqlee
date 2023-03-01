@@ -1,4 +1,4 @@
-import { int, timeNotation } from '../../../util/Aliases';
+import { int, timeTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -18,7 +18,7 @@ describe('Extract time', () => {
       arity: 1,
       notation: Notation.Function,
       testTable: `
-        '${timeNotation('02:12:59')}' = '${int('2')}'
+        '${timeTyped('02:12:59')}' = '${int('2')}'
       `,
     });
 
@@ -27,7 +27,7 @@ describe('Extract time', () => {
       arity: 1,
       notation: Notation.Function,
       testTable: `
-        '${timeNotation('02:12:59')}' = '${int('12')}'
+        '${timeTyped('02:12:59')}' = '${int('12')}'
       `,
     });
 
@@ -36,7 +36,7 @@ describe('Extract time', () => {
       arity: 1,
       notation: Notation.Function,
       testTable: `
-        '${timeNotation('02:12:59')}' = '${int('59')}'
+        '${timeTyped('02:12:59')}' = '${int('59')}'
       `,
     });
   });

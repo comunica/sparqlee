@@ -89,7 +89,7 @@ export function double(value: string): string {
  * '2001-10-26T21:32:52' => "2001-10-26T21:32:52"^^xsd:dateTime
  * @param value string (representing a date)
  */
-export function dateTimeNotation(value: string): string {
+export function dateTimeTyped(value: string): string {
   return compactTermString(value, 'xsd:dateTime');
 }
 
@@ -97,7 +97,7 @@ export function dateTimeNotation(value: string): string {
  * ''02:12:59'' => "'02:12:59'"^^xsd:time
  * @param value string (representing a date)
  */
-export function timeNotation(value: string): string {
+export function timeTyped(value: string): string {
   return compactTermString(value, 'xsd:time');
 }
 
@@ -105,7 +105,7 @@ export function timeNotation(value: string): string {
  * ''2010-06-21'' => "'2010-06-21'"^^xsd:date
  * @param value string (representing a date)
  */
-export function dateNotation(value: string): string {
+export function dateTyped(value: string): string {
   return compactTermString(value, 'xsd:date');
 }
 
@@ -113,7 +113,7 @@ export function dateNotation(value: string): string {
  * 'P1Y' => "P1Y"^^xsd:duration
  * @param value string (representing a duration)
  */
-export function durationNotation(value: string): string {
+export function durationTyped(value: string): string {
   return compactTermString(value, 'xsd:duration');
 }
 
@@ -121,7 +121,7 @@ export function durationNotation(value: string): string {
  * '-PT10H' => "-PT10H"^^xsd:dateTime
  * @param value string (representing a dayTimeDuration)
  */
-export function dayTimeDurationNotation(value: string): string {
+export function dayTimeDurationTyped(value: string): string {
   return compactTermString(value, 'xsd:dayTimeDuration');
 }
 
@@ -129,7 +129,7 @@ export function dayTimeDurationNotation(value: string): string {
  * 'P1Y' => "P1Y"^^xsd:yearMonthDuration
  * @param value string (representing a yearMonthDuration)
  */
-export function yearMonthDurationNotation(value: string): string {
+export function yearMonthDurationTyped(value: string): string {
   return compactTermString(value, 'xsd:yearMonthDuration');
 }
 

@@ -1,5 +1,5 @@
 /* eslint max-len: 0 */
-import { dateNotation, dateTimeNotation, dayTimeDurationNotation, timeNotation } from '../../../util/Aliases';
+import { dateTyped, dateTimeTyped, dayTimeDurationTyped, timeTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -22,9 +22,9 @@ describe('dateTime subtract', () => {
       arity: 2,
       notation: Notation.Infix,
       testTable: `
-        '${dateTimeNotation('2000-10-30T06:12:00-05:00')}' '${dateTimeNotation('1999-11-28T09:00:00Z')}' = '${dayTimeDurationNotation('P337DT2H12M')}'
-        '${dateNotation('2000-10-30')}' '${dateNotation('1999-11-28')}' = '${dayTimeDurationNotation('P337D')}'
-        '${timeNotation('11:12:00Z')}' '${timeNotation('04:00:00-05:00')}' = '${dayTimeDurationNotation('PT2H12M')}'
+        '${dateTimeTyped('2000-10-30T06:12:00-05:00')}' '${dateTimeTyped('1999-11-28T09:00:00Z')}' = '${dayTimeDurationTyped('P337DT2H12M')}'
+        '${dateTyped('2000-10-30')}' '${dateTyped('1999-11-28')}' = '${dayTimeDurationTyped('P337D')}'
+        '${timeTyped('11:12:00Z')}' '${timeTyped('04:00:00-05:00')}' = '${dayTimeDurationTyped('PT2H12M')}'
       `,
     });
   });

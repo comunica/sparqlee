@@ -1,4 +1,4 @@
-import { bool, dateNotation } from '../../../util/Aliases';
+import { bool, dateTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -11,8 +11,8 @@ describe('compare date', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${dateNotation('2004-12-25Z')}' '${dateNotation('2004-12-25+07:00')}' = false
-        '${dateNotation('2004-12-25-12:00')}' '${dateNotation('2004-12-26+12:00')}' = true
+        '${dateTyped('2004-12-25Z')}' '${dateTyped('2004-12-25+07:00')}' = false
+        '${dateTyped('2004-12-25-12:00')}' '${dateTyped('2004-12-26+12:00')}' = true
       `,
     });
   });
@@ -25,8 +25,8 @@ describe('compare date', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${dateNotation('2004-12-25Z')}' '${dateNotation('2004-12-25-05:00')}' = true
-        '${dateNotation('2004-12-25-12:00')}' '${dateNotation('2004-12-26+12:00')}' = false
+        '${dateTyped('2004-12-25Z')}' '${dateTyped('2004-12-25-05:00')}' = true
+        '${dateTyped('2004-12-25-12:00')}' '${dateTyped('2004-12-26+12:00')}' = false
       `,
     });
   });
@@ -39,8 +39,8 @@ describe('compare date', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${dateNotation('2004-12-25Z')}' '${dateNotation('2004-12-25+07:00')}' = true
-        '${dateNotation('2004-12-25-12:00')}' '${dateNotation('2004-12-26+12:00')}' = false
+        '${dateTyped('2004-12-25Z')}' '${dateTyped('2004-12-25+07:00')}' = true
+        '${dateTyped('2004-12-25-12:00')}' '${dateTyped('2004-12-26+12:00')}' = false
       `,
     });
   });

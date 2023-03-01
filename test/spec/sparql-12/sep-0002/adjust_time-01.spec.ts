@@ -1,5 +1,5 @@
 /* eslint max-len: 0 */
-import { dayTimeDurationNotation, timeNotation } from '../../../util/Aliases';
+import { dayTimeDurationTyped, timeTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -24,11 +24,11 @@ describe('adjust time duration', () => {
       arity: 2,
       notation: Notation.Function,
       testTable: `
-        '${timeNotation('10:00:00')}' '${dayTimeDurationNotation('-PT10H')}' = '${timeNotation('10:00:00-10:00')}'
-        '${timeNotation('10:00:00-07:00')}' '${dayTimeDurationNotation('-PT10H')}' = '${timeNotation('07:00:00-10:00')}'
-        '${timeNotation('10:00:00-07:00')}' '${dayTimeDurationNotation('PT10H')}' = '${timeNotation('03:00:00+10:00')}'
-        '${timeNotation('10:00:00')}' '' = '${timeNotation('10:00:00')}'
-        '${timeNotation('10:00:00-07:00')}' '' = '${timeNotation('10:00:00')}'
+        '${timeTyped('10:00:00')}' '${dayTimeDurationTyped('-PT10H')}' = '${timeTyped('10:00:00-10:00')}'
+        '${timeTyped('10:00:00-07:00')}' '${dayTimeDurationTyped('-PT10H')}' = '${timeTyped('07:00:00-10:00')}'
+        '${timeTyped('10:00:00-07:00')}' '${dayTimeDurationTyped('PT10H')}' = '${timeTyped('03:00:00+10:00')}'
+        '${timeTyped('10:00:00')}' '' = '${timeTyped('10:00:00')}'
+        '${timeTyped('10:00:00-07:00')}' '' = '${timeTyped('10:00:00')}'
         
       `,
     });

@@ -3,8 +3,8 @@ import * as LRUCache from 'lru-cache';
 import type { LangStringLiteral } from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import { TypeAlias, TypeURL } from './Consts';
-import type { ITimeZoneRepresentation } from './InternalRepresentations';
-import { toUTCDate } from './InternalRepresentations';
+import type { ITimeZoneRepresentation } from './DateTimeHelpers';
+import { toUTCDate } from './DateTimeHelpers';
 import type { ISuperTypeProvider, SuperTypeCallback, TypeCache, GeneralSuperTypeDict } from './TypeHandling';
 import { getSuperTypeDict } from './TypeHandling';
 

@@ -1,5 +1,5 @@
 /* eslint max-len: 0 */
-import { dateNotation, dateTimeNotation, dayTimeDurationNotation, timeNotation } from '../../../util/Aliases';
+import { dateTyped, dateTimeTyped, dayTimeDurationTyped, timeTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -22,9 +22,9 @@ describe('Add duration and dayTimeDuration 01', () => {
       arity: 2,
       notation: Notation.Infix,
       testTable: `
-        '${dateTimeNotation('2000-10-30T11:12:00')}' '${dayTimeDurationNotation('P3DT1H15M')}' = '${dateTimeNotation('2000-11-02T12:27:00')}'
-        '${dateNotation('2000-10-30')}' '${dayTimeDurationNotation('P3DT1H15M')}' = '${dateNotation('2000-11-02')}'
-        '${timeNotation('11:12:00')}' '${dayTimeDurationNotation('P3DT1H15M')}' = '${timeNotation('12:27:00')}'
+        '${dateTimeTyped('2000-10-30T11:12:00')}' '${dayTimeDurationTyped('P3DT1H15M')}' = '${dateTimeTyped('2000-11-02T12:27:00')}'
+        '${dateTyped('2000-10-30')}' '${dayTimeDurationTyped('P3DT1H15M')}' = '${dateTyped('2000-11-02')}'
+        '${timeTyped('11:12:00')}' '${dayTimeDurationTyped('P3DT1H15M')}' = '${timeTyped('12:27:00')}'
       `,
     });
   });

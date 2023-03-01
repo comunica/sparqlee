@@ -1,4 +1,4 @@
-import { bool, yearMonthDurationNotation } from '../../../util/Aliases';
+import { bool, yearMonthDurationTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -25,11 +25,11 @@ describe('compare yearMonthDuration 01', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P1Y')}' = false
-        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P12M')}' = false
-        '${yearMonthDurationNotation('P1Y1M')}' '${yearMonthDurationNotation('P12M')}' = false
-        '${yearMonthDurationNotation('P1M')}' '${yearMonthDurationNotation('-P2M')}' = false
-        '${yearMonthDurationNotation('-P1Y')}' '${yearMonthDurationNotation('P13M')}' = true
+        '${yearMonthDurationTyped('P1Y')}' '${yearMonthDurationTyped('P1Y')}' = false
+        '${yearMonthDurationTyped('P1Y')}' '${yearMonthDurationTyped('P12M')}' = false
+        '${yearMonthDurationTyped('P1Y1M')}' '${yearMonthDurationTyped('P12M')}' = false
+        '${yearMonthDurationTyped('P1M')}' '${yearMonthDurationTyped('-P2M')}' = false
+        '${yearMonthDurationTyped('-P1Y')}' '${yearMonthDurationTyped('P13M')}' = true
       `,
     });
   });
@@ -41,11 +41,11 @@ describe('compare yearMonthDuration 01', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P1Y')}' = false
-        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P12M')}' = false
-        '${yearMonthDurationNotation('P1Y1M')}' '${yearMonthDurationNotation('P12M')}' = true
-        '${yearMonthDurationNotation('P1M')}' '${yearMonthDurationNotation('-P2M')}' = true
-        '${yearMonthDurationNotation('-P1Y')}' '${yearMonthDurationNotation('P13M')}' = false
+        '${yearMonthDurationTyped('P1Y')}' '${yearMonthDurationTyped('P1Y')}' = false
+        '${yearMonthDurationTyped('P1Y')}' '${yearMonthDurationTyped('P12M')}' = false
+        '${yearMonthDurationTyped('P1Y1M')}' '${yearMonthDurationTyped('P12M')}' = true
+        '${yearMonthDurationTyped('P1M')}' '${yearMonthDurationTyped('-P2M')}' = true
+        '${yearMonthDurationTyped('-P1Y')}' '${yearMonthDurationTyped('P13M')}' = false
       `,
     });
   });

@@ -1,5 +1,5 @@
 /* eslint max-len: 0 */
-import { dateNotation, dayTimeDurationNotation } from '../../../util/Aliases';
+import { dateTyped, dayTimeDurationTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -24,10 +24,10 @@ describe('adjust date duration', () => {
       arity: 2,
       notation: Notation.Function,
       testTable: `
-        '${dateNotation('2002-03-07')}' '${dayTimeDurationNotation('-PT10H')}' = '${dateNotation('2002-03-07-10:00')}'
-        '${dateNotation('2002-03-07-07:00')}' '${dayTimeDurationNotation('-PT10H')}' = '${dateNotation('2002-03-06-10:00')}'
-        '${dateNotation('2002-03-07')}' '' = '${dateNotation('2002-03-07')}'
-        '${dateNotation('2002-03-07-07:00')}' '' = '${dateNotation('2002-03-07')}'
+        '${dateTyped('2002-03-07')}' '${dayTimeDurationTyped('-PT10H')}' = '${dateTyped('2002-03-07-10:00')}'
+        '${dateTyped('2002-03-07-07:00')}' '${dayTimeDurationTyped('-PT10H')}' = '${dateTyped('2002-03-06-10:00')}'
+        '${dateTyped('2002-03-07')}' '' = '${dateTyped('2002-03-07')}'
+        '${dateTyped('2002-03-07-07:00')}' '' = '${dateTyped('2002-03-07')}'
       `,
     });
   });

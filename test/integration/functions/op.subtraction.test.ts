@@ -1,4 +1,4 @@
-import { dateTimeNotation, error, merge, numeric, yearMonthDurationNotation } from '../../util/Aliases';
+import { dateTimeTyped, error, merge, numeric, yearMonthDurationTyped } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import type { ITestTableConfigBase } from '../../util/utils';
 import { runTestTable } from '../../util/utils';
@@ -35,7 +35,7 @@ describe('evaluation of \'-\' like', () => {
       NaN    anyNum = NaN
       anyNum NaN    = NaN
       
-      '${dateTimeNotation('2019-05-28T12:14:45Z')}' '${yearMonthDurationNotation('P1Y1M')}' = '${dateTimeNotation('2018-04-28T12:14:45Z')}'
+      '${dateTimeTyped('2019-05-28T12:14:45Z')}' '${yearMonthDurationTyped('P1Y1M')}' = '${dateTimeTyped('2018-04-28T12:14:45Z')}'
     `,
     errorTable: `
       anyNum error  = ''

@@ -1,4 +1,4 @@
-import { dayTimeDurationNotation, durationNotation, yearMonthDurationNotation } from '../../util/Aliases';
+import { dayTimeDurationTyped, durationTyped, yearMonthDurationTyped } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import { runTestTable } from '../../util/utils';
 
@@ -340,7 +340,7 @@ describe('evaluation of XPath constructors', () => {
       notation: Notation.Function,
       operation: 'xsd:duration',
       testTable: `
-        ${durationNotation('-PT10H')} = ${durationNotation('-PT10H')}
+        ${durationTyped('-PT10H')} = ${durationTyped('-PT10H')}
       `,
     });
   });
@@ -351,10 +351,10 @@ describe('evaluation of XPath constructors', () => {
       notation: Notation.Function,
       operation: 'xsd:yearMonthDuration',
       testTable: `
-        ${durationNotation('-PT10H')} = ${yearMonthDurationNotation('P0M')}
-        ${durationNotation('-P5Y6M')} = ${yearMonthDurationNotation('-P5Y6M')}
-        '"P5Y30M"' = ${yearMonthDurationNotation('P5Y30M')}
-        ${dayTimeDurationNotation('P1DT1H1M1.1S')} = ${yearMonthDurationNotation('P0M')}
+        ${durationTyped('-PT10H')} = ${yearMonthDurationTyped('P0M')}
+        ${durationTyped('-P5Y6M')} = ${yearMonthDurationTyped('-P5Y6M')}
+        '"P5Y30M"' = ${yearMonthDurationTyped('P5Y30M')}
+        ${dayTimeDurationTyped('P1DT1H1M1.1S')} = ${yearMonthDurationTyped('P0M')}
       `,
       errorTable: `
         '"-PT10H"' = ''
@@ -368,10 +368,10 @@ describe('evaluation of XPath constructors', () => {
       notation: Notation.Function,
       operation: 'xsd:dayTimeDuration',
       testTable: `
-        ${durationNotation('-PT10H')} = ${dayTimeDurationNotation('-PT10H')}
-        ${durationNotation('PT5S')} = ${dayTimeDurationNotation('PT5S')}
-        '"-PT10H"' = '${dayTimeDurationNotation('-PT10H')}'
-        '${yearMonthDurationNotation('-P5Y2M')}' = '${dayTimeDurationNotation('PT0S')}'
+        ${durationTyped('-PT10H')} = ${dayTimeDurationTyped('-PT10H')}
+        ${durationTyped('PT5S')} = ${dayTimeDurationTyped('PT5S')}
+        '"-PT10H"' = '${dayTimeDurationTyped('-PT10H')}'
+        '${yearMonthDurationTyped('-P5Y2M')}' = '${dayTimeDurationTyped('PT0S')}'
       `,
       errorTable: `
         '"P5Y30M"' = ''

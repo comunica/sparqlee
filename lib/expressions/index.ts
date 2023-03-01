@@ -8,4 +8,3 @@ export * from './Aggregate';
 export * from './Existence';
 export * from './AsyncExtension';
 export * from './SyncExtension';
-export * from './DateLiterals';

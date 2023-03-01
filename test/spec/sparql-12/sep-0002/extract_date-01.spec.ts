@@ -1,4 +1,4 @@
-import { dateNotation, int } from '../../../util/Aliases';
+import { dateTyped, int } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -18,7 +18,7 @@ describe('Extract date', () => {
       arity: 1,
       notation: Notation.Function,
       testTable: `
-        '${dateNotation('2000-11-02')}' = '${int('2000')}'
+        '${dateTyped('2000-11-02')}' = '${int('2000')}'
       `,
     });
 
@@ -27,7 +27,7 @@ describe('Extract date', () => {
       arity: 1,
       notation: Notation.Function,
       testTable: `
-        '${dateNotation('2000-11-02')}' = '${int('11')}'
+        '${dateTyped('2000-11-02')}' = '${int('11')}'
       `,
     });
 
@@ -36,7 +36,7 @@ describe('Extract date', () => {
       arity: 1,
       notation: Notation.Function,
       testTable: `
-        '${dateNotation('2000-11-02')}' = '${int('2')}'
+        '${dateTyped('2000-11-02')}' = '${int('2')}'
       `,
     });
   });

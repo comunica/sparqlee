@@ -4,6 +4,7 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import { Algebra } from 'sparqlalgebrajs';
 import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
+import * as Err from '../util/Errors';
 import {
   parseDate,
   parseDateTime,
@@ -11,8 +12,7 @@ import {
   parseDuration,
   parseTime,
   parseYearMonthDuration,
-} from '../util/DateTimeHelpers';
-import * as Err from '../util/Errors';
+} from '../util/Parsing';
 import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
 import type { ISuperTypeProvider,

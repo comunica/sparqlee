@@ -1,8 +1,8 @@
 /* eslint max-len: 0 */
 import {
-  dateNotation,
-  dateTimeNotation, dayTimeDurationNotation,
-  yearMonthDurationNotation,
+  dateTyped,
+  dateTimeTyped, dayTimeDurationTyped,
+  yearMonthDurationTyped,
 } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
@@ -25,9 +25,9 @@ describe('subtract duration and dayTimeDuration 01', () => {
       arity: 2,
       notation: Notation.Infix,
       testTable: `
-        '${dateTimeNotation('2019-05-28T12:14:45Z')}' '${yearMonthDurationNotation('P1Y')}' = '${dateTimeNotation('2018-05-28T12:14:45Z')}'
-        '${dateNotation('2019-05-28')}' '${yearMonthDurationNotation('P1Y')}' = '${dateNotation('2018-05-28')}'
-        '${dateTimeNotation('2000-10-30T11:12:00')}' '${dayTimeDurationNotation('P3DT1H15M5S')}' = '${dateTimeNotation('2000-10-27T09:56:55')}'
+        '${dateTimeTyped('2019-05-28T12:14:45Z')}' '${yearMonthDurationTyped('P1Y')}' = '${dateTimeTyped('2018-05-28T12:14:45Z')}'
+        '${dateTyped('2019-05-28')}' '${yearMonthDurationTyped('P1Y')}' = '${dateTyped('2018-05-28')}'
+        '${dateTimeTyped('2000-10-30T11:12:00')}' '${dayTimeDurationTyped('P3DT1H15M5S')}' = '${dateTimeTyped('2000-10-27T09:56:55')}'
       `,
     });
   });

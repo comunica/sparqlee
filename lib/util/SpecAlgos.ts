@@ -1,8 +1,8 @@
 import type {
   IDurationRepresentation,
   IDateTimeRepresentation, ITimeZoneRepresentation,
-} from './InternalRepresentations';
-import { toUTCDate } from './InternalRepresentations';
+} from './DateTimeHelpers';
+import { toUTCDate } from './DateTimeHelpers';
 
 function fQuotient(first: number, second: number): number {
   return Math.floor(first / second);

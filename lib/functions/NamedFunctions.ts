@@ -3,18 +3,15 @@ import * as E from '../expressions';
 import { DurationLiteral } from '../expressions';
 import type * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
-import {
-  parseDate,
+import { trimToDayTimeDuration, trimToYearMonthDuration } from '../util/DateTimeHelpers';
+import * as Err from '../util/Errors';
+import { parseDate,
   parseDateTime,
   parseDayTimeDuration,
   parseDuration,
   parseTime,
   parseYearMonthDuration,
-} from '../util/DateTimeHelpers';
-import * as Err from '../util/Errors';
-
-import { trimToDayTimeDuration, trimToYearMonthDuration } from '../util/InternalRepresentations';
-import { parseXSDDecimal, parseXSDFloat, parseXSDInteger } from '../util/Parsing';
+  parseXSDDecimal, parseXSDFloat, parseXSDInteger } from '../util/Parsing';
 
 import type { IOverloadedDefinition } from './Core';
 import { bool, dateTime, decimal, declare, double, float, integer, string } from './Helpers';

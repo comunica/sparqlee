@@ -1,4 +1,4 @@
-import { bool, dateTime, merge, numeric, str, yearMonthDurationNotation } from '../../util/Aliases';
+import { bool, dateTime, merge, numeric, str, yearMonthDurationTyped } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import type { ITestTableConfigBase } from '../../util/utils';
 import { runTestTable } from '../../util/utils';
@@ -103,11 +103,11 @@ describe('evaluation of \'>=\'', () => {
     runTestTable({
       ...config,
       testTable: `
-        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P1Y')}' = true
-        '${yearMonthDurationNotation('P1Y')}' '${yearMonthDurationNotation('P12M')}' = true
-        '${yearMonthDurationNotation('P1Y1M')}' '${yearMonthDurationNotation('P12M')}' = true
-        '${yearMonthDurationNotation('P1M')}' '${yearMonthDurationNotation('-P2M')}' = true
-        '${yearMonthDurationNotation('-P1Y')}' '${yearMonthDurationNotation('P13M')}' = false
+        '${yearMonthDurationTyped('P1Y')}' '${yearMonthDurationTyped('P1Y')}' = true
+        '${yearMonthDurationTyped('P1Y')}' '${yearMonthDurationTyped('P12M')}' = true
+        '${yearMonthDurationTyped('P1Y1M')}' '${yearMonthDurationTyped('P12M')}' = true
+        '${yearMonthDurationTyped('P1M')}' '${yearMonthDurationTyped('-P2M')}' = true
+        '${yearMonthDurationTyped('-P1Y')}' '${yearMonthDurationTyped('P13M')}' = false
       `,
     });
   });

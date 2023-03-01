@@ -10,19 +10,17 @@ import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
-import { extractRawTimeZone } from '../util/DateTimeHelpers';
-import * as Err from '../util/Errors';
 import type {
   IDayTimeDurationRepresentation,
-} from '../util/InternalRepresentations';
-import {
+} from '../util/DateTimeHelpers';
+import { extractRawTimeZone,
   dayTimeDurationsToSeconds,
   defaultedDateTimeRepresentation, defaultedDayTimeDurationRepresentation,
   defaultedDurationRepresentation, defaultedYearMonthDurationRepresentation, negateDuration,
   toDateTimeRepresentation,
-  toUTCDate, yearMonthDurationsToMonths,
-} from '../util/InternalRepresentations';
-import { addDurationToDateTime, elapsedDuration } from '../util/specAlgos';
+  toUTCDate, yearMonthDurationsToMonths } from '../util/DateTimeHelpers';
+import * as Err from '../util/Errors';
+import { addDurationToDateTime, elapsedDuration } from '../util/SpecAlgos';
 import type { IOverloadedDefinition } from './Core';
 import { bool, decimal, declare, double, integer, langString, string } from './Helpers';
 import * as X from './XPathFunctions';

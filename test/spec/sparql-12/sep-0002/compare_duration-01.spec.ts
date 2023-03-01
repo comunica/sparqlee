@@ -1,4 +1,4 @@
-import { bool, durationNotation } from '../../../util/Aliases';
+import { bool, durationTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -30,18 +30,18 @@ describe('compare duration 01', () => {
       aliases: bool,
       // TODO: this is probably not what they wanted :/
       testTable: `
-        '${durationNotation('P1Y')}' '${durationNotation('P366D')}' = false
+        '${durationTyped('P1Y')}' '${durationTyped('P366D')}' = false
         
-        '${durationNotation('P1Y')}' '${durationNotation('P1Y')}' = true
-        '${durationNotation('P1Y')}' '${durationNotation('P12M')}' = true
-        '${durationNotation('P1Y')}' '${durationNotation('P365D')}' = false
-        '${durationNotation('P0Y')}' '${durationNotation('PT0S')}' = true
-        '${durationNotation('P1D')}' '${durationNotation('PT24H')}' = true
-        '${durationNotation('P1D')}' '${durationNotation('PT23H')}' = false
-        '${durationNotation('PT1H')}' '${durationNotation('PT60M')}' = true
-        '${durationNotation('PT1H')}' '${durationNotation('PT3600S')}' = true
-        '${durationNotation('-P1Y')}' '${durationNotation('P1Y')}' = false
-        '${durationNotation('-P0Y')}' '${durationNotation('PT0S')}' = true
+        '${durationTyped('P1Y')}' '${durationTyped('P1Y')}' = true
+        '${durationTyped('P1Y')}' '${durationTyped('P12M')}' = true
+        '${durationTyped('P1Y')}' '${durationTyped('P365D')}' = false
+        '${durationTyped('P0Y')}' '${durationTyped('PT0S')}' = true
+        '${durationTyped('P1D')}' '${durationTyped('PT24H')}' = true
+        '${durationTyped('P1D')}' '${durationTyped('PT23H')}' = false
+        '${durationTyped('PT1H')}' '${durationTyped('PT60M')}' = true
+        '${durationTyped('PT1H')}' '${durationTyped('PT3600S')}' = true
+        '${durationTyped('-P1Y')}' '${durationTyped('P1Y')}' = false
+        '${durationTyped('-P0Y')}' '${durationTyped('PT0S')}' = true
       `,
     });
   });

@@ -1,8 +1,8 @@
 /* eslint max-len: 0 */
 import {
-  dateNotation,
-  dateTimeNotation,
-  yearMonthDurationNotation,
+  dateTyped,
+  dateTimeTyped,
+  yearMonthDurationTyped,
 } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
@@ -25,8 +25,8 @@ describe('Add duration and yearMonthDuration 01', () => {
       arity: 2,
       notation: Notation.Infix,
       testTable: `
-        '${dateTimeNotation('2019-05-28T12:14:45Z')}' '${yearMonthDurationNotation('P1Y')}' = '${dateTimeNotation('2020-05-28T12:14:45Z')}'
-        '${dateNotation('2019-05-28')}' '${yearMonthDurationNotation('P1Y')}' = '${dateNotation('2020-05-28')}'
+        '${dateTimeTyped('2019-05-28T12:14:45Z')}' '${yearMonthDurationTyped('P1Y')}' = '${dateTimeTyped('2020-05-28T12:14:45Z')}'
+        '${dateTyped('2019-05-28')}' '${yearMonthDurationTyped('P1Y')}' = '${dateTyped('2020-05-28')}'
       `,
     });
   });

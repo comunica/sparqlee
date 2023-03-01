@@ -1,192 +1,196 @@
-import type {
-  IDateRepresentation, IDateTimeRepresentation, IDayTimeDurationRepresentation,
-  IDurationRepresentation,
-  ITimeRepresentation,
-  ITimeZoneRepresentation, IYearMonthDurationRepresentation,
-} from './InternalRepresentations';
-import { extractDayTimeDur } from './InternalRepresentations';
-import { maximumDayInMonthFor } from './specAlgos';
-
-function numSerializer(num: number, min = 2): string {
-  return num.toLocaleString(undefined, { minimumIntegerDigits: min, useGrouping: false });
+export interface ITimeZoneRepresentation {
+  // https://www.w3.org/TR/xpath-functions/#func-implicit-timezone
+  // Type is a dayTimeDuration.
+  // We use a separate dataType since it makes TS type modifications and JS object copying easier.
+  zoneHours: number;
+  zoneMinutes: number;
 }
 
-export function parseDateTime(dateTimeStr: string, errorCreator?: () => Error): IDateTimeRepresentation {
-  // https://www.w3.org/TR/xmlschema-2/#dateTime
-  const [ date, time ] = dateTimeStr.split('T');
-  return { ...parseDate(date, errorCreator), ...internalParseTime(time, errorCreator) };
+export interface IDateRepresentation extends Partial<ITimeZoneRepresentation> {
+  year: number;
+  month: number;
+  day: number;
 }
 
-export function serializeDateTime(date: IDateTimeRepresentation): string {
-  // Extraction is needed because the date serializer can not add timezone y
-  return `${sierializeDate({ year: date.year, month: date.month, day: date.day })}T${serializeTime(date)}`;
+export interface ITimeRepresentation extends Partial<ITimeZoneRepresentation>{
+  hours: number;
+  minutes: number;
+  seconds: number;
 }
 
-function parseTimeZone(timeZoneStr: string, errorCreator?: () => Error): Partial<ITimeZoneRepresentation> {
-  // https://www.w3.org/TR/xmlschema-2/#dateTime-timezones
-  if (timeZoneStr === '') {
-    return { zoneHours: undefined, zoneMinutes: undefined };
-  }
-  if (timeZoneStr === 'Z') {
-    return { zoneHours: 0, zoneMinutes: 0 };
-  }
-  const timeZoneStrings = timeZoneStr.replace(/^([+|-])(\d\d):(\d\d)$/gu, '$11!$2!$3').split('!');
-  const timeZone = timeZoneStrings.map(str => Number(str));
+export interface IDayTimeDurationRepresentation {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  day: number;
+}
+
+export interface IYearMonthDurationRepresentation {
+  year: number;
+  month: number;
+}
+
+export type IDurationRepresentation = IYearMonthDurationRepresentation & IDayTimeDurationRepresentation;
+export type IDateTimeRepresentation = IDateRepresentation & ITimeRepresentation;
+
+// Important is to notice JS and XSD datatypes have different defaulted values
+// | Field | Default in JS | Default in XSD_DayTime | Default in XSD_Duration |
+// | Month | 0             | 1                      | 0                       |
+// | Day   | 1             | 1                      | 0                       |
+
+export function defaultedDayTimeDurationRepresentation(rep: Partial<IDayTimeDurationRepresentation>):
+IDayTimeDurationRepresentation {
   return {
-    zoneHours: timeZone[0] * timeZone[1],
-    zoneMinutes: timeZone[0] * timeZone[2],
+    day: rep.day || 0,
+    hours: rep.hours || 0,
+    minutes: rep.minutes || 0,
+    seconds: rep.seconds || 0,
   };
 }
 
-function serializeTimeZone(tz: Partial<ITimeZoneRepresentation>): string {
-  if (tz.zoneHours === undefined || tz.zoneMinutes === undefined) {
-    return '';
-  }
-  if (tz.zoneHours === 0 && tz.zoneMinutes === 0) {
-    return 'Z';
-  }
-  return `${tz.zoneHours >= 0 ? `+${numSerializer(tz.zoneHours)}` : numSerializer(tz.zoneHours)}:${numSerializer(Math.abs(tz.zoneMinutes))}`;
+export function defaultedYearMonthDurationRepresentation(rep: Partial<IYearMonthDurationRepresentation>):
+IYearMonthDurationRepresentation {
+  return {
+    year: rep.year || 0,
+    month: rep.month || 0,
+  };
 }
 
-export function parseDate(dateStr: string, errorCreator?: () => Error): IDateRepresentation {
-  // https://www.w3.org/TR/xmlschema-2/#date-lexical-representation
-  const formatted = dateStr.replace(
-    /^(-)?([123456789]*\d{4})-(\d\d)-(\d\d)(Z|([+-]\d\d:\d\d))?$/gu, '$11!$2!$3!$4!$5',
+export function defaultedDurationRepresentation(
+  rep: Partial<IDurationRepresentation>,
+): IDurationRepresentation {
+  return {
+    ...defaultedDayTimeDurationRepresentation(rep),
+    ...defaultedYearMonthDurationRepresentation(rep),
+  };
+}
+
+export function defaultedDateTimeRepresentation(rep: Partial<IDateTimeRepresentation>): IDateTimeRepresentation {
+  return {
+    ...rep,
+    day: rep.day || 1,
+    hours: rep.hours || 0,
+    month: rep.month || 1,
+    year: rep.year || 0,
+    seconds: rep.seconds || 0,
+    minutes: rep.minutes || 0,
+  };
+}
+
+export function toDateTimeRepresentation({ date, timeZone }:
+{ date: Date; timeZone: ITimeZoneRepresentation }): IDateTimeRepresentation {
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    hours: date.getHours(),
+    minutes: date.getMinutes(),
+    seconds: date.getSeconds(),
+    zoneHours: timeZone.zoneHours,
+    zoneMinutes: timeZone.zoneMinutes,
+  };
+}
+
+export function convertDurationToDateTime(dur: IDurationRepresentation): IDateTimeRepresentation {
+  return {
+    zoneHours: 0,
+    zoneMinutes: 0,
+    seconds: dur.seconds,
+    minutes: dur.minutes,
+    hours: dur.hours,
+    day: dur.day + 1,
+    month: dur.month + 1,
+    year: dur.year,
+  };
+}
+
+export function negateDuration(dur: Partial<IDurationRepresentation>): Partial<IDurationRepresentation> {
+  return {
+    year: dur.year !== undefined ? -1 * dur.year : undefined,
+    month: dur.month !== undefined ? -1 * dur.month : undefined,
+    day: dur.day !== undefined ? -1 * dur.day : undefined,
+    hours: dur.hours !== undefined ? -1 * dur.hours : undefined,
+    minutes: dur.minutes !== undefined ? -1 * dur.minutes : undefined,
+    seconds: dur.seconds !== undefined ? -1 * dur.seconds : undefined,
+  };
+}
+
+export function toJSDate(date: IDateTimeRepresentation): Date {
+  // The given hours will be assumed to be local time.
+  const res = new Date(
+    date.year,
+    date.month - 1,
+    date.day,
+    date.hours,
+    date.minutes,
+    Math.trunc(date.seconds),
+    (date.seconds % 1) * 1_000,
   );
-  if (formatted === dateStr) {
-    throw new Error('nono');
-  }
-  const dateStrings = formatted.split('!');
-  const date = dateStrings.slice(0, -1).map(str => Number(str));
+  if (0 <= date.year && date.year < 100) {
+    // Special rule of date has gone int action:
+    // eslint-disable-next-line max-len
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date#individual_date_and_time_component_values
 
-  const res = {
-    year: date[0] * date[1],
-    month: date[2],
-    day: date[3],
-    ...parseTimeZone(dateStrings[4]),
-  };
-  if (!(1 <= res.month && res.month <= 12) || !(1 <= res.day && res.day <= maximumDayInMonthFor(res.year, res.month))) {
-    throw new Error('nono');
+    const jumpDeltaOfDate = 1_900;
+    res.setFullYear(res.getFullYear() - jumpDeltaOfDate);
   }
   return res;
 }
 
+export function toUTCDate(date: Partial<IDateTimeRepresentation>,
+  defaultTimezone: ITimeZoneRepresentation): Date {
+  const localTime = toJSDate(defaultedDateTimeRepresentation(date));
+  // This date has been constructed in machine local time, now we alter it to become UTC and convert to correct timezone
+
+  // Correction needed from local machine timezone to UTC
+  const minutesCorrectionLocal = localTime.getTimezoneOffset();
+  // Correction needed from UTC to provided timeZone
+  const hourCorrectionUTC = date.zoneHours === undefined ? defaultTimezone.zoneHours : date.zoneHours;
+  const minutesCorrectionUTC = date.zoneMinutes === undefined ? defaultTimezone.zoneMinutes : date.zoneMinutes;
+  return new Date(
+    localTime.getTime() - (minutesCorrectionLocal + hourCorrectionUTC * 60 + minutesCorrectionUTC) * 60 * 1_000,
+  );
+}
+
+export function trimToYearMonthDuration(dur: Partial<IDurationRepresentation>):
+Partial<IYearMonthDurationRepresentation> {
+  return {
+    year: dur.year,
+    month: dur.month,
+  };
+}
+
+export function trimToDayTimeDuration(dur: Partial<IDurationRepresentation>): Partial<IDayTimeDurationRepresentation> {
+  return {
+    day: dur.day,
+    hours: dur.hours,
+    minutes: dur.minutes,
+    seconds: dur.seconds,
+  };
+}
+
+export function yearMonthDurationsToMonths(dur: IYearMonthDurationRepresentation): number {
+  return dur.year * 12 + dur.month;
+}
+
+export function dayTimeDurationsToSeconds(dur: IDayTimeDurationRepresentation): number {
+  return (((dur.day * 24) + dur.hours) * 60 + dur.minutes) * 60 + dur.seconds;
+}
+
+export function extractYearMonthDur(dur: Partial<IDurationRepresentation>): Partial<IYearMonthDurationRepresentation> {
+  return { year: dur.year, month: dur.month };
+}
+
+export function extractDayTimeDur(dur: Partial<IDurationRepresentation>): Partial<IDayTimeDurationRepresentation> {
+  return {
+    day: dur.day,
+    hours: dur.hours,
+    minutes: dur.minutes,
+    seconds: dur.seconds,
+  };
+}
 export function extractRawTimeZone(zoneContained: string): string {
   const extraction = /(Z|([+-]\d\d:\d\d))?$/u.exec(zoneContained);
   // It is safe to cast here because the empty string can always match.
   return extraction![0];
-}
-
-export function sierializeDate(date: IDateRepresentation): string {
-  return `${numSerializer(date.year, 4)}-${numSerializer(date.month)}-${numSerializer(date.day)}${serializeTimeZone(date)}`;
-}
-
-function internalParseTime(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
-  // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
-  const formatted = timeStr.replace(/^(\d\d):(\d\d):(\d\d(\.\d+)?)(Z|([+-]\d\d:\d\d))?$/gu, '$1!$2!$3!$5');
-  if (formatted === timeStr) {
-    throw new Error('Invalid time');
-  }
-  const timeStrings = formatted.split('!');
-  const time = timeStrings.slice(0, -1).map(str => Number(str));
-
-  const res = {
-    hours: time[0],
-    minutes: time[1],
-    seconds: time[2],
-    ...parseTimeZone(timeStrings[3]),
-  };
-
-  if (res.seconds >= 60 || res.minutes >= 60 || res.hours > 24 ||
-    (res.hours === 24 && (res.minutes !== 0 || res.seconds !== 0))) {
-    throw new Error('nono');
-  }
-  return res;
-}
-
-// We make a separation in internal and external since dateTime will have hour-date rollover,
-// but time just does modulo the time.
-export function parseTime(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
-  // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
-  const res = internalParseTime(timeStr, errorCreator);
-  res.hours %= 24;
-  return res;
-}
-
-export function serializeTime(time: ITimeRepresentation): string {
-  return `${numSerializer(time.hours)}:${numSerializer(time.minutes)}:${numSerializer(time.seconds)}${serializeTimeZone(time)}`;
-}
-
-export function parseDuration(durationStr: string): Partial<IDurationRepresentation> {
-  // https://www.w3.org/TR/xmlschema-2/#duration-lexical-repr
-  const [ dayNotation, timeNotation ] = durationStr.split('T');
-
-  // Handle date part
-  const formattedDayDur = dayNotation.replace(/^(-)?P(\d+Y)?(\d+M)?(\d+D)?$/gu, '$11S!$2!$3!$4');
-  if (formattedDayDur === dayNotation) {
-    throw new Error('nono');
-  }
-
-  const durationStrings = formattedDayDur.split('!');
-  if (timeNotation !== undefined) {
-    const formattedTimeDur = timeNotation.replace(/^(\d+H)?(\d+M)?(\d+(\.\d+)?S)?$/gu, '$1!$2!$3');
-
-    if (timeNotation === '' || timeNotation === formattedTimeDur) {
-      throw new Error('nono');
-    }
-    durationStrings.push(...formattedTimeDur.split('!'));
-  }
-  const duration = durationStrings.map(str => str.slice(0, -1));
-  if (!duration.slice(1).some(item => item)) {
-    throw new Error('nono');
-  }
-
-  const sign = <-1 | 1> Number(duration[0]);
-  return {
-    year: duration[1] ? sign * Number(duration[1]) : undefined,
-    month: duration[2] ? sign * Number(duration[2]) : undefined,
-    day: duration[3] ? sign * Number(duration[3]) : undefined,
-    hours: duration[4] ? sign * Number(duration[4]) : undefined,
-    minutes: duration[5] ? sign * Number(duration[5]) : undefined,
-    seconds: duration[6] ? sign * Number(duration[6]) : undefined,
-  };
-}
-
-export function parseYearMonthDuration(durationStr: string): Partial<IYearMonthDurationRepresentation> {
-  const res = parseDuration(durationStr);
-  if (Object.entries(res).some(([ key, value ]) => value !== undefined && ![ 'year', 'month' ].includes(key))) {
-    throw new Error('nono');
-  }
-  return res;
-}
-
-export function parseDayTimeDuration(durationStr: string): Partial<IDayTimeDurationRepresentation> {
-  const res = parseDuration(durationStr);
-  const filtered = extractDayTimeDur(res);
-  if (Object.entries(res).some(([ key, value ]) => value !== undefined && ![
-    'hours',
-    'minutes',
-    'seconds',
-    'day',
-  ].includes(key))) {
-    throw new Error('nono');
-  }
-  return res;
-}
-
-export function serializeDuration(dur: Partial<IDurationRepresentation>, zeroString: 'PT0S' | 'P0M' = 'PT0S'): string {
-  if (!Object.values(dur).some(val => (val || 0) !== 0)) {
-    return zeroString;
-  }
-  const negative: boolean = Object.values(dur).some(val => (val || 0) < 0);
-  const hasTimeField = !!(dur.hours || dur.minutes || dur.seconds);
-  return `${negative ? '-' : ''}P${dur.year ? `${Math.abs(dur.year)}Y` : ''}${dur.month ?
-    `${Math.abs(dur.month)}M` :
-    ''}${dur.day ?
-    `${Math.abs(dur.day)}D` :
-    ''}${hasTimeField ?
-    `T${dur.hours ? `${Math.abs(dur.hours)}H` : ''}${dur.minutes ?
-      `${Math.abs(dur.minutes)}M` :
-      ''}${dur.seconds ? `${Math.abs(dur.seconds)}S` : ''}` :
-    ''}`;
 }

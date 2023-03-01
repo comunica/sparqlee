@@ -1,4 +1,4 @@
-import { bool, timeNotation } from '../../../util/Aliases';
+import { bool, timeTyped } from '../../../util/Aliases';
 import { Notation } from '../../../util/TestTable';
 import { runTestTable } from '../../../util/utils';
 
@@ -11,9 +11,9 @@ describe('compare date', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${timeNotation('08:00:00+09:00')}' '${timeNotation('17:00:00-06:00')}' = false
-        '${timeNotation('21:30:00+10:30')}' '${timeNotation('06:00:00-05:00')}' = true
-        '${timeNotation('24:00:00+01:00')}' '${timeNotation('00:00:00+01:00')}' = true
+        '${timeTyped('08:00:00+09:00')}' '${timeTyped('17:00:00-06:00')}' = false
+        '${timeTyped('21:30:00+10:30')}' '${timeTyped('06:00:00-05:00')}' = true
+        '${timeTyped('24:00:00+01:00')}' '${timeTyped('00:00:00+01:00')}' = true
       `,
     });
   });
@@ -32,9 +32,9 @@ describe('compare date', () => {
         type: 'sync',
       },
       testTable: `
-        '${timeNotation('12:00:00')}' '${timeNotation('23:00:00+06:00')}' = false
-        '${timeNotation('11:00:00')}' '${timeNotation('17:00:00Z')}' = true
-        '${timeNotation('23:59:59')}' '${timeNotation('24:00:00')}' = false
+        '${timeTyped('12:00:00')}' '${timeTyped('23:00:00+06:00')}' = false
+        '${timeTyped('11:00:00')}' '${timeTyped('17:00:00Z')}' = true
+        '${timeTyped('23:59:59')}' '${timeTyped('24:00:00')}' = false
       `,
     });
   });
@@ -47,7 +47,7 @@ describe('compare date', () => {
       notation: Notation.Infix,
       aliases: bool,
       testTable: `
-        '${timeNotation('08:00:00+09:00')}' '${timeNotation('17:00:00-06:00')}' = false
+        '${timeTyped('08:00:00+09:00')}' '${timeTyped('17:00:00-06:00')}' = false
       `,
     });
   });
