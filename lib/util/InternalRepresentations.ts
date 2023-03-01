@@ -1,6 +1,3 @@
-/**
- * We redefine some types here since the JS Date implementation is not sufficient.
- */
 export interface ITimeZoneRepresentation {
   // https://www.w3.org/TR/xpath-functions/#func-implicit-timezone
   // Type is a dayTimeDuration.
@@ -51,13 +48,20 @@ IDayTimeDurationRepresentation {
   };
 }
 
+export function defaultedYearMonthDurationRepresentation(rep: Partial<IYearMonthDurationRepresentation>):
+IYearMonthDurationRepresentation {
+  return {
+    year: rep.year || 0,
+    month: rep.month || 0,
+  };
+}
+
 export function defaultedDurationRepresentation(
   rep: Partial<IDurationRepresentation>,
 ): IDurationRepresentation {
   return {
     ...defaultedDayTimeDurationRepresentation(rep),
-    month: rep.month || 0,
-    year: rep.year || 0,
+    ...defaultedYearMonthDurationRepresentation(rep),
   };
 }
 
@@ -146,7 +150,7 @@ export function toUTCDate(date: Partial<IDateTimeRepresentation>,
   );
 }
 
-export function ensureYearMonthDuration(dur: Partial<IDurationRepresentation>):
+export function trimToYearMonthDuration(dur: Partial<IDurationRepresentation>):
 Partial<IYearMonthDurationRepresentation> {
   return {
     year: dur.year,
@@ -154,7 +158,7 @@ Partial<IYearMonthDurationRepresentation> {
   };
 }
 
-export function ensureDayTimeDuration(dur: Partial<IDurationRepresentation>): Partial<IDayTimeDurationRepresentation> {
+export function trimToDayTimeDuration(dur: Partial<IDurationRepresentation>): Partial<IDayTimeDurationRepresentation> {
   return {
     day: dur.day,
     hours: dur.hours,
@@ -163,8 +167,12 @@ export function ensureDayTimeDuration(dur: Partial<IDurationRepresentation>): Pa
   };
 }
 
-export function durationToMillies(dur: Partial<IDurationRepresentation>): number {
-  return toJSDate(convertDurationToDateTime(defaultedDurationRepresentation(dur))).getTime();
+export function yearMonthDurationsToMonths(dur: IYearMonthDurationRepresentation): number {
+  return dur.year * 12 + dur.month;
+}
+
+export function dayTimeDurationsToSeconds(dur: IDayTimeDurationRepresentation): number {
+  return (((dur.day * 24) + dur.hours) * 60 + dur.minutes) * 60 + dur.seconds;
 }
 
 export function extractYearMonthDur(dur: Partial<IDurationRepresentation>): Partial<IYearMonthDurationRepresentation> {

@@ -88,20 +88,11 @@ export class TermTransformer implements ITermTransformer {
     if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
       return new E.DayTimeDurationLiteral(dayTimeDurationParser(lit.value), lit.value, dataType);
     }
-    // TODO: maybe the special notations need to be checked so we don't Years in a DayTimeDuration? ...
     if (TypeURL.XSD_DURATION in superTypeDict) {
       // TODO: All of these new parsers can fail, a failure should result in a NonLexicalLiteral!
       return new E.DurationLiteral(durationParser(lit.value), lit.value, dataType);
     }
     if (TypeURL.XSD_DATE_TIME in superTypeDict) {
-      // TODO: this is no longer true. I don't know what the talk about timestamp is though
-
-      // It should be noted how we don't care if its a XSD_DATE_TIME_STAMP or not.
-      // This is because sparql functions don't care about the timezone.
-      // It also doesn't break the specs because we keep the string representation stored,
-      // that way we can always give it back. There are also no sparql functions that alter a date.
-      // (So the initial representation always stays valid)
-      // https://github.com/comunica/sparqlee/pull/103#discussion_r688462368
       const dateVal: Date = new Date(lit.value);
       if (Number.isNaN(dateVal.getTime())) {
         return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);

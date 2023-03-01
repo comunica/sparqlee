@@ -13,6 +13,8 @@ const BF = new BindingsFactory();
 const DF = new DataFactory();
 
 describe('recursive evaluators', () => {
+  const defaultTimeZone = { zoneMinutes: 0, zoneHours: 0 };
+
   describe('SyncRecursiveEvaluator', () => {
     const evaluator = new SyncRecursiveEvaluator({
       now: new Date(),
@@ -21,7 +23,7 @@ describe('recursive evaluators', () => {
         cache: new LRUCache(),
         discoverer: _ => 'term',
       },
-      defaultTimeZone: { zoneMinutes: 0, zoneHours: 0 },
+      defaultTimeZone,
     });
 
     it('is able to evaluate operator', () => {
@@ -50,7 +52,7 @@ describe('recursive evaluators', () => {
           discoverer: _ => 'term',
         },
         exists: _ => true,
-        defaultTimeZone: { zoneMinutes: 0, zoneHours: 0 },
+        defaultTimeZone,
       });
 
       expect(customEvaluator.evaluate(new E.Existence({
@@ -88,7 +90,7 @@ describe('recursive evaluators', () => {
           discoverer: _ => 'term',
         },
         aggregate: _ => DF.literal('42'),
-        defaultTimeZone: { zoneMinutes: 0, zoneHours: 0 },
+        defaultTimeZone,
       });
 
       expect(customEvaluator.evaluate(new E.Aggregate('count', {
@@ -122,7 +124,7 @@ describe('recursive evaluators', () => {
         cache: new LRUCache(),
         discoverer: _ => 'term',
       },
-      defaultTimeZone: { zoneMinutes: 0, zoneHours: 0 },
+      defaultTimeZone,
     });
 
     it('is able to evaluate operator', async() => {
@@ -151,7 +153,7 @@ describe('recursive evaluators', () => {
           discoverer: _ => 'term',
         },
         exists: async _ => true,
-        defaultTimeZone: { zoneMinutes: 0, zoneHours: 0 },
+        defaultTimeZone,
       });
 
       expect(await customEvaluator.evaluate(new E.Existence({
@@ -189,7 +191,7 @@ describe('recursive evaluators', () => {
           discoverer: _ => 'term',
         },
         aggregate: async _ => DF.literal('42'),
-        defaultTimeZone: { zoneMinutes: 0, zoneHours: 0 },
+        defaultTimeZone,
       });
 
       expect(await customEvaluator.evaluate(new E.Aggregate('count', {

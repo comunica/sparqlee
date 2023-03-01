@@ -16,11 +16,11 @@ import type {
   IDayTimeDurationRepresentation,
 } from '../util/InternalRepresentations';
 import {
-  defaultedDateTimeRepresentation,
-  defaultedDurationRepresentation,
-  durationToMillies, extractDayTimeDur, extractYearMonthDur, negateDuration,
+  dayTimeDurationsToSeconds,
+  defaultedDateTimeRepresentation, defaultedDayTimeDurationRepresentation,
+  defaultedDurationRepresentation, defaultedYearMonthDurationRepresentation, negateDuration,
   toDateTimeRepresentation,
-  toUTCDate,
+  toUTCDate, yearMonthDurationsToMonths,
 } from '../util/InternalRepresentations';
 import { addDurationToDateTime, elapsedDuration } from '../util/specAlgos';
 import type { IOverloadedDefinition } from './Core';
@@ -90,11 +90,9 @@ const addition = {
   overloads: declare(C.RegularOperator.ADDITION)
     .arithmetic(() => (left, right) => new BigNumber(left).plus(right).toNumber())
     .set([ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ], () =>
-      ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) => {
+      ([ date, dur ]: [ E.DateTimeLiteral, E.DayTimeDurationLiteral ]) =>
         // https://www.w3.org/TR/xpath-functions/#func-add-dayTimeDuration-to-dateTime
-        const res = addDurationToDateTime(date.typedValue, defaultedDurationRepresentation(dur.typedValue));
-        return new E.DateTimeLiteral(res);
-      })
+        new E.DateTimeLiteral(addDurationToDateTime(date.typedValue, defaultedDurationRepresentation(dur.typedValue))))
     .copy({
       from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DAY_TIME_DURATION ],
       to: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_YEAR_MONTH_DURATION ],
@@ -184,10 +182,10 @@ const equality = {
     )
     .set([ TypeURL.XSD_DURATION, TypeURL.XSD_DURATION ], () =>
       ([ dur1, dur2 ]: [ E.DurationLiteral, E.DurationLiteral ]) =>
-        bool(durationToMillies(extractYearMonthDur(dur1.typedValue)) ===
-          durationToMillies(extractYearMonthDur(dur2.typedValue)) &&
-        durationToMillies(extractDayTimeDur(dur1.typedValue)) ===
-          durationToMillies(extractDayTimeDur(dur2.typedValue))))
+        bool(yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur1.typedValue)) ===
+          yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur2.typedValue)) &&
+        dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur1.typedValue)) ===
+          dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur2.typedValue))))
     .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) =>
       ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) =>
         // https://www.w3.org/TR/xpath-functions/#func-time-equal
@@ -237,10 +235,13 @@ const lesserThan = {
     .set([ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ], () =>
       ([ dur1L, dur2L ]: [E.YearMonthDurationLiteral, E.YearMonthDurationLiteral]) =>
         // https://www.w3.org/TR/xpath-functions/#func-yearMonthDuration-less-than
-        bool(durationToMillies(dur1L.typedValue) < durationToMillies(dur2L.typedValue)))
-    .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
-      // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-less-than
-      to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
+        bool(yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur1L.typedValue)) <
+          yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur2L.typedValue))))
+    .set([ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ dur1, dur2 ]: [E.DayTimeDurationLiteral, E.DayTimeDurationLiteral]) =>
+        // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-greater-than
+        bool(dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur1.typedValue)) <
+          dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur2.typedValue))))
     .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) =>
       ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) =>
         // https://www.w3.org/TR/xpath-functions/#func-time-less-than
@@ -265,10 +266,13 @@ const greaterThan = {
     .set([ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ], () =>
       ([ dur1, dur2 ]: [E.YearMonthDurationLiteral, E.YearMonthDurationLiteral]) =>
         // https://www.w3.org/TR/xpath-functions/#func-yearMonthDuration-greater-than
-        bool(durationToMillies(dur1.typedValue) > durationToMillies(dur2.typedValue)))
-    .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
-      // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-greater-than
-      to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
+        bool(yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur1.typedValue)) >
+          yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur2.typedValue))))
+    .set([ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ dur1, dur2 ]: [E.DayTimeDurationLiteral, E.DayTimeDurationLiteral]) =>
+        // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-greater-than
+        bool(dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur1.typedValue)) >
+          dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur2.typedValue))))
     .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) =>
       ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) =>
         // https://www.w3.org/TR/xpath-functions/#func-time-greater-than
@@ -287,9 +291,13 @@ const lesserThanEqual = {
       toUTCDate(left, defaultTimeZone).getTime() <= toUTCDate(right, defaultTimeZone).getTime())
     .set([ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ], () =>
       ([ dur1L, dur2L ]: [E.YearMonthDurationLiteral, E.YearMonthDurationLiteral]) =>
-        bool(durationToMillies(dur1L.typedValue) <= durationToMillies(dur2L.typedValue)))
-    .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
-      to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
+        bool(yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur1L.typedValue)) <=
+          yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur2L.typedValue))))
+    .set([ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ dur1, dur2 ]: [E.DayTimeDurationLiteral, E.DayTimeDurationLiteral]) =>
+        // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-greater-than
+        bool(dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur1.typedValue)) <=
+          dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur2.typedValue))))
     .collect(),
 };
 
@@ -303,9 +311,13 @@ const greaterThanEqual = {
       toUTCDate(left, defaultTimeZone).getTime() >= toUTCDate(right, defaultTimeZone).getTime())
     .set([ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ], () =>
       ([ dur1L, dur2L ]: [E.YearMonthDurationLiteral, E.YearMonthDurationLiteral]) =>
-        bool(durationToMillies(dur1L.typedValue) >= durationToMillies(dur2L.typedValue)))
-    .copy({ from: [ TypeURL.XSD_YEAR_MONTH_DURATION, TypeURL.XSD_YEAR_MONTH_DURATION ],
-      to: [ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ]})
+        bool(yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur1L.typedValue)) >=
+          yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur2L.typedValue))))
+    .set([ TypeURL.XSD_DAY_TIME_DURATION, TypeURL.XSD_DAY_TIME_DURATION ], () =>
+      ([ dur1, dur2 ]: [E.DayTimeDurationLiteral, E.DayTimeDurationLiteral]) =>
+        // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-greater-than
+        bool(dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur1.typedValue)) >=
+          dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur2.typedValue))))
     .collect(),
 };
 
@@ -791,7 +803,7 @@ const now = {
   overloads: declare(C.RegularOperator.NOW).set([], (sharedContext: ICompleteSharedContext) => () =>
     new E.DateTimeLiteral(toDateTimeRepresentation(
       { date: sharedContext.now, timeZone: sharedContext.defaultTimeZone },
-    ), sharedContext.now.toISOString())).collect(),
+    ))).collect(),
 };
 
 /**

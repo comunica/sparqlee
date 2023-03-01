@@ -13,7 +13,7 @@ import {
 } from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 
-import { ensureDayTimeDuration, ensureYearMonthDuration } from '../util/InternalRepresentations';
+import { trimToDayTimeDuration, trimToYearMonthDuration } from '../util/InternalRepresentations';
 import { parseXSDDecimal, parseXSDFloat, parseXSDInteger } from '../util/Parsing';
 
 import type { IOverloadedDefinition } from './Core';
@@ -187,7 +187,7 @@ const xsdToDate = {
 const xsdToDuration = {
   arity: 1,
   overloads: declare(TypeURL.XSD_DURATION)
-    // // https://www.w3.org/TR/xpath-functions/#casting-to-durations
+    // https://www.w3.org/TR/xpath-functions/#casting-to-durations
     .onUnary(TypeURL.XSD_DURATION, () => (val: E.DurationLiteral) =>
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
       new E.DurationLiteral(val.typedValue, val.strValue))
@@ -199,10 +199,10 @@ const xsdToDuration = {
 const xsdToDayTimeDuration = {
   arity: 1,
   overloads: declare(TypeURL.XSD_DAY_TIME_DURATION)
-    // // https://www.w3.org/TR/xpath-functions/#casting-to-durations
+    // https://www.w3.org/TR/xpath-functions/#casting-to-durations
     .onUnary(TypeURL.XSD_DURATION, () => (val: E.DurationLiteral) =>
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
-      new E.DayTimeDurationLiteral(ensureDayTimeDuration(val.typedValue)))
+      new E.DayTimeDurationLiteral(trimToDayTimeDuration(val.typedValue)))
     .onStringly1(() => (val: Term) =>
       new E.DayTimeDurationLiteral(dayTimeDurationParser(val.str()), val.str()))
     .collect(),
@@ -215,7 +215,7 @@ const xsdToYearMonthDuration = {
     // TODO: make a test for the case of dayTime to YearMonth...
     .onUnary(TypeURL.XSD_DURATION, () => (val: E.DurationLiteral) =>
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
-      new E.YearMonthDurationLiteral(ensureYearMonthDuration(val.typedValue)))
+      new E.YearMonthDurationLiteral(trimToYearMonthDuration(val.typedValue)))
     .onStringly1(() => (val: Term) =>
       new E.YearMonthDurationLiteral(yearMonthDurationParser(val.str()), val.str()))
     .collect(),

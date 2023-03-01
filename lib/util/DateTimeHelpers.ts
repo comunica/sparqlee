@@ -19,7 +19,7 @@ export function dateTimeParser(dateTimeStr: string, errorCreator?: () => Error):
 }
 
 export function dateTimeSerializer(date: IDateTimeRepresentation): string {
-  // Need to extract the date because we don't want the timeZone part here
+  // Extraction is needed because the date serializer can not add timezone y
   return `${dateSerializer({ year: date.year, month: date.month, day: date.day })}T${timeSerializer(date)}`;
 }
 
@@ -105,6 +105,8 @@ function internalTimeParser(timeStr: string, errorCreator?: () => Error): ITimeR
   return res;
 }
 
+// We make a separation in internal and external since dateTime will have hour-date rollover,
+// but time just does modulo the time.
 export function timeParser(timeStr: string, errorCreator?: () => Error): ITimeRepresentation {
   // https://www.w3.org/TR/xmlschema-2/#time-lexical-repr
   const res = internalTimeParser(timeStr, errorCreator);
