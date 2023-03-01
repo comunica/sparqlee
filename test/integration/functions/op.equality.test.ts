@@ -65,9 +65,7 @@ describe('evaluation of \'=\'', () => {
         aaa   aaa   = true
         aaa   bbb   = false
         "test1" "test2" = false
-      `,
-      errorTable: `
-        "test1"@en "test2"@en = 'Equality test for literals with unsupported datatypes'
+        "test1"@en "test2"@en = false
       `,
     });
   });

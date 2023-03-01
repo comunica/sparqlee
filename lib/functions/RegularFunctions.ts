@@ -96,7 +96,8 @@ const equality = {
     .stringTest(() => (left, right) => left.localeCompare(right) === 0)
     .set(
       [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
-      () => ([ left, right ]) => bool(RDFTermEqual(left, right)),
+      () => ([ left, right ]: E.LangStringLiteral[]) => bool(left.str() === right.str() &&
+        left.language === right.language),
     )
     .booleanTest(() => (left, right) => left === right)
     .dateTimeTest(() => (left, right) => left.getTime() === right.getTime())
