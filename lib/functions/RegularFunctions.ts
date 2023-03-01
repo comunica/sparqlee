@@ -94,6 +94,10 @@ const equality = {
   overloads: declare(C.RegularOperator.EQUAL)
     .numberTest(() => (left, right) => left === right)
     .stringTest(() => (left, right) => left.localeCompare(right) === 0)
+    .set(
+      [ 'literal', 'literal' ],
+      () => ([ left, right ]) => bool(RDFTermEqual(left, right)),
+    )
     .booleanTest(() => (left, right) => left === right)
     .dateTimeTest(() => (left, right) => left.getTime() === right.getTime())
     .set(
