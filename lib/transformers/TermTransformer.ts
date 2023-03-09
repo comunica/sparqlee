@@ -5,6 +5,7 @@ import { Algebra } from 'sparqlalgebrajs';
 import * as E from '../expressions';
 import { TypeURL } from '../util/Consts';
 import * as Err from '../util/Errors';
+import { isExpressionError } from '../util/Errors';
 import {
   parseDate,
   parseDateTime,
@@ -17,6 +18,7 @@ import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
 import type { ISuperTypeProvider,
   GeneralSuperTypeDict } from '../util/TypeHandling';
+import Any = jasmine.Any;
 
 export interface ITermTransformer {
   transformRDFTermUnsafe: (term: RDF.Term) => E.Term;
@@ -76,64 +78,70 @@ export class TermTransformer implements ITermTransformer {
     const superTypeDict: GeneralSuperTypeDict = getSuperTypeDict(dataType, this.superTypeProvider);
 
     // The order of checking matters! Check most specific types first!
-    if (TypeURL.XSD_STRING in superTypeDict) {
-      return new E.StringLiteral(lit.value, dataType);
-    }
-    if (TypeURL.RDF_LANG_STRING in superTypeDict) {
-      return new E.LangStringLiteral(lit.value, lit.language);
-    }
-    if (TypeURL.XSD_YEAR_MONTH_DURATION in superTypeDict) {
-      return new E.YearMonthDurationLiteral(parseYearMonthDuration(lit.value), lit.value, dataType);
-    }
-    if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
-      return new E.DayTimeDurationLiteral(parseDayTimeDuration(lit.value), lit.value, dataType);
-    }
-    if (TypeURL.XSD_DURATION in superTypeDict) {
-      // TODO: All of these new parsers can fail, a failure should result in a NonLexicalLiteral!
-      return new E.DurationLiteral(parseDuration(lit.value), lit.value, dataType);
-    }
-    if (TypeURL.XSD_DATE_TIME in superTypeDict) {
-      const dateVal: Date = new Date(lit.value);
-      if (Number.isNaN(dateVal.getTime())) {
+    try {
+      if (TypeURL.XSD_STRING in superTypeDict) {
+        return new E.StringLiteral(lit.value, dataType);
+      }
+      if (TypeURL.RDF_LANG_STRING in superTypeDict) {
+        return new E.LangStringLiteral(lit.value, lit.language);
+      }
+      if (TypeURL.XSD_YEAR_MONTH_DURATION in superTypeDict) {
+        return new E.YearMonthDurationLiteral(parseYearMonthDuration(lit.value), lit.value, dataType);
+      }
+      if (TypeURL.XSD_DAY_TIME_DURATION in superTypeDict) {
+        return new E.DayTimeDurationLiteral(parseDayTimeDuration(lit.value), lit.value, dataType);
+      }
+      if (TypeURL.XSD_DURATION in superTypeDict) {
+        return new E.DurationLiteral(parseDuration(lit.value), lit.value, dataType);
+      }
+      if (TypeURL.XSD_DATE_TIME in superTypeDict) {
+        const dateVal: Date = new Date(lit.value);
+        if (Number.isNaN(dateVal.getTime())) {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        return new E.DateTimeLiteral(parseDateTime(lit.value), lit.value, dataType);
+      }
+      if (TypeURL.XSD_DATE in superTypeDict) {
+        return new E.DateLiteral(parseDate(lit.value), lit.value, dataType);
+      }
+      if (TypeURL.XSD_TIME in superTypeDict) {
+        return new E.TimeLiteral(parseTime(lit.value), lit.value, dataType);
+      }
+      if (TypeURL.XSD_BOOLEAN in superTypeDict) {
+        if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
+      }
+      if (TypeURL.XSD_DECIMAL in superTypeDict) {
+        const intVal: number | undefined = P.parseXSDDecimal(lit.value);
+        if (intVal === undefined) {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        if (TypeURL.XSD_INTEGER in superTypeDict) {
+          return new E.IntegerLiteral(intVal, dataType, lit.value);
+        }
+        // If type is not an integer it's just a decimal.
+        return new E.DecimalLiteral(intVal, dataType, lit.value);
+      }
+      const isFloat = TypeURL.XSD_FLOAT in superTypeDict;
+      const isDouble = TypeURL.XSD_DOUBLE in superTypeDict;
+      if (isFloat || isDouble) {
+        const doubleVal: number | undefined = P.parseXSDFloat(lit.value);
+        if (doubleVal === undefined) {
+          return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
+        }
+        if (isFloat) {
+          return new E.FloatLiteral(doubleVal, dataType, lit.value);
+        }
+        return new E.DoubleLiteral(doubleVal, dataType, lit.value);
+      }
+      return new E.Literal<string>(lit.value, dataType, lit.value);
+    } catch (error: unknown) {
+      if (error instanceof Error && isExpressionError(error)) {
         return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
       }
-      return new E.DateTimeLiteral(parseDateTime(lit.value), lit.value, dataType);
+      throw error;
     }
-    if (TypeURL.XSD_DATE in superTypeDict) {
-      return new E.DateLiteral(parseDate(lit.value), lit.value, dataType);
-    }
-    if (TypeURL.XSD_TIME in superTypeDict) {
-      return new E.TimeLiteral(parseTime(lit.value), lit.value, dataType);
-    }
-    if (TypeURL.XSD_BOOLEAN in superTypeDict) {
-      if (lit.value !== 'true' && lit.value !== 'false' && lit.value !== '1' && lit.value !== '0') {
-        return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
-      }
-      return new E.BooleanLiteral(lit.value === 'true' || lit.value === '1', lit.value);
-    }
-    if (TypeURL.XSD_DECIMAL in superTypeDict) {
-      const intVal: number | undefined = P.parseXSDDecimal(lit.value);
-      if (intVal === undefined) {
-        return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
-      }
-      if (TypeURL.XSD_INTEGER in superTypeDict) {
-        return new E.IntegerLiteral(intVal, dataType, lit.value);
-      }
-      // If type is not an integer it's just a decimal.
-      return new E.DecimalLiteral(intVal, dataType, lit.value);
-    }
-    const isFloat = TypeURL.XSD_FLOAT in superTypeDict;
-    const isDouble = TypeURL.XSD_DOUBLE in superTypeDict;
-    if (isFloat || isDouble) {
-      const doubleVal: number | undefined = P.parseXSDFloat(lit.value);
-      if (doubleVal === undefined) {
-        return new E.NonLexicalLiteral(undefined, dataType, this.superTypeProvider, lit.value);
-      }
-      if (isFloat) {
-        return new E.FloatLiteral(doubleVal, dataType, lit.value);
-      }
-      return new E.DoubleLiteral(doubleVal, dataType, lit.value);
-    }
-    return new E.Literal<string>(lit.value, dataType, lit.value);
   }
 }

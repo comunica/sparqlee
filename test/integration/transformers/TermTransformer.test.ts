@@ -273,6 +273,26 @@ describe('TermTransformer', () => {
       returnNonLexicalTest('apple', DT.XSD_DATE_TIME);
     });
 
+    it('datatype: date', () => {
+      returnNonLexicalTest('apple', DT.XSD_DATE);
+    });
+
+    it('datatype: time', () => {
+      returnNonLexicalTest('apple', DT.XSD_TIME);
+    });
+
+    it('datatype: duration', () => {
+      returnNonLexicalTest('apple', DT.XSD_DURATION);
+    });
+
+    it('datatype: dayTimeDuration', () => {
+      returnNonLexicalTest('apple', DT.XSD_DAY_TIME_DURATION);
+    });
+
+    it('datatype: YearMonthDuration', () => {
+      returnNonLexicalTest('apple', DT.XSD_YEAR_MONTH_DURATION);
+    });
+
     it('badly invalid literal', () => {
       // @ts-expect-error
       const res = termTransformer.transformLiteral({

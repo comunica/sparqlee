@@ -1,4 +1,4 @@
-import { bool, dateTime, merge, numeric, str, yearMonthDurationTyped } from '../../util/Aliases';
+import { bool, dateTime, dateTyped, merge, numeric, str, timeTyped, yearMonthDurationTyped } from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import type { ITestTableConfigBase } from '../../util/utils';
 import { runTestTable } from '../../util/utils';
@@ -108,6 +108,41 @@ describe('evaluation of \'<=\'', () => {
         '${yearMonthDurationTyped('P1Y1M')}' '${yearMonthDurationTyped('P12M')}' = false
         '${yearMonthDurationTyped('P1M')}' '${yearMonthDurationTyped('-P2M')}' = false
         '${yearMonthDurationTyped('-P1Y')}' '${yearMonthDurationTyped('P13M')}' = true
+      `,
+    });
+  });
+
+  describe('with date operants like', () => {
+    // Originates from: https://www.w3.org/TR/xpath-functions/#func-date-less-than
+    runTestTable({
+      operation: '<=',
+      arity: 2,
+      notation: Notation.Infix,
+      aliases: bool,
+      testTable: `
+        '${dateTyped('2004-12-25Z')}' '${dateTyped('2004-12-25-05:00')}' = true
+        '${dateTyped('2004-12-25-12:00')}' '${dateTyped('2004-12-26+12:00')}' = true
+      `,
+    });
+  });
+
+  describe('with time operants like', () => {
+    // Originates from: https://www.w3.org/TR/xpath-functions/#func-time-less-than
+    runTestTable({
+      operation: '<=',
+      arity: 2,
+      notation: Notation.Infix,
+      aliases: bool,
+      config: {
+        config: {
+          defaultTimeZone: { hours: -5, minutes: 0 },
+        },
+        type: 'sync',
+      },
+      testTable: `
+        '${timeTyped('12:00:00')}' '${timeTyped('23:00:00+06:00')}' = true
+        '${timeTyped('11:00:00')}' '${timeTyped('17:00:00Z')}' = true
+        '${timeTyped('23:59:59')}' '${timeTyped('24:00:00')}' = false
       `,
     });
   });

@@ -214,6 +214,21 @@ const inequality = {
       [ 'term', 'term' ],
       () => ([ left, right ]) => bool(!RDFTermEqual(left, right)),
     )
+    .set([ TypeURL.XSD_DURATION, TypeURL.XSD_DURATION ], () =>
+      ([ dur1, dur2 ]: [ E.DurationLiteral, E.DurationLiteral ]) =>
+        bool(yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur1.typedValue)) !==
+          yearMonthDurationsToMonths(defaultedYearMonthDurationRepresentation(dur2.typedValue)) ||
+          dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur1.typedValue)) !==
+          dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur2.typedValue))))
+    .copy({
+      from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ],
+      to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ],
+    })
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) =>
+      ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) =>
+        // https://www.w3.org/TR/xpath-functions/#func-time-equal
+        bool(toUTCDate(defaultedDateTimeRepresentation(time1.typedValue), defaultTimeZone).getTime() !==
+          toUTCDate(defaultedDateTimeRepresentation(time2.typedValue), defaultTimeZone).getTime()))
     .collect(),
 };
 
@@ -296,6 +311,14 @@ const lesserThanEqual = {
         // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-greater-than
         bool(dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur1.typedValue)) <=
           dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur2.typedValue))))
+    .copy({
+      from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ],
+      to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ],
+    })
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) =>
+      ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) =>
+        bool(toUTCDate(defaultedDateTimeRepresentation(time1.typedValue), defaultTimeZone).getTime() <=
+          toUTCDate(defaultedDateTimeRepresentation(time2.typedValue), defaultTimeZone).getTime()))
     .collect(),
 };
 
@@ -316,6 +339,14 @@ const greaterThanEqual = {
         // https://www.w3.org/TR/xpath-functions/#func-dayTimeDuration-greater-than
         bool(dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur1.typedValue)) >=
           dayTimeDurationsToSeconds(defaultedDayTimeDurationRepresentation(dur2.typedValue))))
+    .copy({
+      from: [ TypeURL.XSD_DATE_TIME, TypeURL.XSD_DATE_TIME ],
+      to: [ TypeURL.XSD_DATE, TypeURL.XSD_DATE ],
+    })
+    .set([ TypeURL.XSD_TIME, TypeURL.XSD_TIME ], ({ defaultTimeZone }) =>
+      ([ time1, time2 ]: [E.TimeLiteral, E.TimeLiteral]) =>
+        bool(toUTCDate(defaultedDateTimeRepresentation(time1.typedValue), defaultTimeZone).getTime() >=
+          toUTCDate(defaultedDateTimeRepresentation(time2.typedValue), defaultTimeZone).getTime()))
     .collect(),
 };
 

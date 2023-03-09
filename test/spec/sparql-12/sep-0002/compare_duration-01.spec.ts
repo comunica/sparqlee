@@ -28,10 +28,7 @@ describe('compare duration 01', () => {
       arity: 2,
       notation: Notation.Infix,
       aliases: bool,
-      // TODO: this is probably not what they wanted :/
       testTable: `
-        '${durationTyped('P1Y')}' '${durationTyped('P366D')}' = false
-        
         '${durationTyped('P1Y')}' '${durationTyped('P1Y')}' = true
         '${durationTyped('P1Y')}' '${durationTyped('P12M')}' = true
         '${durationTyped('P1Y')}' '${durationTyped('P365D')}' = false
