@@ -4,25 +4,18 @@ import type {
 } from './DateTimeHelpers';
 import { toUTCDate } from './DateTimeHelpers';
 
-function fQuotient(first: number, second: number): number {
-  return Math.floor(first / second);
-}
-
-function modulo(first: number, second: number): number {
-  return first - fQuotient(first, second) * second;
-}
-
-function fQuotient3(arg: number, low: number, high: number): number {
-  return fQuotient(arg - low, high - low);
-}
-
-function modulo3(arg: number, low: number, high: number): number {
-  return modulo(arg - low, high - low) + low;
+function fDiv(arg: number, high: number, low = 0): { intDiv: number; remainder: number } {
+  // Adds the 4 spec functions into one since they are highly related,
+  // and fQuotient and modulo are almost always called in pairs.
+  const first = arg - low;
+  const second = high - low;
+  const intDiv = Math.floor(first / second);
+  return { intDiv, remainder: arg - intDiv * second };
 }
 
 export function maximumDayInMonthFor(yearValue: number, monthValue: number): number {
-  const month = modulo3(monthValue, 1, 13);
-  const year = yearValue + fQuotient3(monthValue, 1, 13);
+  const { intDiv: additionalYears, remainder: month } = fDiv(monthValue, 13, 1);
+  const year = yearValue + additionalYears;
 
   if ([ 1, 3, 5, 7, 8, 10, 12 ].includes(month)) {
     return 31;
@@ -30,7 +23,9 @@ export function maximumDayInMonthFor(yearValue: number, monthValue: number): num
   if ([ 4, 6, 9, 11 ].includes(month)) {
     return 30;
   }
-  if (month === 2 && (modulo(year, 400) === 0 || (modulo(year, 100) !== 0 && modulo(year, 4) === 0))) {
+  if (month === 2 && (
+    fDiv(year, 400).remainder === 0 ||
+    (fDiv(year, 100).remainder !== 0 && fDiv(year, 4).remainder === 0))) {
     return 29;
   }
   return 28;
@@ -43,41 +38,26 @@ IDateTimeRepresentation {
   const newDate: IDateTimeRepresentation = { ...date };
 
   // Month
-  let temp = date.month + duration.month;
-  newDate.month = modulo3(temp, 1, 13);
-  let carry = fQuotient3(temp, 1, 13);
+  let tempDiv = fDiv(date.month + duration.month, 13, 1);
+  newDate.month = tempDiv.remainder;
   // Year
-  newDate.year = date.year + duration.year + carry;
+  newDate.year = date.year + duration.year + tempDiv.intDiv;
   // Seconds
-  temp = date.seconds + duration.seconds;
-  newDate.seconds = modulo(temp, 60);
-  carry = fQuotient(temp, 60);
+  tempDiv = fDiv(date.seconds + duration.seconds, 60);
+  newDate.seconds = tempDiv.remainder;
   // Minutes
-  temp = date.minutes + duration.minutes + carry;
-  newDate.minutes = modulo(temp, 60);
-  carry = fQuotient(temp, 60);
+  tempDiv = fDiv(date.minutes + duration.minutes + tempDiv.intDiv, 60);
+  newDate.minutes = tempDiv.remainder;
   // Hours
-  temp = date.hours + duration.hours + carry;
-  newDate.hours = modulo(temp, 24);
-  carry = fQuotient(temp, 24);
+  tempDiv = fDiv(date.hours + duration.hours + tempDiv.intDiv, 24);
+  newDate.hours = tempDiv.remainder;
 
-  // Days
-  temp = maximumDayInMonthFor(newDate.year, newDate.month);
-  // Defined spec code can not happen since it would be an invalid literal?
-  //
-  // if (date.day > temp) {
-  // tempDays = temp;
-  // } else if (date.day < 1) {
-  // tempDays = 1;
-  // } else {
-  // tempDays = date.day;
-  // }
-  //
-  const tempDays = date.day;
+  // We skip a part of the spec code since: Defined spec code can not happen since it would be an invalid literal
 
-  newDate.day = tempDays + duration.day + carry;
+  newDate.day = date.day + duration.day + tempDiv.intDiv;
   // eslint-disable-next-line no-constant-condition
   while (true) {
+    let carry;
     if (newDate.day < 1) {
       newDate.day += maximumDayInMonthFor(newDate.year, newDate.month - 1);
       carry = -1;
@@ -87,9 +67,9 @@ IDateTimeRepresentation {
     } else {
       break;
     }
-    temp = newDate.month + carry;
-    newDate.month = modulo3(temp, 1, 13);
-    newDate.year += fQuotient3(temp, 1, 13);
+    tempDiv = fDiv(newDate.month + carry, 13, 1);
+    newDate.month = tempDiv.remainder;
+    newDate.year += tempDiv.intDiv;
   }
   return newDate;
 }
