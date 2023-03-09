@@ -22,8 +22,7 @@ export interface ISharedContext {
    */
   enableExtendedXsdTypes?: boolean;
   functionArgumentsCache?: FunctionArgumentsCache;
-  // https://www.w3.org/TR/xpath-functions/#func-implicit-timezone (Redefined to reduce coupling to internal types)
-  defaultTimeZone?: { hours: number; minutes: number };
+  defaultTimeZone?: ITimeZoneRepresentation;
 }
 
 export interface ICompleteSharedContext {

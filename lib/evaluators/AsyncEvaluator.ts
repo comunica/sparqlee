@@ -23,8 +23,15 @@ export class AsyncEvaluator {
   private readonly evaluator: IExpressionEvaluator<E.Expression, Promise<E.TermExpression>>;
 
   public static completeContext(context: IAsyncEvaluatorContext): ICompleteAsyncEvaluatorContext {
+    const now = context.now || new Date(Date.now());
+    let defaultTimeZone = context.defaultTimeZone;
+    if (!defaultTimeZone) {
+      // We make use of wrong modulo implementation: (-90) % 60 = -30
+      defaultTimeZone = { zoneHours: Math.floor(now.getTimezoneOffset() / 60),
+        zoneMinutes: now.getTimezoneOffset() % 60 };
+    }
     return {
-      now: context.now || new Date(Date.now()),
+      now,
       baseIRI: context.baseIRI || undefined,
       functionArgumentsCache: context.functionArgumentsCache || {},
       superTypeProvider: {
@@ -35,8 +42,7 @@ export class AsyncEvaluator {
       exists: context.exists,
       aggregate: context.aggregate,
       bnode: context.bnode,
-      defaultTimeZone: { zoneHours: context.defaultTimeZone?.hours || 0,
-        zoneMinutes: context.defaultTimeZone?.minutes || 0 },
+      defaultTimeZone,
     };
   }
 
