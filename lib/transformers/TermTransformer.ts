@@ -18,7 +18,6 @@ import * as P from '../util/Parsing';
 import { getSuperTypeDict } from '../util/TypeHandling';
 import type { ISuperTypeProvider,
   GeneralSuperTypeDict } from '../util/TypeHandling';
-import Any = jasmine.Any;
 
 export interface ITermTransformer {
   transformRDFTermUnsafe: (term: RDF.Term) => E.Term;

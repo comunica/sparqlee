@@ -1,4 +1,14 @@
-import { bool, dateTime, dateTyped, merge, numeric, str, timeTyped, yearMonthDurationTyped } from '../../util/Aliases';
+import {
+  bool,
+  dateTime,
+  dateTyped,
+  dayTimeDurationTyped,
+  merge,
+  numeric,
+  str,
+  timeTyped,
+  yearMonthDurationTyped,
+} from '../../util/Aliases';
 import { Notation } from '../../util/TestTable';
 import type { ITestTableConfigBase } from '../../util/utils';
 import { runTestTable } from '../../util/utils';
@@ -135,6 +145,23 @@ describe('evaluation of \'>=\'', () => {
       aliases: bool,
       testTable: `
         '${timeTyped('08:00:00+09:00')}' '${timeTyped('17:00:00-06:00')}' = false
+      `,
+    });
+  });
+
+  describe('with dayTimeDuration operants like', () => {
+    // Based on the spec tests of >
+    runTestTable({
+      operation: '>=',
+      arity: 2,
+      notation: Notation.Infix,
+      aliases: bool,
+      testTable: `
+        '${dayTimeDurationTyped('PT1H')}' '${dayTimeDurationTyped('PT60M')}' = true
+        '${dayTimeDurationTyped('PT1H')}' '${dayTimeDurationTyped('PT63M')}' = false
+        '${dayTimeDurationTyped('PT3S')}' '${dayTimeDurationTyped('PT2M')}' = false
+        '${dayTimeDurationTyped('-PT1H1M')}' '${dayTimeDurationTyped('-PT62M')}' = true
+        '${dayTimeDurationTyped('PT0S')}' '${dayTimeDurationTyped('-PT0.1S')}' = true
       `,
     });
   });

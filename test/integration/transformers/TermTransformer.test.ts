@@ -259,38 +259,38 @@ describe('TermTransformer', () => {
       it('datatype: float', () => {
         returnNonLexicalTest('apple', DT.XSD_FLOAT);
       });
-    });
 
-    it('datatype: decimal', () => {
-      returnNonLexicalTest('apple', DT.XSD_DECIMAL);
-    });
+      it('datatype: decimal', () => {
+        returnNonLexicalTest('apple', DT.XSD_DECIMAL);
+      });
 
-    it('datatype: boolean', () => {
-      returnNonLexicalTest('apple', DT.XSD_BOOLEAN);
-    });
+      it('datatype: boolean', () => {
+        returnNonLexicalTest('apple', DT.XSD_BOOLEAN);
+      });
 
-    it('datatype: dateTime', () => {
-      returnNonLexicalTest('apple', DT.XSD_DATE_TIME);
-    });
+      it('datatype: dateTime', () => {
+        returnNonLexicalTest('apple', DT.XSD_DATE_TIME);
+      });
 
-    it('datatype: date', () => {
-      returnNonLexicalTest('apple', DT.XSD_DATE);
-    });
+      it('datatype: date', () => {
+        returnNonLexicalTest('apple', DT.XSD_DATE);
+      });
 
-    it('datatype: time', () => {
-      returnNonLexicalTest('apple', DT.XSD_TIME);
-    });
+      it('datatype: time', () => {
+        returnNonLexicalTest('apple', DT.XSD_TIME);
+      });
 
-    it('datatype: duration', () => {
-      returnNonLexicalTest('apple', DT.XSD_DURATION);
-    });
+      it('datatype: duration', () => {
+        returnNonLexicalTest('apple', DT.XSD_DURATION);
+      });
 
-    it('datatype: dayTimeDuration', () => {
-      returnNonLexicalTest('apple', DT.XSD_DAY_TIME_DURATION);
-    });
+      it('datatype: dayTimeDuration', () => {
+        returnNonLexicalTest('apple', DT.XSD_DAY_TIME_DURATION);
+      });
 
-    it('datatype: YearMonthDuration', () => {
-      returnNonLexicalTest('apple', DT.XSD_YEAR_MONTH_DURATION);
+      it('datatype: YearMonthDuration', () => {
+        returnNonLexicalTest('apple', DT.XSD_YEAR_MONTH_DURATION);
+      });
     });
 
     it('badly invalid literal', () => {

@@ -1,5 +1,5 @@
 import type * as LRUCache from 'lru-cache';
-import type * as E from '../expressions';
+import type { TermType } from '../expressions';
 import { asTermType } from '../expressions';
 import type { KnownLiteralTypes } from './Consts';
 import { TypeAlias, TypeURL } from './Consts';
@@ -172,9 +172,9 @@ export function asOverrideType(type: string): OverrideType | undefined {
   return undefined;
 }
 
-export function asGeneralType(type: string): 'term' | E.TermType | undefined {
+export function asGeneralType(type: string): 'term' | TermType | undefined {
   if (type === 'term' || asTermType(type)) {
-    return <'term' | E.TermType> type;
+    return <'term' | TermType> type;
   }
   return undefined;
 }

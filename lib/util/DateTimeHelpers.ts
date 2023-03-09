@@ -91,19 +91,6 @@ export function toDateTimeRepresentation({ date, timeZone }:
   };
 }
 
-export function convertDurationToDateTime(dur: IDurationRepresentation): IDateTimeRepresentation {
-  return {
-    zoneHours: 0,
-    zoneMinutes: 0,
-    seconds: dur.seconds,
-    minutes: dur.minutes,
-    hours: dur.hours,
-    day: dur.day + 1,
-    month: dur.month + 1,
-    year: dur.year,
-  };
-}
-
 export function negateDuration(dur: Partial<IDurationRepresentation>): Partial<IDurationRepresentation> {
   return {
     year: dur.year !== undefined ? -1 * dur.year : undefined,
@@ -177,18 +164,6 @@ export function dayTimeDurationsToSeconds(dur: IDayTimeDurationRepresentation): 
   return (((dur.day * 24) + dur.hours) * 60 + dur.minutes) * 60 + dur.seconds;
 }
 
-export function extractYearMonthDur(dur: Partial<IDurationRepresentation>): Partial<IYearMonthDurationRepresentation> {
-  return { year: dur.year, month: dur.month };
-}
-
-export function extractDayTimeDur(dur: Partial<IDurationRepresentation>): Partial<IDayTimeDurationRepresentation> {
-  return {
-    day: dur.day,
-    hours: dur.hours,
-    minutes: dur.minutes,
-    seconds: dur.seconds,
-  };
-}
 export function extractRawTimeZone(zoneContained: string): string {
   const extraction = /(Z|([+-]\d\d:\d\d))?$/u.exec(zoneContained);
   // It is safe to cast here because the empty string can always match.
