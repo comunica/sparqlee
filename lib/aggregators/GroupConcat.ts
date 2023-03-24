@@ -1,8 +1,8 @@
 import type * as RDF from '@rdfjs/types';
 import { string } from '../functions/Helpers';
-import { BaseAggregator } from './BaseAggregator';
+import { SimpleAggregator } from './BaseAggregator';
 
-export class GroupConcat extends BaseAggregator<string> {
+export class GroupConcat extends SimpleAggregator<string> {
   public static emptyValue(): RDF.Term {
     return string('').toRDF();
   }

@@ -8,8 +8,10 @@ import { TypeAlias } from '../util/Consts';
 import { isSubTypeOf } from '../util/TypeHandling';
 
 export interface IBaseState {
-  seen: RDF.Term[];
+  seen: Seen;
 }
+
+type Seen = Record<string, (RDF.Term | undefined)[]>;
 
 export abstract class BaseAggregator<SubState> {
   protected distinct: boolean;
@@ -47,35 +49,59 @@ export abstract class BaseAggregator<SubState> {
     return undefined;
   }
 
-  protected abstract subInit(start: RDF.Term): SubState;
-  protected abstract subPut(state: SubState, bindings: RDF.Term): SubState;
+  protected abstract subInit(start: RDF.Term | undefined): SubState;
+  protected abstract subPut(state: SubState, bindings: RDF.Term | undefined): SubState;
   protected abstract subResult(state: SubState): RDF.Term;
 
-  public init(start: RDF.Term): IBaseState & { sub: SubState } {
+  public init(start: RDF.Term | undefined, variable: string): IBaseState & { sub: SubState } {
     const subState: SubState = this.subInit(start);
     return {
       sub: subState,
-      seen: this.addSeen([], start),
+      seen: this.addSeen({}, start, variable),
     };
   }
 
-  public put(state: IBaseState & { sub: SubState }, bindings: RDF.Term): IBaseState & { sub: SubState } {
-    if (this.canSkip(state, bindings)) {
+  public put(state: IBaseState & { sub: SubState }, bindings: RDF.Term | undefined, variable: string):
+  IBaseState & { sub: SubState } {
+    if (this.canSkip(state, bindings, variable)) {
       return state;
     }
     const sub: SubState = this.subPut(state.sub, bindings);
-    return { sub, seen: this.addSeen(state.seen, bindings) };
+    return { sub, seen: this.addSeen(state.seen, bindings, variable) };
   }
 
   public result(state: IBaseState & { sub: SubState }): RDF.Term {
     return this.subResult(state.sub);
   }
 
-  protected canSkip(state: IBaseState, term: RDF.Term): boolean {
-    return this.distinct && state.seen.some((t: RDF.Term) => t.equals(term));
+  protected canSkip(state: IBaseState, term: RDF.Term | undefined, variable: string): boolean {
+    return this.distinct && (state.seen[variable] || []).some((t: RDF.Term) => t.equals(term));
   }
 
-  protected addSeen(seen: RDF.Term[], term: RDF.Term): RDF.Term[] {
-    return [ ...seen, term ];
+  protected addSeen(seen: Seen, term: RDF.Term | undefined,
+    variable: string): Seen {
+    return this.distinct ?
+      {
+        ...seen,
+        [variable]: [ ...seen[variable] || [], term ],
+      } :
+      {};
+  }
+}
+
+export abstract class SimpleAggregator<SubState> extends BaseAggregator<SubState> {
+  public constructor(expr: Algebra.AggregateExpression, sharedContext: ICompleteSharedContext) {
+    super(expr, sharedContext);
+  }
+
+  protected abstract subInit(start: RDF.Term): SubState;
+  protected abstract subPut(state: SubState, bindings: RDF.Term): SubState;
+
+  public init(start: RDF.Term): IBaseState & { sub: SubState } {
+    return super.init(start, '');
+  }
+
+  public put(state: IBaseState & { sub: SubState }, term: RDF.Term): IBaseState & { sub: SubState } {
+    return super.put(state, term, '');
   }
 }

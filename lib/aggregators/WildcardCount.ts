@@ -1,8 +1,8 @@
 import type * as RDF from '@rdfjs/types';
 import { integer } from '../functions/Helpers';
-import { SimpleAggregator } from './BaseAggregator';
+import { BaseAggregator } from './BaseAggregator';
 
-export class Count extends SimpleAggregator<number> {
+export class WildcardCount extends BaseAggregator<number> {
   public static emptyValue(): RDF.Term {
     return integer(0).toRDF();
   }

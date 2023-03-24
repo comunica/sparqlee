@@ -232,7 +232,7 @@ describe('an aggregate evaluator should be able to', () => {
       evalTogether: true };
     });
 
-    it('a list of bindings', async() => {
+    it('a list of bindings 1', async() => {
       const result = testCase({
         ...baseTestCaseArgs,
         input: [
@@ -243,7 +243,35 @@ describe('an aggregate evaluator should be able to', () => {
           BF.bindings([]),
         ],
       });
-      expect(await result).toEqual(int('1')); // TODO: should be 4
+      expect(await result).toEqual(int('4'));
+    });
+
+    it('a list of bindings 2', async() => {
+      const result = testCase({
+        ...baseTestCaseArgs,
+        input: [
+          BF.bindings([]),
+          BF.bindings([[ DF.variable('x'), int('1') ]]),
+          BF.bindings([[ DF.variable('x'), int('2') ]]),
+          BF.bindings([[ DF.variable('x'), int('1') ]]),
+          BF.bindings([[ DF.variable('x'), int('1') ], [ DF.variable('y'), int('1') ]]),
+        ],
+      });
+      expect(await result).toEqual(int('4'));
+    });
+
+    it('a list of bindings 3', async() => {
+      const result = testCase({
+        ...baseTestCaseArgs,
+        input: [
+          BF.bindings([[ DF.variable('x'), int('1') ], [ DF.variable('y'), int('1') ]]),
+          BF.bindings([[ DF.variable('x'), int('1') ]]),
+          BF.bindings([[ DF.variable('x'), int('2') ]]),
+          BF.bindings([[ DF.variable('x'), int('1') ]]),
+          BF.bindings([]),
+        ],
+      });
+      expect(await result).toEqual(int('4'));
     });
 
     it('with respect to empty input', async() => {

@@ -1,23 +1,31 @@
 import type * as RDF from '@rdfjs/types';
-import type { Algebra } from 'sparqlalgebrajs';
+import { Algebra } from 'sparqlalgebrajs';
 import type { IAggregatorClass } from '../../aggregators';
 import { aggregators } from '../../aggregators';
-import type { BaseAggregator } from '../../aggregators/BaseAggregator';
+import type { SimpleAggregator } from '../../aggregators/BaseAggregator';
+import { WildcardCount } from '../../aggregators/WildcardCount';
 import type { SetFunction } from '../../util/Consts';
 import * as Err from '../../util/Errors';
 import type { ICompleteSharedContext } from './BaseExpressionEvaluator';
 
 export abstract class BaseAggregateEvaluator {
   protected expression: Algebra.AggregateExpression;
-  protected aggregator: BaseAggregator<any>;
+  protected aggregator: SimpleAggregator<any>;
   protected throwError = false;
   protected state: any;
+  protected isWildcard = false;
+  protected wildcardAggregator: WildcardCount | undefined;
 
   protected constructor(expr: Algebra.AggregateExpression,
     sharedContext: ICompleteSharedContext, throwError?: boolean) {
     this.expression = expr;
     this.aggregator = new aggregators[<SetFunction> expr.aggregator](expr, sharedContext);
     this.throwError = throwError || false;
+    this.isWildcard = expr.expression.expressionType === Algebra.expressionTypes.WILDCARD;
+    if (this.isWildcard) {
+      this.wildcardAggregator = new WildcardCount(expr, sharedContext);
+      this.put = this.__initWildcard.bind(this);
+    }
   }
 
   /**
@@ -37,6 +45,9 @@ export abstract class BaseAggregateEvaluator {
   }
 
   public result(): RDF.Term | undefined {
+    if (this.isWildcard) {
+      return WildcardCount.emptyValue();
+    }
     return (<IAggregatorClass> this.aggregator.constructor).emptyValue();
   }
 
@@ -69,4 +80,38 @@ export abstract class BaseAggregateEvaluator {
   protected abstract __put(bindings: RDF.Bindings): void | Promise<void>;
 
   protected abstract safeThrow(err: unknown): void;
+
+  protected __initWildcard(bindings: RDF.Bindings): void {
+    if (bindings.size === 0) {
+      this.state = this.wildcardAggregator!.init(undefined, '');
+    }
+    for (const [ variable, key ] of bindings) {
+      // No need to evaluate when wildcard is present. The specs say either an expression or a wildcard is present:
+      // https://www.w3.org/TR/sparql11-query/#rAggregate
+      if (this.state) {
+        this.state = this.wildcardAggregator!.put(this.state, key, variable.value);
+      } else {
+        this.state = this.wildcardAggregator!.init(key, variable.value);
+      }
+    }
+    if (this.state) {
+      this.put = this.__putWildcard.bind(this);
+      this.result = this.__resultWildcard.bind(this);
+    }
+  }
+
+  protected __putWildcard(bindings: RDF.Bindings): void {
+    if (bindings.size === 0) {
+      this.state = this.wildcardAggregator!.put(this.state, undefined, '');
+    }
+    for (const [ variable, key ] of bindings) {
+      // No need to evaluate when wildcard is present. The specs say either an expression or a wildcard is present:
+      // https://www.w3.org/TR/sparql11-query/#rAggregate
+      this.state = this.wildcardAggregator!.put(this.state, key, variable.value);
+    }
+  }
+
+  protected __resultWildcard(): RDF.Term {
+    return this.wildcardAggregator!.result(this.state);
+  }
 }

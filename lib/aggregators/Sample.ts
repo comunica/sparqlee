@@ -1,7 +1,7 @@
 import type * as RDF from '@rdfjs/types';
-import { BaseAggregator } from './BaseAggregator';
+import { SimpleAggregator } from './BaseAggregator';
 
-export class Sample extends BaseAggregator<RDF.Term> {
+export class Sample extends SimpleAggregator<RDF.Term> {
   public subInit(start: RDF.Term): RDF.Term {
     return start;
   }

@@ -1,10 +1,10 @@
 import type * as RDF from '@rdfjs/types';
-import { BaseAggregator } from './BaseAggregator';
+import { SimpleAggregator } from './BaseAggregator';
 
 interface IExtremeState {
   extremeValue: number; term: RDF.Term;
 }
-export class Min extends BaseAggregator<IExtremeState> {
+export class Min extends SimpleAggregator<IExtremeState> {
   public subInit(start: RDF.Term): IExtremeState {
     const { value } = this.extractValue(start);
     return { extremeValue: value, term: start };

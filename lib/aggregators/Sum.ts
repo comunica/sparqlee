@@ -3,11 +3,11 @@ import type * as E from '../expressions';
 import { regularFunctions } from '../functions';
 import { integer } from '../functions/Helpers';
 import * as C from '../util/Consts';
-import { BaseAggregator } from './BaseAggregator';
+import { SimpleAggregator } from './BaseAggregator';
 
 type SumState = E.NumericLiteral;
 
-export class Sum extends BaseAggregator<SumState> {
+export class Sum extends SimpleAggregator<SumState> {
   private readonly summer = regularFunctions[C.RegularOperator.ADDITION];
 
   public static emptyValue(): RDF.Term {

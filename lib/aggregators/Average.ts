@@ -3,14 +3,14 @@ import * as E from '../expressions';
 import { regularFunctions } from '../functions';
 import { integer } from '../functions/Helpers';
 import * as C from '../util/Consts';
-import { BaseAggregator } from './BaseAggregator';
+import { SimpleAggregator } from './BaseAggregator';
 
 interface IAverageState {
   sum: E.NumericLiteral;
   count: number;
 }
 
-export class Average extends BaseAggregator<IAverageState> {
+export class Average extends SimpleAggregator<IAverageState> {
   private readonly summer = regularFunctions[C.RegularOperator.ADDITION];
   private readonly divider = regularFunctions[C.RegularOperator.DIVISION];
 
