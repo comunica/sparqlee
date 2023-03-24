@@ -7,15 +7,15 @@ export class GroupConcat extends BaseAggregator<string> {
     return string('').toRDF();
   }
 
-  public init(start: RDF.Term): string {
+  public subInit(start: RDF.Term): string {
     return start.value;
   }
 
-  public put(state: string, term: RDF.Term): string {
+  public subPut(state: string, term: RDF.Term): string {
     return state + this.separator + term.value;
   }
 
-  public result(state: string): RDF.Term {
+  public subResult(state: string): RDF.Term {
     return string(state).toRDF();
   }
 }

@@ -5,12 +5,12 @@ interface IExtremeState {
   extremeValue: number; term: RDF.Term;
 }
 export class Min extends BaseAggregator<IExtremeState> {
-  public init(start: RDF.Term): IExtremeState {
+  public subInit(start: RDF.Term): IExtremeState {
     const { value } = this.extractValue(start);
     return { extremeValue: value, term: start };
   }
 
-  public put(state: IExtremeState, term: RDF.Term): IExtremeState {
+  public subPut(state: IExtremeState, term: RDF.Term): IExtremeState {
     const extracted = this.extractValue(term);
     if (extracted.value < state.extremeValue) {
       return {
@@ -21,7 +21,7 @@ export class Min extends BaseAggregator<IExtremeState> {
     return state;
   }
 
-  public result(state: IExtremeState): RDF.Term {
+  public subResult(state: IExtremeState): RDF.Term {
     return state.term;
   }
 }

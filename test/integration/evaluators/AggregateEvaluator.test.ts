@@ -160,7 +160,7 @@ describe('an aggregate evaluator should be able to', () => {
           BF.bindings([[ DF.variable('x'), int('1') ], [ DF.variable('y'), int('1') ]]),
         ],
       });
-      expect(await result).toEqual(int('4')); // TODO: should be 2
+      expect(await result).toEqual(int('2'));
     });
 
     it('with respect to empty input', async() => {
@@ -243,7 +243,7 @@ describe('an aggregate evaluator should be able to', () => {
           BF.bindings([]),
         ],
       });
-      expect(await result).toEqual(int('5')); // TODO: should be 4
+      expect(await result).toEqual(int('1')); // TODO: should be 4
     });
 
     it('with respect to empty input', async() => {

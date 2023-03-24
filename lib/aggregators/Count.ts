@@ -7,15 +7,15 @@ export class Count extends BaseAggregator<number> {
     return integer(0).toRDF();
   }
 
-  public init(start: RDF.Term): number {
+  public subInit(start: RDF.Term): number {
     return 1;
   }
 
-  public put(state: number, term: RDF.Term): number {
+  public subPut(state: number, term: RDF.Term): number {
     return state + 1;
   }
 
-  public result(state: number): RDF.Term {
+  public subResult(state: number): RDF.Term {
     return integer(state).toRDF();
   }
 }

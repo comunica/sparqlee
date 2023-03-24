@@ -14,16 +14,16 @@ export class Sum extends BaseAggregator<SumState> {
     return integer(0).toRDF();
   }
 
-  public init(start: RDF.Term): SumState {
+  public subInit(start: RDF.Term): SumState {
     return this.termToNumericOrError(start);
   }
 
-  public put(state: SumState, term: RDF.Term): SumState {
+  public subPut(state: SumState, term: RDF.Term): SumState {
     const internalTerm = this.termToNumericOrError(term);
     return <E.NumericLiteral> this.summer.apply([ state, internalTerm ], this.sharedContext);
   }
 
-  public result(state: SumState): RDF.Term {
+  public subResult(state: SumState): RDF.Term {
     return state.toRDF();
   }
 }

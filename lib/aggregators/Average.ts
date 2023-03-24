@@ -18,12 +18,12 @@ export class Average extends BaseAggregator<IAverageState> {
     return integer(0).toRDF();
   }
 
-  public init(start: RDF.Term): IAverageState {
+  public subInit(start: RDF.Term): IAverageState {
     const sum = this.termToNumericOrError(start);
     return { sum, count: 1 };
   }
 
-  public put(state: IAverageState, term: RDF.Term): IAverageState {
+  public subPut(state: IAverageState, term: RDF.Term): IAverageState {
     const internalTerm = this.termToNumericOrError(term);
     const sum = <E.NumericLiteral> this.summer.apply([ state.sum, internalTerm ], this.sharedContext);
     return {
@@ -32,7 +32,7 @@ export class Average extends BaseAggregator<IAverageState> {
     };
   }
 
-  public result(state: IAverageState): RDF.Term {
+  public subResult(state: IAverageState): RDF.Term {
     const count = new E.IntegerLiteral(state.count);
     const result = this.divider.apply([ state.sum, count ], this.sharedContext);
     return result.toRDF();

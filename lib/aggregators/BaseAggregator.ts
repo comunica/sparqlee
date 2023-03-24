@@ -7,7 +7,11 @@ import type { ITermTransformer } from '../transformers/TermTransformer';
 import { TypeAlias } from '../util/Consts';
 import { isSubTypeOf } from '../util/TypeHandling';
 
-export abstract class BaseAggregator<State> {
+export interface IBaseState {
+  seen: RDF.Term[];
+}
+
+export abstract class BaseAggregator<SubState> {
   protected distinct: boolean;
   protected separator: string;
   protected termTransformer: ITermTransformer;
@@ -43,9 +47,35 @@ export abstract class BaseAggregator<State> {
     return undefined;
   }
 
-  abstract init(start: RDF.Term): State;
+  protected abstract subInit(start: RDF.Term): SubState;
+  protected abstract subPut(state: SubState, bindings: RDF.Term): SubState;
+  protected abstract subResult(state: SubState): RDF.Term;
 
-  abstract result(state: State): RDF.Term;
+  public init(start: RDF.Term): IBaseState & { sub: SubState } {
+    const subState: SubState = this.subInit(start);
+    return {
+      sub: subState,
+      seen: this.addSeen([], start),
+    };
+  }
 
-  abstract put(state: State, bindings: RDF.Term): State;
+  public put(state: IBaseState & { sub: SubState }, bindings: RDF.Term): IBaseState & { sub: SubState } {
+    if (this.canSkip(state, bindings)) {
+      return state;
+    }
+    const sub: SubState = this.subPut(state.sub, bindings);
+    return { sub, seen: this.addSeen(state.seen, bindings) };
+  }
+
+  public result(state: IBaseState & { sub: SubState }): RDF.Term {
+    return this.subResult(state.sub);
+  }
+
+  protected canSkip(state: IBaseState, term: RDF.Term): boolean {
+    return this.distinct && state.seen.some((t: RDF.Term) => t.equals(term));
+  }
+
+  protected addSeen(seen: RDF.Term[], term: RDF.Term): RDF.Term[] {
+    return [ ...seen, term ];
+  }
 }
