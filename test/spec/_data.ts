@@ -48,7 +48,6 @@ export function data() {
     d3: dateTimeTyped('2008-06-20T23:59:00Z'),
     d4: dateTimeTyped('2011-02-01T01:02:03'),
 
-    // TODO: remove this comment: note: this is an illegal data format! date must contain time part
     dr1: dateTyped('2010-06-21'),
     dr2: dateTyped('2010-12-21'),
     dr3: dateTyped('2008-06-20'),

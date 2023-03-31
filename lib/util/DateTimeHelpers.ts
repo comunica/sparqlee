@@ -169,3 +169,11 @@ export function extractRawTimeZone(zoneContained: string): string {
   // It is safe to cast here because the empty string can always match.
   return extraction![0];
 }
+
+export function extractTimeZone(date: Date): ITimeZoneRepresentation {
+  // We make use of wrong modulo implementation: (-90) % 60 = -30
+  return {
+    zoneHours: date.getTimezoneOffset() / 60,
+    zoneMinutes: date.getTimezoneOffset() % 60,
+  };
+}

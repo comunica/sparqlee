@@ -4,6 +4,7 @@ import type { Algebra as Alg } from 'sparqlalgebrajs';
 import type * as E from '../expressions/Expressions';
 import { AlgebraTransformer } from '../transformers/AlgebraTransformer';
 import type { IExpressionEvaluator } from '../Types';
+import { extractTimeZone } from '../util/DateTimeHelpers';
 import type { ISharedContext } from './evaluatorHelpers/BaseExpressionEvaluator';
 import type { ICompleteSyncEvaluatorContext } from './evaluatorHelpers/SyncRecursiveEvaluator';
 import { SyncRecursiveEvaluator } from './evaluatorHelpers/SyncRecursiveEvaluator';
@@ -26,9 +27,7 @@ export class SyncEvaluator {
     const now = context.now || new Date(Date.now());
     let defaultTimeZone = context.defaultTimeZone;
     if (!defaultTimeZone) {
-      // We make use of wrong modulo implementation: (-90) % 60 = -30
-      defaultTimeZone = { zoneHours: Math.floor(now.getTimezoneOffset() / 60),
-        zoneMinutes: now.getTimezoneOffset() % 60 };
+      defaultTimeZone = extractTimeZone(now);
     }
     return {
       now,
