@@ -25,10 +25,6 @@ export class SyncEvaluator {
 
   public static completeContext(context: ISyncEvaluatorContext): ICompleteSyncEvaluatorContext {
     const now = context.now || new Date(Date.now());
-    let defaultTimeZone = context.defaultTimeZone;
-    if (!defaultTimeZone) {
-      defaultTimeZone = extractTimeZone(now);
-    }
     return {
       now,
       baseIRI: context.baseIRI || undefined,
@@ -41,7 +37,7 @@ export class SyncEvaluator {
       exists: context.exists,
       aggregate: context.aggregate,
       bnode: context.bnode,
-      defaultTimeZone,
+      defaultTimeZone: context.defaultTimeZone || extractTimeZone(now),
     };
   }
 

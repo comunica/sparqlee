@@ -25,10 +25,6 @@ export class AsyncEvaluator {
 
   public static completeContext(context: IAsyncEvaluatorContext): ICompleteAsyncEvaluatorContext {
     const now = context.now || new Date(Date.now());
-    let defaultTimeZone = context.defaultTimeZone;
-    if (!defaultTimeZone) {
-      defaultTimeZone = extractTimeZone(now);
-    }
     return {
       now,
       baseIRI: context.baseIRI || undefined,
@@ -41,7 +37,7 @@ export class AsyncEvaluator {
       exists: context.exists,
       aggregate: context.aggregate,
       bnode: context.bnode,
-      defaultTimeZone,
+      defaultTimeZone: context.defaultTimeZone || extractTimeZone(now),
     };
   }
 
