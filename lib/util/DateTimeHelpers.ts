@@ -171,7 +171,6 @@ export function extractRawTimeZone(zoneContained: string): string {
 }
 
 export function extractTimeZone(date: Date): ITimeZoneRepresentation {
-  // We make use of wrong modulo implementation: (-90) % 60 = -30
   return {
     zoneHours: date.getTimezoneOffset() / 60,
     zoneMinutes: date.getTimezoneOffset() % 60,

@@ -67,7 +67,6 @@ interface AsyncEvaluatorContext {
   overloadCache?: LRUCache<string, SomeInternalType>;
   typeCache?: LRUCache<string, SomeInternalType>;
   getSuperType?: (unknownType: string) => string;
-  enableExtendedXsdTypes?: boolean;
   implicitTimezone?: { zoneHours: number; zoneMinutes: number;}; 
 }
 ```
