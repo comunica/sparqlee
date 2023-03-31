@@ -1,21 +1,25 @@
 import type * as RDF from '@rdfjs/types';
 import { string } from '../functions/Helpers';
-import { SimpleAggregator } from './BaseAggregator';
+import { AggregatorComponent } from './Aggregator';
 
-export class GroupConcat extends SimpleAggregator<string> {
+export class GroupConcat extends AggregatorComponent {
+  private state: string | undefined = undefined;
   public static emptyValue(): RDF.Term {
     return string('').toRDF();
   }
 
-  public subInit(start: RDF.Term): string {
-    return start.value;
+  public put(term: RDF.Term): void {
+    if (this.state === undefined) {
+      this.state = term.value;
+    } else {
+      this.state += this.separator + term.value;
+    }
   }
 
-  public subPut(state: string, term: RDF.Term): string {
-    return state + this.separator + term.value;
-  }
-
-  public subResult(state: string): RDF.Term {
-    return string(state).toRDF();
+  public result(): RDF.Term {
+    if (this.state === undefined) {
+      return GroupConcat.emptyValue();
+    }
+    return string(this.state).toRDF();
   }
 }
