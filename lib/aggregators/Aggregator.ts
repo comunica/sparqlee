@@ -26,7 +26,6 @@ export abstract class AggregatorComponent {
   }
 
   protected termToNumericOrError(term: RDF.Term): E.NumericLiteral {
-    // TODO: Check behaviour
     if (term.termType !== 'Literal') {
       throw new Error(`Term with value ${term.value} has type ${term.termType} and is not a numeric literal`);
     } else if (
@@ -50,7 +49,7 @@ export abstract class AggregatorComponent {
 /**
  * A base aggregator that can handle distinct and possibly wildcards.
  */
-export class baseAggregator {
+export class Aggregator {
   protected distinct: boolean;
   protected variableValues: Map<string, Set<string | undefined>> = new Map();
 
@@ -66,7 +65,7 @@ export class baseAggregator {
     return this.aggregatorComponent.result();
   }
 
-  protected put(bindings: RDF.Term | undefined, variable: string): void {
+  public put(bindings: RDF.Term | undefined, variable = ''): void {
     if (!this.canSkip(bindings, variable)) {
       this.aggregatorComponent.put(bindings);
       this.addSeen(bindings, variable);
@@ -89,23 +88,10 @@ export class baseAggregator {
 }
 
 /**
- * A base aggregator that can handle distinct ignores wildcards.
- */
-export class Aggregator extends baseAggregator {
-  public constructor(expr: Algebra.AggregateExpression, aggregatorComponent: AggregatorComponent) {
-    super(expr, aggregatorComponent);
-  }
-
-  public put(term: RDF.Term): void {
-    super.put(term, '');
-  }
-}
-
-/**
  * A base aggregator that handling wildcards and distinct.
  * Wildcards are handled by putting each term in the bindings in the aggregator component.
  */
-export class WildcardAggregator extends baseAggregator {
+export class WildcardAggregator extends Aggregator {
   public putBindings(bindings: RDF.Bindings): void {
     if (bindings.size === 0) {
       super.put(undefined, '');
