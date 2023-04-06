@@ -7,6 +7,7 @@ import type {
   ITimeZoneRepresentation, IYearMonthDurationRepresentation,
 } from './DateTimeHelpers';
 
+import { simplifyDurationRepresentation } from './DateTimeHelpers';
 import { ParseError } from './Errors';
 import { maximumDayInMonthFor } from './SpecAlgos';
 
@@ -163,14 +164,14 @@ export function parseDuration(durationStr: string): Partial<IDurationRepresentat
   }
 
   const sign = <-1 | 1> Number(duration[0]);
-  return {
+  return simplifyDurationRepresentation({
     year: duration[1] ? sign * Number(duration[1]) : undefined,
     month: duration[2] ? sign * Number(duration[2]) : undefined,
     day: duration[3] ? sign * Number(duration[3]) : undefined,
     hours: duration[4] ? sign * Number(duration[4]) : undefined,
     minutes: duration[5] ? sign * Number(duration[5]) : undefined,
     seconds: duration[6] ? sign * Number(duration[6]) : undefined,
-  };
+  });
 }
 
 export function parseYearMonthDuration(durationStr: string): Partial<IYearMonthDurationRepresentation> {

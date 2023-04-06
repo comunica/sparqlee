@@ -65,6 +65,48 @@ export function defaultedDurationRepresentation(
   };
 }
 
+export function simplifyDurationRepresentation(rep: Partial<IDurationRepresentation>):
+Partial<IDurationRepresentation> {
+  const temp = defaultedDurationRepresentation(rep);
+  const res: Partial<IDurationRepresentation> = {};
+
+  // Simplify year part
+  const years = temp.year + Math.trunc(temp.month / 12);
+  if (years) {
+    res.year = years;
+    temp.month %= 12;
+  }
+  if (temp.month) {
+    res.month = temp.month;
+  }
+
+  // Simplify day part
+  const days = temp.day + Math.trunc(temp.hours / 24) +
+    Math.trunc(temp.minutes / (24 * 60)) + Math.trunc(temp.seconds / (24 * 60 * 60));
+  if (days) {
+    res.day = days;
+    temp.hours %= 24;
+    temp.minutes %= 24 * 60;
+    temp.seconds %= 24 * 60 * 60;
+  }
+  const hours = temp.hours + Math.trunc(temp.minutes / 60) +
+    Math.trunc(temp.seconds / (60 * 60));
+  if (hours) {
+    res.hours = hours;
+    temp.minutes %= 60;
+    temp.seconds %= 60 * 60;
+  }
+  const minutes = temp.minutes + Math.trunc(temp.seconds / 60);
+  if (minutes) {
+    res.minutes = minutes;
+    temp.seconds %= 60;
+  }
+  if (temp.seconds) {
+    res.seconds = temp.seconds;
+  }
+  return res;
+}
+
 export function defaultedDateTimeRepresentation(rep: Partial<IDateTimeRepresentation>): IDateTimeRepresentation {
   return {
     ...rep,

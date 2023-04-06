@@ -167,7 +167,7 @@ const xsdToTime = {
     .onUnary(TypeURL.XSD_TIME, () => (val: TimeLiteral) => new E.TimeLiteral(val.typedValue, val.strValue))
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: DateTimeLiteral) =>
       new E.TimeLiteral(val.typedValue))
-    .onStringly1(() => (val: Term) => new E.TimeLiteral(parseTime(val.str()), val.str()))
+    .onStringly1(() => (val: Term) => new E.TimeLiteral(parseTime(val.str())))
     .collect(),
 };
 
@@ -177,7 +177,7 @@ const xsdToDate = {
     .onUnary(TypeURL.XSD_DATE, () => (val: DateLiteral) => new E.DateLiteral(val.typedValue, val.strValue))
     .onUnary(TypeURL.XSD_DATE_TIME, () => (val: DateTimeLiteral) =>
       new E.DateLiteral(val.typedValue))
-    .onStringly1(() => (val: E.Term) => new E.DateLiteral(parseDate(val.str()), val.str()))
+    .onStringly1(() => (val: E.Term) => new E.DateLiteral(parseDate(val.str())))
     .collect(),
 };
 
@@ -189,7 +189,7 @@ const xsdToDuration = {
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
       new E.DurationLiteral(val.typedValue, val.strValue))
     .onStringly1(() => (val: Term) =>
-      new DurationLiteral(parseDuration(val.str()), val.str()))
+      new DurationLiteral(parseDuration(val.str())))
     .collect(),
 };
 
@@ -201,7 +201,7 @@ const xsdToDayTimeDuration = {
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
       new E.DayTimeDurationLiteral(trimToDayTimeDuration(val.typedValue)))
     .onStringly1(() => (val: Term) =>
-      new E.DayTimeDurationLiteral(parseDayTimeDuration(val.str()), val.str()))
+      new E.DayTimeDurationLiteral(parseDayTimeDuration(val.str())))
     .collect(),
 };
 
@@ -213,7 +213,7 @@ const xsdToYearMonthDuration = {
       // Copy is needed to make sure the dataType is changed, even when the provided type was a subtype
       new E.YearMonthDurationLiteral(trimToYearMonthDuration(val.typedValue)))
     .onStringly1(() => (val: Term) =>
-      new E.YearMonthDurationLiteral(parseYearMonthDuration(val.str()), val.str()))
+      new E.YearMonthDurationLiteral(parseYearMonthDuration(val.str())))
     .collect(),
 };
 

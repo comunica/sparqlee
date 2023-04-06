@@ -31,7 +31,7 @@ describe('construct duration', () => {
       notation: Notation.Function,
       testTable: `
         '"PT0S"' = ${compactTermString('PT0S', TypeURL.XSD_DURATION)}
-        '"-P0M"' = ${compactTermString('-P0M', TypeURL.XSD_DURATION)}
+        '"-P0M"' = ${compactTermString('PT0S', TypeURL.XSD_DURATION)}
         '"P1Y"' = ${compactTermString('P1Y', TypeURL.XSD_DURATION)}
         '"-P1Y"' = ${compactTermString('-P1Y', TypeURL.XSD_DURATION)}
         '"P1M"' = ${compactTermString('P1M', TypeURL.XSD_DURATION)}
@@ -40,7 +40,7 @@ describe('construct duration', () => {
         '"PT1M"' = ${compactTermString('PT1M', TypeURL.XSD_DURATION)}
         '"PT1S"' = ${compactTermString('PT1S', TypeURL.XSD_DURATION)}
         '"P3Y1DT2H7S"' = ${compactTermString('P3Y1DT2H7S', TypeURL.XSD_DURATION)}
-        '"P36MT120M"' = ${compactTermString('P36MT120M', TypeURL.XSD_DURATION)}
+        '"P36MT120M"' = ${compactTermString('P3YT2H', TypeURL.XSD_DURATION)}
       `,
     });
   });

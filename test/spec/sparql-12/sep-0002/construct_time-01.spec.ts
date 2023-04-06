@@ -23,7 +23,7 @@ describe('construct time', () => {
       notation: Notation.Function,
       testTable: `
         '"00:00:00"' = '${compactTermString('00:00:00', TypeURL.XSD_TIME)}'
-        '"24:00:00"' = '${compactTermString('24:00:00', TypeURL.XSD_TIME)}'
+        '"24:00:00"' = '${compactTermString('00:00:00', TypeURL.XSD_TIME)}'
         '"01:02:03"' = '${compactTermString('01:02:03', TypeURL.XSD_TIME)}'
         '"23:59:59"' = '${compactTermString('23:59:59', TypeURL.XSD_TIME)}'
       `,
