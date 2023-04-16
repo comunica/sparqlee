@@ -51,7 +51,7 @@ export abstract class AggregatorComponent {
  */
 export class Aggregator {
   protected distinct: boolean;
-  protected variableValues: Map<string, Set<string | undefined>> = new Map();
+  protected variableValues: Map<string, Set<string>> = new Map();
 
   public constructor(expr: Algebra.AggregateExpression, protected aggregatorComponent: AggregatorComponent) {
     this.distinct = expr.distinct;
@@ -65,41 +65,25 @@ export class Aggregator {
     return this.aggregatorComponent.result();
   }
 
-  public put(bindings: RDF.Term | undefined, variable = ''): void {
+  public put(bindings: RDF.Term, variable = ''): void {
     if (!this.canSkip(bindings, variable)) {
       this.aggregatorComponent.put(bindings);
       this.addSeen(bindings, variable);
     }
   }
 
-  protected canSkip(term: RDF.Term | undefined, variable: string): boolean {
+  private canSkip(term: RDF.Term, variable: string): boolean {
     const set = this.variableValues.get(variable);
-    return this.distinct && !!set && set.has(term ? RdfString.termToString(term) : undefined);
+    return this.distinct && !!set && set.has(RdfString.termToString(term));
   }
 
-  protected addSeen(term: RDF.Term | undefined, variable: string): void {
+  private addSeen(term: RDF.Term, variable: string): void {
     if (this.distinct) {
       if (!this.variableValues.has(variable)) {
         this.variableValues.set(variable, new Set());
       }
-      this.variableValues.get(variable)!.add(term ? RdfString.termToString(term) : undefined);
+      this.variableValues.get(variable)!.add(RdfString.termToString(term));
     }
   }
 }
 
-/**
- * A base aggregator that handling wildcards and distinct.
- * Wildcards are handled by putting each term in the bindings in the aggregator component.
- */
-export class WildcardAggregator extends Aggregator {
-  public putBindings(bindings: RDF.Bindings): void {
-    if (bindings.size === 0) {
-      super.put(undefined, '');
-    }
-    for (const [ variable, key ] of bindings) {
-      // No need to evaluate when wildcard is present. The specs say either an expression or a wildcard is present:
-      // https://www.w3.org/TR/sparql11-query/#rAggregate
-      super.put(key, variable.value);
-    }
-  }
-}

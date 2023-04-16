@@ -1,8 +1,8 @@
 import type * as RDF from '@rdfjs/types';
 import { Algebra } from 'sparqlalgebrajs';
 import { aggregators } from '../../aggregators';
-import { Aggregator, WildcardAggregator } from '../../aggregators/Aggregator';
-import { WildcardCount } from '../../aggregators/WildcardCount';
+import { Aggregator } from '../../aggregators/Aggregator';
+import { WildcardCountAggregator } from '../../aggregators/WildcardCountAggregator';
 import type { SetFunction } from '../../util/Consts';
 import * as Err from '../../util/Errors';
 import type { ICompleteSharedContext } from './BaseExpressionEvaluator';
@@ -12,7 +12,7 @@ export abstract class BaseAggregateEvaluator {
   protected aggregator: Aggregator;
   protected throwError = false;
   protected isWildcard = false;
-  protected wildcardAggregator: WildcardAggregator | undefined;
+  protected wildcardAggregator: WildcardCountAggregator | undefined;
   protected errorOccurred = false;
 
   protected constructor(expr: Algebra.AggregateExpression,
@@ -22,7 +22,7 @@ export abstract class BaseAggregateEvaluator {
     this.throwError = throwError || false;
     this.isWildcard = expr.expression.expressionType === Algebra.expressionTypes.WILDCARD;
     if (this.isWildcard) {
-      this.wildcardAggregator = new WildcardAggregator(expr, new WildcardCount(expr, sharedContext));
+      this.wildcardAggregator = new WildcardCountAggregator(expr);
     }
   }
 
@@ -37,7 +37,7 @@ export abstract class BaseAggregateEvaluator {
   public static emptyValue(expr: Algebra.AggregateExpression, throwError = false): RDF.Term | undefined {
     let val: RDF.Term | undefined;
     if (expr.expression.expressionType === Algebra.expressionTypes.WILDCARD) {
-      val = WildcardAggregator.emptyValue(WildcardCount);
+      val = WildcardCountAggregator.emptyValue();
     } else {
       val = Aggregator.emptyValue(aggregators[<SetFunction> expr.aggregator]);
     }
