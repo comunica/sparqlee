@@ -165,11 +165,10 @@ const equality = {
   arity: 2,
   overloads: declare(C.RegularOperator.EQUAL)
     .numberTest(() => (left, right) => left === right)
-    .stringTest(() => (left, right) => left.localeCompare(right) === 0)
     .set(
-      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
-      () => ([ left, right ]: E.LangStringLiteral[]) => bool(left.str() === right.str() &&
-        left.language === right.language),
+      [ TypeAlias.SPARQL_STRINGLY, TypeAlias.SPARQL_STRINGLY ],
+      () => ([ left, right ]: (E.LangStringLiteral | E.StringLiteral)[]) => bool(left.str() === right.str() &&
+        left.language === right.language && left.dataType === right.dataType),
     )
     .booleanTest(() => (left, right) => left === right)
     .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
