@@ -66,6 +66,7 @@ describe('evaluation of \'=\'', () => {
         aaa   bbb   = false
         "test1" "test2" = false
         "test1"@en "test2"@en = false
+        "test1" "test2"@en = false
       `,
     });
   });
