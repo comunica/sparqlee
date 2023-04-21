@@ -10,15 +10,19 @@ import * as E from '../expressions';
 import { TermTransformer } from '../transformers/TermTransformer';
 import * as C from '../util/Consts';
 import { TypeAlias, TypeURL } from '../util/Consts';
-import type {
-  IDayTimeDurationRepresentation,
-} from '../util/DateTimeHelpers';
-import { extractRawTimeZone,
+import type { IDayTimeDurationRepresentation } from '../util/DateTimeHelpers';
+import {
   dayTimeDurationsToSeconds,
-  defaultedDateTimeRepresentation, defaultedDayTimeDurationRepresentation,
-  defaultedDurationRepresentation, defaultedYearMonthDurationRepresentation, negateDuration,
+  defaultedDateTimeRepresentation,
+  defaultedDayTimeDurationRepresentation,
+  defaultedDurationRepresentation,
+  defaultedYearMonthDurationRepresentation,
+  extractRawTimeZone,
+  negateDuration,
   toDateTimeRepresentation,
-  toUTCDate, yearMonthDurationsToMonths } from '../util/DateTimeHelpers';
+  toUTCDate,
+  yearMonthDurationsToMonths,
+} from '../util/DateTimeHelpers';
 import * as Err from '../util/Errors';
 import { addDurationToDateTime, elapsedDuration } from '../util/SpecAlgos';
 import type { IOverloadedDefinition } from './Core';
@@ -165,11 +169,14 @@ const equality = {
   arity: 2,
   overloads: declare(C.RegularOperator.EQUAL)
     .numberTest(() => (left, right) => left === right)
+    .stringTest(() => (left, right) => left.localeCompare(right) === 0)
     .set(
-      [ TypeAlias.SPARQL_STRINGLY, TypeAlias.SPARQL_STRINGLY ],
-      () => ([ left, right ]: (E.LangStringLiteral | E.StringLiteral)[]) => bool(left.str() === right.str() &&
-        left.language === right.language && left.dataType === right.dataType),
+      [ TypeURL.RDF_LANG_STRING, TypeURL.RDF_LANG_STRING ],
+      () => ([ left, right ]: E.LangStringLiteral[]) => bool(left.str() === right.str() &&
+        left.language === right.language),
     )
+    // Fall through: a TypeURL.XSD_STRING is never equal to a TypeURL.RDF_LANG_STRING.
+    .set([ TypeAlias.SPARQL_STRINGLY, TypeAlias.SPARQL_STRINGLY ], () => () => bool(false))
     .booleanTest(() => (left, right) => left === right)
     .dateTimeTest(({ defaultTimeZone }) => (left, right) =>
       toUTCDate(left, defaultTimeZone).getTime() === toUTCDate(right, defaultTimeZone).getTime())
