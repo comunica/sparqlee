@@ -94,10 +94,6 @@ function orderLiteralTypes(litA: RDF.Literal, litB: RDF.Literal,
   const myLitB = termTransformer.transformLiteral(litB);
 
   try {
-    // TODO: Calling apply does come at a small cost, searching for the correct overload...
-    //  @Ruben, we can fix this in an ugly way by using if statements (like it was before).
-    //  If we than also add an option to this function that will disable the fallback,
-    //  we could use the this function in our regular functions.
     if ((<E.BooleanLiteral> isEqual.apply([ myLitA, myLitB ], context)).typedValue) {
       return 0;
     }

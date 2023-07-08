@@ -6,7 +6,9 @@ export class Max extends AggregatorComponent {
   private state: RDF.Term | undefined = undefined;
 
   public put(term: RDF.Term): void {
-    this.doCheck(term);
+    if (term.termType !== 'Literal') {
+      throw new Error(`Term with value ${term.value} has type ${term.termType} and is not a literal`);
+    }
     if (this.state === undefined) {
       this.state = term;
     } else if (orderTypes(this.state, term) === -1) {
