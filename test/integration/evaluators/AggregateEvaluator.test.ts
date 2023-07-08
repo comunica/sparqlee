@@ -403,6 +403,32 @@ describe('an aggregate evaluator should be able to', () => {
       expect(await result).toEqual(date('2001-07-23'));
     });
 
+    it('passing a non-literal to max should not be accepted', async() => {
+      const result = testCase({
+        ...baseTestCaseArgs,
+        input: [
+          BF.bindings([[ DF.variable('x'), nonLiteral() ]]),
+          BF.bindings([[ DF.variable('x'), int('2') ]]),
+          BF.bindings([[ DF.variable('x'), int('3') ]]),
+        ],
+        evalTogether: true,
+      });
+      expect(await result).toEqual(undefined);
+    });
+
+    it('passing a non-literal to max should not be accepted even in non-first place', async() => {
+      const result = testCase({
+        ...baseTestCaseArgs,
+        input: [
+          BF.bindings([[ DF.variable('x'), int('2') ]]),
+          BF.bindings([[ DF.variable('x'), nonLiteral() ]]),
+          BF.bindings([[ DF.variable('x'), int('3') ]]),
+        ],
+        evalTogether: true,
+      });
+      expect(await result).toEqual(undefined);
+    });
+
     it('with respect to empty input', async() => {
       const result = testCase({
         ...baseTestCaseArgs,
