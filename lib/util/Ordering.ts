@@ -77,7 +77,7 @@ export function orderTypes(termA: RDF.Term | undefined, termB: RDF.Term | undefi
 
 function orderLiteralTypes(litA: RDF.Literal, litB: RDF.Literal,
   typeDiscoveryCallback?: SuperTypeCallback, typeCache?: TypeCache): -1 | 0 | 1 {
-  const isLess = regularFunctions[C.RegularOperator.LT];
+  const isGreater = regularFunctions[C.RegularOperator.GT];
   const isEqual = regularFunctions[C.RegularOperator.EQUAL];
   const context = {
     now: new Date(),
@@ -97,10 +97,10 @@ function orderLiteralTypes(litA: RDF.Literal, litB: RDF.Literal,
     if ((<E.BooleanLiteral> isEqual.apply([ myLitA, myLitB ], context)).typedValue) {
       return 0;
     }
-    if ((<E.BooleanLiteral> isLess.apply([ myLitA, myLitB ], context)).typedValue) {
-      return -1;
+    if ((<E.BooleanLiteral> isGreater.apply([ myLitA, myLitB ], context)).typedValue) {
+      return 1;
     }
-    return 1;
+    return -1;
   } catch {
     // Fallback to string-based comparison
     const compareType = comparePrimitives(myLitA.dataType, myLitB.dataType);
