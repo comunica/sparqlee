@@ -1,4 +1,4 @@
-# Sparqlee
+# Sparqlee - Moved to [Comunica](https://github.com/comunica/comunica/tree/master/packages/expression-evaluator)
 
 [![Build status](https://github.com/comunica/sparqlee/workflows/CI/badge.svg)](https://github.com/comunica/sparqlee/actions?query=workflow%3ACI)
 [![Coverage Status](https://coveralls.io/repos/github/comunica/sparqlee/badge.svg?branch=master)](https://coveralls.io/github/comunica/sparqlee?branch=master)
